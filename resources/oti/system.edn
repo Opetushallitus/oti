@@ -1,0 +1,37 @@
+{:components
+ {:app  duct.component.handler/handler-component
+  :http ring.component.jetty/jetty-server
+  :db   duct.component.hikaricp/hikaricp
+  :ragtime duct.component.ragtime/ragtime}
+ :endpoints
+ {:example oti.endpoint.status/status-endpoint}
+ :dependencies
+ {:http [:app]
+  :app  [:example]
+  :ragtime [:db]
+  :example [:db]}
+ :config
+ {:app
+  {:middleware
+   {:functions
+    {:hide-errors   duct.middleware.errors/wrap-hide-errors
+     :not-found     duct.middleware.not-found/wrap-not-found
+     :ring-defaults ring.middleware.defaults/wrap-defaults}
+    :applied
+    [:not-found :ring-defaults :hide-errors]
+    :arguments
+    {:not-found   "Resource Not Found"
+     :hide-errors "Internal Server Error"
+     :ring-defaults
+     {:params    {:urlencoded true
+                  :keywordize true}
+      :responses {:not-modified-responses true
+                  :absolute-redirects     true
+                  :content-types          true
+                  :default-charset        "utf-8"}}}}}
+  :http
+  {:port http-port}
+  :db
+  {:uri db-uri}
+  :ragtime
+  {:resource-path "oti/migrations"}}}
