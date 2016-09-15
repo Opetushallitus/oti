@@ -3,7 +3,6 @@
   :url "http://www.oph.fi/koulutus_ja_tutkinnot/opetushallinnon_tutkinto"
   :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
-                 [org.clojure/clojurescript "1.9.229"]
                  [com.stuartsierra/component "0.3.1"]
                  [compojure "1.5.1"]
                  [duct "0.8.0"]
@@ -13,17 +12,21 @@
                  [ring-jetty-component "0.3.1"]
                  [duct/hikaricp-component "0.1.0"]
                  [org.postgresql/postgresql "9.4.1208"]
-                 [duct/ragtime-component "0.1.4"]]
+                 [duct/ragtime-component "0.1.4"]
+
+                 ;; Frontend
+                 [org.clojure/clojurescript "1.9.229"]
+                 [reagent "0.6.0"]]
   :plugins [[lein-environ "1.0.3"]
             [lein-cljsbuild "1.1.2"]
             [lein-figwheel "0.5.4-7"]]
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
   :resource-paths ["resources" "target/cljsbuild"]
-  :prep-tasks [["javac"] ["cljsbuild" "once"] ["compile"]]
   :cljsbuild
   {:builds
    {:dev {:source-paths ["src" "dev"]
+          :figwheel     true
           :compiler     {:optimizations :none
                          :main "oti.ui.app"
                          :asset-path "/js"

@@ -4,12 +4,13 @@
   :db   duct.component.hikaricp/hikaricp
   :ragtime duct.component.ragtime/ragtime}
  :endpoints
- {:example oti.endpoint.status/status-endpoint}
+ {:status oti.endpoint.status/status-endpoint
+  :frontend oti.endpoint.frontend/frontend-endpoint}
  :dependencies
  {:http [:app]
-  :app  [:example]
+  :app  [:status :frontend]
   :ragtime [:db]
-  :example [:db]}
+  :status [:db]}
  :config
  {:app
   {:middleware
