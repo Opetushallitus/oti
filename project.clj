@@ -27,7 +27,7 @@
   :cljsbuild
   {:builds
    {:dev {:source-paths ["src/cljs" "dev"]
-          :figwheel     true
+          :figwheel     {:on-jsload "oti.ui.app/start"}
           :compiler     {:optimizations :none
                          :main "oti.ui.app"
                          :asset-path "/js"
