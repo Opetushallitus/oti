@@ -22,10 +22,11 @@
             [lein-figwheel "0.5.4-7"]]
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
+  :source-paths ["src/clj"]
   :resource-paths ["resources" "target/cljsbuild"]
   :cljsbuild
   {:builds
-   {:dev {:source-paths ["src" "dev"]
+   {:dev {:source-paths ["src/cljs" "dev"]
           :figwheel     true
           :compiler     {:optimizations :none
                          :main "oti.ui.app"
@@ -35,7 +36,7 @@
                          :source-map true
                          :source-map-path "/js"}}
     :main {:jar true
-           :source-paths ["src"]
+           :source-paths ["src/cljs"]
            :compiler {:output-to "target/cljsbuild/oti/public/js/main.js"
                       :optimizations :advanced}}}}
   :aliases {"setup"  ["run" "-m" "duct.util.repl/setup"]}
