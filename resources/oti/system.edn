@@ -2,15 +2,18 @@
  {:app  duct.component.handler/handler-component
   :http ring.component.jetty/jetty-server
   :db   duct.component.hikaricp/hikaricp
-  :ragtime duct.component.ragtime/ragtime}
+  :ragtime duct.component.ragtime/ragtime
+  :ldap oti.component.ldap/ldap}
  :endpoints
  {:status oti.endpoint.status/status-endpoint
-  :frontend oti.endpoint.frontend/frontend-endpoint}
+  :frontend oti.endpoint.frontend/frontend-endpoint
+  :auth oti.endpoint.auth/auth-endpoint}
  :dependencies
  {:http [:app]
-  :app  [:status :frontend]
+  :app  [:status :frontend :auth]
   :ragtime [:db]
-  :status [:db]}
+  :status [:db]
+  :auth [:ldap]}
  :config
  {:app
   {:middleware

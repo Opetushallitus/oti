@@ -13,6 +13,9 @@
                  [duct/hikaricp-component "0.1.0"]
                  [org.postgresql/postgresql "9.4.1210"]
                  [duct/ragtime-component "0.1.4"]
+                 [http-kit "2.2.0"]
+                 [org.clojars.pntblnk/clj-ldap "0.0.12"]
+                 [cheshire "5.6.3"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.229"]
