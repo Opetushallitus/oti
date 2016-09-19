@@ -13,7 +13,7 @@
   :app  [:status :frontend :auth]
   :ragtime [:db]
   :status [:db]
-  :auth [:ldap]}
+  :auth [:authentication :cas :ldap]}
  :config
  {:app
   {:middleware
@@ -27,7 +27,7 @@
     :arguments
     {:not-found   "Resource Not Found"
      :hide-errors "Internal Server Error"
-     :session "[B@302094a3"
+     :session     "soroRfgsbxRTsnXc"
      :ring-defaults
      {:params    {:urlencoded true
                   :keywordize true}

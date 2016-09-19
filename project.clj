@@ -16,6 +16,7 @@
                  [http-kit "2.2.0"]
                  [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
+                 [com.taoensso/timbre "4.7.4"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.229"]
@@ -65,5 +66,6 @@
                    :source-paths   ["dev/src"]
                    :resource-paths ["dev/resources"]
                    :repl-options {:init-ns user}
-                   :env {:port "3000"}}
+                   :env {:port "3000"
+                         :dev? "true"}}
    :project/test  {}})
