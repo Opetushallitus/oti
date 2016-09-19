@@ -1,0 +1,10 @@
+INSERT INTO exam VALUES (default);
+INSERT INTO section (name, exam_id) VALUES ('A', 1);
+INSERT INTO section (name, exam_id) VALUES ('B', 1);
+INSERT INTO module (name, section_id) VALUES ('Yleishallinto-oikeus', 1);
+INSERT INTO module (name, section_id) VALUES ('Kunnallishallinto', 1);
+INSERT INTO module (name, section_id) VALUES ('Viranomaisen asiakirjat ja henkilötietojen julkisuus', 1);
+INSERT INTO module (name, section_id) VALUES ('Oikeudellinen vastuu', 1);
+INSERT INTO module (name, section_id) VALUES ('Henkilöstöhallinto', 2);
+INSERT INTO module (name, section_id) VALUES ('Talous', 2);
+INSERT INTO module (name, section_id) VALUES ('Opetushallinto', 2);
