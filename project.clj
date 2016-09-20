@@ -12,6 +12,7 @@
                  [ring/ring-defaults "0.2.1"]
                  [duct/hikaricp-component "0.1.0"]
                  [org.postgresql/postgresql "9.4.1210"]
+                 [ragtime "0.6.3"]
                  [duct/ragtime-component "0.1.4"]
                  [suspendable "0.1.1"]
                  [http-kit "2.2.0"]
@@ -19,7 +20,8 @@
                  [cheshire "5.6.3"]
                  [com.taoensso/timbre "4.7.4"]
                  [org.clojure/core.async "0.2.391"]
-                 [webjure/jeesql "0.4.2"]
+                 [org.clojure/java.jdbc "0.6.1"]
+                 [yesql "0.5.3"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.229"]
