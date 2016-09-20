@@ -9,28 +9,27 @@
             [clojure.string :as str]
             [oti.util.auth :as auth]))
 
-(defn- cas-login [cas-config {:keys [oti-login-success-uri]} ldap ticket]
-  (if #_(:dev? env) false
-    "DEVELOPER"
-    (do
-      (info "validating ticket" ticket)
-      (when-let [username (cas/username-from-valid-service-ticket cas-config oti-login-success-uri ticket)]
-        (when (la/user-has-access? ldap username)
-          (auth/login ticket)
-          username)))))
-
 (defn- redirect-to-logged-out-page [{:keys [opintopolku-login-uri oti-login-success-uri]}]
   (resp/redirect (str opintopolku-login-uri oti-login-success-uri)))
+
+(defn- cas-login [cas-config {:keys [oti-login-success-uri] :as auth-config} ldap ticket]
+  (info "validating ticket" ticket)
+  (if-let [username (cas/username-from-valid-service-ticket cas-config oti-login-success-uri ticket)]
+    (if (la/user-has-access? ldap username)
+      (do
+        (auth/login ticket)
+        (info "username" username "logged in")
+        (-> (resp/redirect "/test-auth")
+            (assoc :session {:identity {:username username :ticket ticket}})))
+      (do
+        (info "username" username "tried to log in but does not have the correct role in LDAP")
+        {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))
+    (redirect-to-logged-out-page auth-config)))
 
 (defn- login [cas-config auth-config ldap ticket]
   (try
     (if ticket
-      (if-let [username (cas-login cas-config auth-config ldap ticket)]
-        (do
-          (info "username" username "logged in")
-          (-> (resp/redirect "/test-auth")
-              (assoc :session {:identity {:username username :ticket ticket}})))
-        (redirect-to-logged-out-page auth-config))
+      (cas-login cas-config auth-config ldap ticket)
       (redirect-to-logged-out-page auth-config))
     (catch Exception e
       (error "Error in login ticket handling" e)
