@@ -41,11 +41,11 @@
           :figwheel     {:on-jsload "oti.ui.app/start"}
           :compiler     {:optimizations :none
                          :main "oti.ui.app"
-                         :asset-path "/js"
+                         :asset-path "/oti/js"
                          :output-to  "target/figwheel/oti/public/js/main.js"
                          :output-dir "target/figwheel/oti/public/js"
                          :source-map true
-                         :source-map-path "/js"}}
+                         :source-map-path "/oti/js"}}
     :main {:jar true
            :source-paths ["src/cljs"]
            :compiler {:output-to "target/cljsbuild/oti/public/js/main.js"

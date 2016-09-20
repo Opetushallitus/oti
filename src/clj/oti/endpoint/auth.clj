@@ -52,7 +52,7 @@
 
 (defn auth-endpoint [{:keys [ldap authentication cas]}]
   (routes
-    (context "/auth" []
+    (context "/oti/auth" []
       (GET "/cas" [ticket]
         (login cas authentication ldap ticket))
       (POST "/cas" [logoutRequest]
