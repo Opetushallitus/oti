@@ -63,4 +63,4 @@
           {:status 200
            :body (with-out-str (pp/pprint session))
            :headers {"Content-Type" "text/plain"}})
-        (auth/wrap-authorization))))
+        (wrap-routes auth/wrap-authorization))))

@@ -1,6 +1,6 @@
 {:components
  {:app  duct.component.handler/handler-component
-  :http ring.component.jetty/jetty-server
+  :http oti.component.http-kit-server/http-kit-server
   :db   duct.component.hikaricp/hikaricp
   :ragtime duct.component.ragtime/ragtime
   :ldap oti.component.ldap/ldap}
@@ -36,7 +36,8 @@
                   :content-types          true
                   :default-charset        "utf-8"}}}}}
   :http
-  {:port http-port}
+  {:port http-port
+   :thread 80}
   :db
   {:uri db-uri}
   :ragtime
