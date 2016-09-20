@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS exam_session (
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   location_info TEXT NOT NULL,
+  max_participants NUMERIC DEFAULT 40,
   exam_id BIGINT REFERENCES exam (id) NOT NULL
 );
 --;;
@@ -34,7 +35,8 @@ CREATE TABLE IF NOT EXISTS registration (
   id BIGSERIAL PRIMARY KEY,
   state registration_state NOT NULL,
   exam_session_id BIGINT REFERENCES exam_session (id) NOT NULL,
-  participant_id BIGINT REFERENCES participant (id) NOT NULL
+  participant_id BIGINT REFERENCES participant (id) NOT NULL,
+  CONSTRAINT one_participation_per_session_constraint UNIQUE (exam_session_id, participant_id)
 );
 --;;
 CREATE TYPE payment_state AS ENUM ('OK', 'UNPAID', 'ERROR');
