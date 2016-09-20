@@ -17,6 +17,7 @@
                  [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
                  [com.taoensso/timbre "4.7.4"]
+                 [org.clojure/core.async "0.2.391"]
                  [webjure/jeesql "0.4.2"]
 
                  ;; Frontend
