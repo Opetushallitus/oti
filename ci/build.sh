@@ -1,5 +1,5 @@
 #!/bin/sh
 
-lein clean
-lein compile
-lein test2junit
+./bin/lein clean
+./bin/lein compile
+./bin/lein test2junit
