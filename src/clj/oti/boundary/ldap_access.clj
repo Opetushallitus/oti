@@ -1,7 +1,8 @@
 (ns oti.boundary.ldap-access
   (:require [clj-ldap.client :as ldap]
             [clojure.string :as str]
-            [cheshire.core :as json])
+            [cheshire.core :as json]
+            [oti.component.ldap])
   (:import [oti.component.ldap Ldap]))
 
 (def people-path-base "ou=People,dc=opintopolku,dc=fi")
