@@ -33,11 +33,11 @@
             [test2junit "1.2.2"]]
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
-  :source-paths ["src/clj"]
+  :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
   :cljsbuild
   {:builds
-   {:dev {:source-paths ["src/cljs" "dev"]
+   {:dev {:source-paths ["src/cljs" "src/cljc" "dev"]
           :figwheel     {:on-jsload "oti.ui.app/start"}
           :compiler     {:optimizations :none
                          :main "oti.ui.app"
@@ -47,7 +47,7 @@
                          :source-map true
                          :source-map-path "/oti/js"}}
     :main {:jar true
-           :source-paths ["src/cljs"]
+           :source-paths ["src/cljs" "src/cljc"]
            :compiler {:output-to "target/cljsbuild/oti/public/js/main.js"
                       :optimizations :advanced}}}}
   :aliases {"setup"  ["run" "-m" "duct.util.repl/setup"]}
