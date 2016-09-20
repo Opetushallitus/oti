@@ -1,0 +1,18 @@
+; Configuration template for remote deployments
+{:config
+ {:db {:uri "{{oti_db_uri}}"
+       :username "{{oti_db_username}}"
+       :password "{{oti_db_password}}"
+       :pool-name "oti-pool"
+       :maximum-pool-size {{oti_db_max_pool_size}}}}
+  :ldap {:server "{{ldap_server}}"
+         :port 389
+         :userdn "{{oti_ldap_user}}"
+         :password "{{oti_ldap_password}}"
+         :ssl false}
+  :cas {:user {:username "{{oti_cas_username}}" :password "{{oti_cas_password}}"}}
+  :http {:port 3000}
+  :authentication {:opintopolku-login-uri "{{oti_authentication_opintopolku_login_url}}"
+                     :opintopolku-logout-uri  "{{oti_authentication_opintopolku_logout_url}}"
+                     :oti-login-success-uri "{{oti_authentication_oti_login_success_url}}"}
+  :cas {:virkailija-lb-uri "{{oti_cas_virkailija_lb_uri}}"}}

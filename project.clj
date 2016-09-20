@@ -60,7 +60,8 @@
              :prep-tasks ^:replace ["clean"
                                     ["cljsbuild" "once" "main"]
                                     "javac"
-                                    "compile"]}
+                                    "compile"]
+             :uberjar-name "oti.jar"}
    :profiles/dev  {}
    :profiles/test {}
    :project/dev   {:dependencies [[duct/generate "0.8.0"]

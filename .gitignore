@@ -14,3 +14,4 @@ pom.xml.asc
 .idea/
 *.iml
 figwheel_server.log
+/oph-configuration/config.edn
