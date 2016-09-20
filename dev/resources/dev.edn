@@ -2,8 +2,12 @@
  {:app
   {:middleware
    {:functions {:stacktrace ring.middleware.stacktrace/wrap-stacktrace}
-    :applied   ^:replace [:not-found :ring-defaults :stacktrace]}}
+    :applied   ^:replace [:not-found :ring-defaults :stacktrace :session]}}
   :http
   {:port 3000}
   :db
-  {:uri "jdbc:postgresql://localhost/postgres"}}}
+  {:uri "jdbc:postgresql://localhost/postgres"}
+  :authentication {:opintopolku-login-uri "https://itest-virkailija.oph.ware.fi/cas/login?service="
+                   :opintopolku-logout-uri  "https://itest-virkailija.oph.ware.fi/cas/logout?service="
+                   :oti-login-success-uri "http://localhost:3000/auth/cas"}
+  :cas {:virkailija-lb-uri "https://itest-virkailija.oph.ware.fi"}}}
