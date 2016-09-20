@@ -29,7 +29,8 @@
                  [reagent "0.6.0"]]
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
-            [lein-figwheel "0.5.7"]]
+            [lein-figwheel "0.5.7"]
+            [test2junit "1.2.2"]]
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
   :source-paths ["src/clj"]
