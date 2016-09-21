@@ -11,7 +11,7 @@
          :password "{{ldap_manager_password}}"
          :ssl false}
   :cas {:user {:username "{{oti_cas_username}}" :password "{{oti_cas_password}}"}}
-  :http {:port 3000}
+  :http {:port {{oti_http_port}}}
   :authentication {:opintopolku-login-uri "{{oti_authentication_opintopolku_login_url}}"
                      :opintopolku-logout-uri  "{{oti_authentication_opintopolku_logout_url}}"
                      :oti-login-success-uri "{{oti_authentication_oti_login_success_url}}"}
