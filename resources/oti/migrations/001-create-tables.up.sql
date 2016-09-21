@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS registration (
   CONSTRAINT one_participation_per_session_constraint UNIQUE (exam_session_id, participant_id)
 );
 --;;
-CREATE TABLE IF NOT EXISTS accreditation (
+CREATE TABLE IF NOT EXISTS accreditation_type (
   id BIGSERIAL PRIMARY KEY,
   description TEXT NOT NULL
 );
@@ -47,19 +47,19 @@ CREATE TABLE IF NOT EXISTS accreditation (
 CREATE TABLE IF NOT EXISTS accredited_exam_section (
   id BIGSERIAL PRIMARY KEY,
   accreditation_date DATE NOT NULL DEFAULT current_date,
-  cause BIGINT REFERENCES accreditation (id) NOT NULL,
+  accreditation_type_id BIGINT REFERENCES accreditation_type (id) NOT NULL,
   section_id BIGINT REFERENCES section (id) NOT NULL,
   participant_id BIGINT REFERENCES participant (id) NOT NULL,
-  CONSTRAINT section_credited_only_once UNIQUE (section_id, participant_id)
+  CONSTRAINT section_accredited_only_once UNIQUE (section_id, participant_id)
 );
 --;;
 CREATE TABLE IF NOT EXISTS accredited_exam_module (
   id BIGSERIAL PRIMARY KEY,
   accreditation_date DATE NOT NULL DEFAULT current_date,
-  cause BIGINT REFERENCES accreditation (id) NOT NULL,
+  accreditation_type_id BIGINT REFERENCES accreditation_type (id) NOT NULL,
   module_id BIGINT REFERENCES module (id) NOT NULL,
   participant_id BIGINT REFERENCES participant (id) NOT NULL,
-  CONSTRAINT module_credited_only_once UNIQUE (module_id, participant_id)
+  CONSTRAINT module_accredited_only_once UNIQUE (module_id, participant_id)
 );
 --;;
 CREATE TABLE IF NOT EXISTS registration_exam_content_section (

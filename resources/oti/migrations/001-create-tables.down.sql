@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS accredited_exam_module;
 --;;
 DROP TABLE IF EXISTS accredited_exam_section;
 --;;
-DROP TABLE IF EXISTS accreditation;
+DROP TABLE IF EXISTS accreditation_type;
 --;;
 DROP TABLE IF EXISTS registration;
 --;;
