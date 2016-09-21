@@ -11,3 +11,10 @@
     (logout ticket)
     (is (= 401 (:status (wrapped-handler request))))
     (is (= 401 (:status (wrapped-handler {}))))))
+
+(deftest login-logout-works
+  (let [ticket "barfoo"]
+    (login ticket)
+    (is (contains? @cas-tickets ticket))
+    (logout ticket)
+    (is (not (contains? @cas-tickets ticket)))))
