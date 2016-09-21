@@ -3,7 +3,8 @@
   :http oti.component.http-kit-server/http-kit-server
   :db   duct.component.hikaricp/hikaricp
   :ragtime duct.component.ragtime/ragtime
-  :ldap oti.component.ldap/ldap}
+  :ldap oti.component.ldap/ldap
+  :cas oti.component.cas/cas-config}
  :endpoints
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint

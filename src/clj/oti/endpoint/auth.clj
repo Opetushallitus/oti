@@ -3,7 +3,7 @@
             [oti.boundary.ldap-access :as la]
             [clojure.pprint :as pp]
             [environ.core :refer [env]]
-            [oti.util.cas-client :as cas]
+            [oti.component.cas :as cas]
             [ring.util.response :as resp]
             [taoensso.timbre :refer [info error]]
             [clojure.string :as str]
@@ -19,7 +19,7 @@
       (do
         (auth/login ticket)
         (info "username" username "logged in")
-        (-> (resp/redirect "/test-auth")
+        (-> (resp/redirect "/oti/virkailija")
             (assoc :session {:identity {:username username :ticket ticket}})))
       (do
         (info "username" username "tried to log in but does not have the correct role in LDAP")
@@ -37,6 +37,7 @@
 
 (defn- logout [{:keys [opintopolku-logout-uri oti-login-success-uri]} session]
   (info "username" (-> session :identity :username) "logged out")
+  (println (-> session :identity :ticket))
   (auth/logout (-> session :identity :ticket))
   (-> (resp/redirect (str opintopolku-logout-uri oti-login-success-uri))
       (assoc :session {:identity nil})))
