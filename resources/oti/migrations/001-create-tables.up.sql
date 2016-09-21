@@ -39,6 +39,17 @@ CREATE TABLE IF NOT EXISTS registration (
   CONSTRAINT one_participation_per_session_constraint UNIQUE (exam_session_id, participant_id)
 );
 --;;
+CREATE TYPE content_type AS ENUM ('MODULE', 'SECTION');
+--;;
+CREATE TABLE IF NOT EXISTS registration_exam_content (
+  id BIGSERIAL PRIMARY KEY,
+  type content_type NOT NULL,
+  content_ref_id BIGINT NOT NULL,
+  participant_id BIGINT REFERENCES participant (id) NOT NULL,
+  registration_id BIGINT REFERENCES registration (id),
+  CONSTRAINT only_once_for_single_registration_constraint UNIQUE (type, content_ref_id, participant_id, registration_id)
+);
+--;;
 CREATE TYPE payment_state AS ENUM ('OK', 'UNPAID', 'ERROR');
 --;;
 CREATE TYPE payment_type AS ENUM ('FULL', 'PARTIAL');
@@ -56,7 +67,8 @@ CREATE TABLE IF NOT EXISTS section_score (
   id BIGSERIAL PRIMARY KEY,
   accepted BOOLEAN NOT NULL,
   section_id BIGINT REFERENCES section (id) NOT NULL,
-  exam_session_id BIGINT REFERENCES exam_session (id) NOT NULL
+  participant_id BIGINT REFERENCES participant (id) NOT NULL,
+  exam_session_id BIGINT REFERENCES exam_session (id)
 );
 --;;
 CREATE TABLE IF NOT EXISTS module_score (
