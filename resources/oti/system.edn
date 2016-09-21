@@ -39,7 +39,5 @@
   :http
   {:port http-port
    :thread 80}
-  :db
-  {:uri db-uri}
   :ragtime
   {:resource-path "oti/migrations"}}}
