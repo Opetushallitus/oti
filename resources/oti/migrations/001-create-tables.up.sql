@@ -39,15 +39,20 @@ CREATE TABLE IF NOT EXISTS registration (
   CONSTRAINT one_participation_per_session_constraint UNIQUE (exam_session_id, participant_id)
 );
 --;;
-CREATE TYPE content_type AS ENUM ('MODULE', 'SECTION');
---;;
-CREATE TABLE IF NOT EXISTS registration_exam_content (
+CREATE TABLE IF NOT EXISTS registration_exam_content_section (
   id BIGSERIAL PRIMARY KEY,
-  type content_type NOT NULL,
-  content_ref_id BIGINT NOT NULL,
+  section_id BIGINT REFERENCES section (id) NOT NULL,
   participant_id BIGINT REFERENCES participant (id) NOT NULL,
-  registration_id BIGINT REFERENCES registration (id),
-  CONSTRAINT only_once_for_single_registration_constraint UNIQUE (type, content_ref_id, participant_id, registration_id)
+  registration_id BIGINT REFERENCES registration (id) NOT NULL,
+  CONSTRAINT section_only_once_for_single_registration_constraint UNIQUE (section_id, participant_id, registration_id)
+);
+--;;
+CREATE TABLE IF NOT EXISTS registration_exam_content_module (
+  id BIGSERIAL PRIMARY KEY,
+  module_id BIGINT REFERENCES module (id) NOT NULL,
+  participant_id BIGINT REFERENCES participant (id) NOT NULL,
+  registration_id BIGINT REFERENCES registration (id) NOT NULL,
+  CONSTRAINT module_only_once_for_single_registration_constraint UNIQUE (module_id, participant_id, registration_id)
 );
 --;;
 CREATE TYPE payment_state AS ENUM ('OK', 'UNPAID', 'ERROR');
