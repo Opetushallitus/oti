@@ -1,1 +1,1 @@
-DROP TRIGGER IF EXISTS section_must_exist_before_module_trigger ON registration_exam_content CASCADE;
+DROP TRIGGER IF EXISTS section_must_exist_before_module_trigger ON registration_exam_content_module CASCADE;
