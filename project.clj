@@ -69,6 +69,7 @@
    :uberjar {:aot :all
              :prep-tasks ^:replace ["clean"
                                     ["cljsbuild" "once" "main"]
+                                    ["less" "once"]
                                     "javac"
                                     "compile"]
              :uberjar-name "oti.jar"}
