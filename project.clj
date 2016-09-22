@@ -26,7 +26,11 @@
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.229"]
-                 [reagent "0.6.0"]]
+                 [reagent "0.6.0"]
+                 [binaryage/devtools "0.8.2"]
+                 [re-frame "0.8.0"]
+                 [kibu/pushy "0.3.6"]
+                 [secretary "1.2.3"]]
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
             [lein-figwheel "0.5.7"]
