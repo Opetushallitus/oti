@@ -4,15 +4,23 @@
               [re-frame.core :as re-frame]
               [pushy.core :as pushy]))
 
+(def routes
+  [{:view :exam-sessions-panel :url "/oti/virkailija" :text "Koetilaisuudet"}
+   {:view :students-panel :url "/oti/virkailija/henkilot" :text "Henkilötiedot"}])
+
 (defn app-routes []
   (secretary/set-config! :prefix "/")
 
+  (doseq [{:keys [view url]} routes]
+    (secretary/add-route! url #(re-frame/dispatch [:set-active-panel view]))
+    #_(defroute url []
+      (re-frame/dispatch [:set-active-panel view])))
   ;; Front-end routes
-  (defroute "/oti/virkailija" []
-    (re-frame/dispatch [:set-active-panel :exam-sessions-panel]))
-
-  (defroute "/oti/virkailija/students" []
-    (re-frame/dispatch [:set-active-panel :students-panel]))
+  ;(defroute "/oti/virkailija" []
+  ;  (re-frame/dispatch [:set-active-panel :exam-sessions-panel]))
+  ;
+  ;(defroute "/oti/virkailija/students" []
+  ;  (re-frame/dispatch [:set-active-panel :students-panel]))
 
   ;; Pushy handles the HTML5 history based navigation
   (-> (pushy/pushy secretary/dispatch!

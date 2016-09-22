@@ -1,0 +1,56 @@
+.clearfix,
+.navbar {
+  zoom: 1;
+}
+.clearfix:before,
+.clearfix:after,
+.navbar:before,
+.navbar:after {
+  content: "";
+  display: table;
+}
+.clearfix:after,
+.navbar:after {
+  clear: both;
+}
+.header {
+  margin-top: 1rem;
+}
+.header div {
+  display: inline-block;
+  vertical-align: middle;
+}
+.header .logo {
+  margin-right: 3rem;
+}
+.header .text {
+  font-size: 2.5rem;
+  font-weight: 200;
+}
+.navbar {
+  display: block;
+  width: 100%;
+  border-top: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;
+  margin: 10px 0;
+  padding: 8px 0;
+}
+.navbar-list {
+  list-style: none;
+  margin: 0;
+}
+.navbar-list .navbar-item {
+  position: relative;
+  margin: 0 1rem 0 0;
+  float: left;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .2rem;
+  text-transform: uppercase;
+}
+.navbar-list .navbar-item a {
+  text-decoration: none;
+}
+.navbar-list .navbar-item a:hover {
+  text-decoration: underline;
+}

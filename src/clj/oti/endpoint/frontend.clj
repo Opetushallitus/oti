@@ -9,7 +9,7 @@
       (redirect "/oti/virkailija"))
     (context "/oti" []
       (GET "/virkailija*" []
-        (-> (resource-response "/public/index.html")
+        (-> (resource-response "/oti/public/index.html")
             (content-type "text/html; charset=utf-8")))
       (route/resources "/" {:root "/oti/public"
                             :mime-types {"js" "text/javascript; charset=utf-8"}}))))

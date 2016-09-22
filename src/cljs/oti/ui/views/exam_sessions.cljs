@@ -4,5 +4,4 @@
 (defn exam-sessions-panel []
   (let [name (re-frame/subscribe [:name])]
     (fn []
-      [:div [:h2 "Koetilaisuudet"]
-       [:div [:a {:href "/oti/virkailija/students"} "Henkilötiedot"]]])))
+      [:div [:h2 "Koetilaisuudet"]])))

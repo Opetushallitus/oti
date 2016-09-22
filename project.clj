@@ -34,11 +34,15 @@
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
             [lein-figwheel "0.5.7"]
-            [test2junit "1.2.2"]]
+            [test2junit "1.2.2"]
+            [lein-less "1.7.5"]]
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
+  :less {:source-paths ["src/less"]
+         :target-path "resources/oti/public/css"}
+  :figwheel {:css-dirs ["resources/oti/public/css"]}
   :cljsbuild
   {:builds
    {:dev {:source-paths ["src/cljs" "src/cljc" "dev"]
