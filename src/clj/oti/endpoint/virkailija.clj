@@ -3,7 +3,7 @@
             [ring.util.response :refer [resource-response content-type redirect]]
             [oti.util.auth :as auth]))
 
-(defn virkailija-endpoint [{{db :spec} :db}]
+(defn virkailija-endpoint [{:keys [db]}]
   (-> (context "/oti/api/virkailija" []
         (GET "/user-info" {session :session}
           {:status 200

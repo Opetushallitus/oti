@@ -4,7 +4,7 @@
             [ring.util.response :refer [resource-response content-type redirect]]
             [oti.util.auth :as auth]))
 
-(defn frontend-endpoint []
+(defn frontend-endpoint [_]
   (routes
     (GET "/" []
       (redirect "/oti/virkailija"))

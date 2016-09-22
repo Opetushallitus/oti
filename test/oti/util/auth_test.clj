@@ -12,6 +12,11 @@
     (is (= 401 (:status (wrapped-handler request))))
     (is (= 401 (:status (wrapped-handler {}))))))
 
+(deftest wrap-authorization-with-redirect-works
+  (let [wrapped-handler (wrap-authorization (fn [_] :handled) :redirect)]
+    (is (= {:status 302, :headers {"Location" "/oti/auth/cas"}, :body ""}
+           (wrapped-handler {})))))
+
 (deftest login-logout-works
   (let [ticket "barfoo"]
     (login ticket)

@@ -52,15 +52,10 @@
     {:status 200 :body ""}))
 
 (defn auth-endpoint [{:keys [ldap authentication cas]}]
-  (routes
-    (context "/oti/auth" []
-      (GET "/cas" [ticket]
-        (login cas authentication ldap ticket))
-      (POST "/cas" [logoutRequest]
-        (cas-initiated-logout logoutRequest))
-      (GET "/logout" {session :session}
-        (logout authentication session)))
-    (-> (GET "/test-auth" {session :session}
-          {:status 200
-           :body session})
-        (wrap-routes auth/wrap-authorization))))
+  (context "/oti/auth" []
+    (GET "/cas" [ticket]
+      (login cas authentication ldap ticket))
+    (POST "/cas" [logoutRequest]
+      (cas-initiated-logout logoutRequest))
+    (GET "/logout" {session :session}
+      (logout authentication session))))
