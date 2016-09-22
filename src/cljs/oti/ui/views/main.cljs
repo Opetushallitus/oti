@@ -13,7 +13,7 @@
   [panel-name]
   [panels panel-name])
 
-(defn navigation-panel [active-page]
+(defn navigation-panel [active-page user]
   [:nav.navbar
    [:ul.navbar-list
     (doall
@@ -21,16 +21,21 @@
         [:li.navbar-item {:key (name view)}
          (if (= active-page view)
            [:span text]
-           [:a {:href url} text])]))]])
+           [:a {:href url} text])]))]
+   [:div.user
+    [:span (:username user)]
+    [:br]
+    [:a.logout {:href "/oti/auth/logout"} "Kirjaudu ulos"]]])
 
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [:active-panel])]
+  (let [active-panel (re-frame/subscribe [:active-panel])
+        user (re-frame/subscribe [:user])]
     (fn []
       [:div.container
        [:div.header
         [:div.logo
          [:img {:src "http://www.oph.fi/instancedata/prime_product_julkaisu/oph/pics/opetushallitus.gif"}]]
         [:div.text "Opetushallinnon tutkintorekisteri"]]
-       [navigation-panel @active-panel]
+       [navigation-panel @active-panel @user]
        [:main
         [show-panel @active-panel]]])))

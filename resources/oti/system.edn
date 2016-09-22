@@ -8,13 +8,15 @@
  :endpoints
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint
-  :auth oti.endpoint.auth/auth-endpoint}
+  :auth oti.endpoint.auth/auth-endpoint
+  :virkailija oti.endpoint.virkailija/virkailija-endpoint}
  :dependencies
  {:http [:app]
-  :app  [:status :frontend :auth]
+  :app  [:status :frontend :auth :virkailija]
   :ragtime [:db]
-  :status [:db]
-  :auth [:authentication :cas :ldap]}
+  :status []
+  :auth [:authentication :cas :ldap]
+  :virkailija [:db]}
  :config
  {:app
   {:middleware
@@ -22,9 +24,10 @@
     {:hide-errors   duct.middleware.errors/wrap-hide-errors
      :not-found     duct.middleware.not-found/wrap-not-found
      :ring-defaults ring.middleware.defaults/wrap-defaults
-     :session       oti.util.session/wrap-session}
+     :session       oti.util.session/wrap-session
+     :json-response ring.middleware.json/wrap-json-response}
     :applied
-    [:not-found :ring-defaults :hide-errors :session]
+    [:not-found :json-response :ring-defaults :hide-errors :session]
     :arguments
     {:not-found   "Resource Not Found"
      :hide-errors "Internal Server Error"

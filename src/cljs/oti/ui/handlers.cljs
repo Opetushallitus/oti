@@ -1,6 +1,8 @@
 (ns oti.ui.handlers
-    (:require [re-frame.core :as re-frame]
-              [oti.ui.db :as db]))
+  (:require [day8.re-frame.http-fx]
+            [re-frame.core :as re-frame]
+            [oti.ui.db :as db]
+            [ajax.core :as ajax]))
 
 (re-frame/reg-event-db
  :initialize-db
@@ -11,3 +13,24 @@
  :set-active-panel
  (fn [db [_ active-panel]]
    (assoc db :active-panel active-panel)))
+
+(re-frame/reg-event-fx
+  :load-user
+  (fn [_ _]
+    {:http-xhrio {:method          :get
+                  :uri             "/oti/api/virkailija/user-info"
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:process-response]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-db
+  :process-response
+  (fn
+    [db [_ response]]
+    (assoc db :user (js->clj response))))
+
+(re-frame/reg-event-db
+  :bad-response
+  (fn
+    [db [_ response]]
+    (assoc db :user {})))

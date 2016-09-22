@@ -34,23 +34,34 @@
   border-bottom: 1px solid lightgray;
   margin: 10px 0;
   padding: 8px 0;
+  line-height: 32px;
+  text-transform: uppercase;
+}
+.navbar a {
+  text-decoration: none;
+}
+.navbar a:hover {
+  text-decoration: underline;
+}
+.navbar .user {
+  float: right;
+  display: inline-block;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: right;
 }
 .navbar-list {
   list-style: none;
+  display: inline-block;
   margin: 0;
+  vertical-align: middle;
 }
 .navbar-list .navbar-item {
-  position: relative;
+  display: inline-block;
+  line-height: normal;
   margin: 0 1rem 0 0;
-  float: left;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: .2rem;
-  text-transform: uppercase;
-}
-.navbar-list .navbar-item a {
-  text-decoration: none;
-}
-.navbar-list .navbar-item a:hover {
-  text-decoration: underline;
+  vertical-align: middle;
 }

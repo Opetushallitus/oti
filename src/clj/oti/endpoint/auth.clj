@@ -9,7 +9,7 @@
             [clojure.string :as str]
             [oti.util.auth :as auth]))
 
-(defn- redirect-to-logged-out-page [{:keys [opintopolku-login-uri oti-login-success-uri]}]
+(defn- redirect-to-cas-login-page [{:keys [opintopolku-login-uri oti-login-success-uri]}]
   (resp/redirect (str opintopolku-login-uri oti-login-success-uri)))
 
 (defn- cas-login [cas-config {:keys [oti-login-success-uri] :as auth-config} ldap ticket]
@@ -24,16 +24,16 @@
       (do
         (info "username" username "tried to log in but does not have the correct role in LDAP")
         {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))
-    (redirect-to-logged-out-page auth-config)))
+    (redirect-to-cas-login-page auth-config)))
 
 (defn- login [cas-config auth-config ldap ticket]
   (try
     (if ticket
       (cas-login cas-config auth-config ldap ticket)
-      (redirect-to-logged-out-page auth-config))
+      (redirect-to-cas-login-page auth-config))
     (catch Exception e
       (error "Error in login ticket handling" e)
-      (redirect-to-logged-out-page auth-config))))
+      (redirect-to-cas-login-page auth-config))))
 
 (defn- logout [{:keys [opintopolku-logout-uri oti-login-success-uri]} session]
   (info "username" (-> session :identity :username) "logged out")
@@ -62,6 +62,5 @@
         (logout authentication session)))
     (-> (GET "/test-auth" {session :session}
           {:status 200
-           :body (with-out-str (pp/pprint session))
-           :headers {"Content-Type" "text/plain"}})
+           :body session})
         (wrap-routes auth/wrap-authorization))))

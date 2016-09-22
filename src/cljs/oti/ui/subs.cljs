@@ -3,9 +3,9 @@
     (:require [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
- :name
+ :user
  (fn [db]
-   (:name db)))
+   (:user db)))
 
 (re-frame/reg-sub
  :active-panel
