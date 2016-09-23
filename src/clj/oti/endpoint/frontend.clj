@@ -9,6 +9,8 @@
     (GET "/" []
       (redirect "/oti/virkailija"))
     (context "/oti" []
+      (GET "/" []
+        (redirect "/oti/virkailija"))
       (-> (GET "/virkailija*" []
             (-> (resource-response "/oti/public/index.html")
                 (content-type "text/html; charset=utf-8")))
