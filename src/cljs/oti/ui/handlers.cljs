@@ -34,3 +34,15 @@
   (fn
     [db [_ response]]
     (assoc db :user {})))
+
+(re-frame/reg-event-fx
+  :add-exam-session
+  (fn [_ [_ data]]
+    {:http-xhrio {:method          :post
+                  :uri             "/oti/api/virkailija/exam-sessions"
+                  :body            (ajax/write-json data)
+                  :format          :json
+                  :headers         {"Content-Type" "application/json; charset=utf8"}
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:process-response]
+                  :on-failure      [:bad-response]}}))

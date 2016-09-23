@@ -10,8 +10,10 @@
           {:status 200
            :body (select-keys (:identity session) [:username])})
         (context "/exam-sessions" []
-          (POST "/" {exam-data :body}
-            (if (s/valid? :oti.spec/exam-session exam-data)
+          (POST "/" {body :body}
+            (println body)
+            (if (s/valid? :oti.spec/exam-session body)
               {:status 200}
-              {:status 400}))))
+              {:status 400
+               :body {:errors (s/explain :oti.spec/exam-session body)}}))))
       (wrap-routes auth/wrap-authorization)))

@@ -1,17 +1,27 @@
 .clearfix,
-.navbar {
+.navbar,
+.exam-session-form {
   zoom: 1;
 }
 .clearfix:before,
 .clearfix:after,
 .navbar:before,
-.navbar:after {
+.navbar:after,
+.exam-session-form:before,
+.exam-session-form:after {
   content: "";
   display: table;
 }
 .clearfix:after,
-.navbar:after {
+.navbar:after,
+.exam-session-form:after {
   clear: both;
+}
+.left {
+  float: left;
+}
+.right {
+  float: right;
 }
 .header {
   margin-top: 1rem;
@@ -64,4 +74,14 @@
   font-weight: 600;
   letter-spacing: .2rem;
   vertical-align: middle;
+}
+.exam-session-form span,
+.exam-session-form input {
+  display: inline-block;
+}
+.exam-session-form input {
+  margin-right: 15px;
+}
+.exam-session-form .label {
+  width: 250px;
 }
