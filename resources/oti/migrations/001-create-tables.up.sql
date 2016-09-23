@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS exam_session (
   session_date DATE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
-  location_info TEXT NOT NULL,
+  street_address TEXT NOT NULL,
+  city TEXT NOT NULL,
+  other_location_info TEXT NOT NULL,
   max_participants NUMERIC DEFAULT 40,
   exam_id BIGINT REFERENCES exam (id) NOT NULL
 );
