@@ -26,7 +26,7 @@
                  [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
                  [com.taoensso/timbre "4.7.4"]
-                 [yesql "0.5.3"]
+                 [org.clojars.mpenttila/yesql "0.6.0"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.229"]
