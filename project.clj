@@ -5,7 +5,6 @@
   :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
                  [org.clojure/tools.reader "1.0.0-beta3"]
                  [org.clojure/core.async "0.2.391"]
-                 [org.clojure/java.jdbc "0.6.1"]
                  [com.stuartsierra/component "0.3.1"]
                  [compojure "1.5.1"]
                  [duct "0.8.0"]
@@ -26,7 +25,7 @@
                  [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
                  [com.taoensso/timbre "4.7.4"]
-                 [org.clojars.mpenttila/yesql "0.6.0"]
+                 [webjure/jeesql "0.4.3"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.229"]

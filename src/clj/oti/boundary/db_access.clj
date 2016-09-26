@@ -1,10 +1,10 @@
 (ns oti.boundary.db-access
-  (:require [yesql.core :refer [defqueries]]
+  (:require [jeesql.core :refer [require-sql]]
             [clojure.java.jdbc :as jdbc]
             [duct.component.hikaricp])
   (:import [duct.component.hikaricp HikariCP]))
 
-(defqueries "oti/queries.sql")
+(require-sql ["oti/queries.sql" :as q])
 
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
@@ -12,7 +12,7 @@
 
 (extend-type HikariCP
   DbAccess
-  (upcoming-exam-sessions [db]
-    (exam-sessions-in-future {} {:connection (:spec db)}))
+  (upcoming-exam-sessions [{:keys [spec]}]
+    (q/exam-sessions-in-future spec))
   (add-exam-session! [{:keys [spec]} exam-session]
-    (insert-exam-session! exam-session {:connection spec})))
+    (q/insert-exam-session! spec exam-session)))
