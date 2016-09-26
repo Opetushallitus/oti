@@ -19,7 +19,7 @@
   (fn [_ _]
     {:http-xhrio {:method          :get
                   :uri             "/oti/api/virkailija/user-info"
-                  :response-format (ajax/json-response-format {:keywords? true})
+                  :response-format (ajax/transit-response-format)
                   :on-success      [:process-response]
                   :on-failure      [:bad-response]}}))
 
@@ -40,9 +40,8 @@
   (fn [_ [_ data]]
     {:http-xhrio {:method          :post
                   :uri             "/oti/api/virkailija/exam-sessions"
-                  :body            (ajax/write-json data)
-                  :format          :json
-                  :headers         {"Content-Type" "application/json; charset=utf8"}
-                  :response-format (ajax/json-response-format {:keywords? true})
+                  :params          data
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
                   :on-success      [:process-response]
                   :on-failure      [:bad-response]}}))
