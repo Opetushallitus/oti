@@ -13,6 +13,7 @@
   [:input {:class type
            :type type
            :value (key @form-data)
+           :required true
            :on-change (or on-change-fn
                           (fn [e]
                             (let [value (cond-> (-> e .-target .-value)
@@ -38,11 +39,11 @@
   (->> (time/to-default-time-zone date)
        (ctf/unparse date-format)))
 
-(defn exam-session-form []
+(defn new-exam-session-panel []
   (let [form-data (r/atom {::oti.spec/exam-id 1})]
     (fn []
       [:div.exam-session-form
-       [:h3 "Tutkintotapahtuma"]
+       [:h3 "Uusi tutkintotapahtuma"]
        [:form
         [:div.row
          [:span.label "Päivämäärä ja kellonaika"]
@@ -91,5 +92,7 @@
                  [:td (str city ", " street-address)]
                  [:td other-location-info]
                  [:td max-participants]]))]])]
-       [exam-session-form]])))
+       [:div.buttons
+        [:div.right
+         [:a.button {:href "/oti/virkailija/tutkintotapahtuma"} "Lisää uusi"]]]])))
 

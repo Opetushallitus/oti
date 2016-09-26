@@ -5,7 +5,8 @@
               [pushy.core :as pushy]))
 
 (def routes
-  [{:view :exam-sessions-panel :url "/oti/virkailija" :text "Koetilaisuudet"}
+  [{:view :exam-sessions-panel :url "/oti/virkailija" :text "Tutkintotapahtumat"}
+   {:view :new-exam-session-panel :url "/oti/virkailija/tutkintotapahtuma"}
    {:view :students-panel :url "/oti/virkailija/henkilot" :text "Henkilötiedot"}])
 
 (defn app-routes []
