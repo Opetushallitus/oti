@@ -12,11 +12,36 @@
 (def time-regexp #"\d?\d[:\.]\d\d")
 (s/def ::time (s/and string? #(re-matches time-regexp %)))
 
-(s/def ::session-date inst?)
+(defn date-conformer [x]
+  #?(:clj (cond
+            (instance? java.time.LocalDate x) x
+            (instance? java.util.Date x) (-> x
+                                             .toInstant
+                                             (.atZone (java.time.ZoneId/of "Europe/Helsinki"))
+                                             .toLocalDate)
+            :else ::s/invalid)
+     :cljs (if (inst? x)
+             (inst-ms x)
+             ::s/invalid)))
 
-(s/def ::start-time ::time)
+(defn valid-time-string? [x]
+  (and (string? x) (re-matches time-regexp x)))
 
-(s/def ::end-time ::time)
+(defn time-conformer [x]
+  #?(:clj (cond
+            (instance? java.time.LocalTime x) x
+            (valid-time-string? x) (-> (str/replace x "." ":")
+                                       (java.time.LocalTime/parse))
+            :else ::s/invalid)
+     :cljs (if (valid-time-string? x)
+             x
+             ::s/invalid)))
+
+(s/def ::session-date (s/conformer date-conformer))
+
+(s/def ::start-time (s/conformer time-conformer))
+
+(s/def ::end-time (s/conformer time-conformer))
 
 (s/def ::street-address ::non-blank-string)
 

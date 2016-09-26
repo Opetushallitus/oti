@@ -7,9 +7,12 @@
 (defqueries "oti/queries.sql")
 
 (defprotocol DbAccess
-  (upcoming-exam-sessions [db]))
+  (upcoming-exam-sessions [db])
+  (add-exam-session! [db exam-session]))
 
 (extend-type HikariCP
   DbAccess
   (upcoming-exam-sessions [db]
-    (exam-sessions-in-future {} {:connection (:spec db)})))
+    (exam-sessions-in-future {} {:connection (:spec db)}))
+  (add-exam-session! [{:keys [spec]} exam-session]
+    (insert-exam-session! exam-session {:connection spec})))
