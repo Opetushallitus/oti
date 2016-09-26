@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS exam_session (
   street_address TEXT NOT NULL,
   city TEXT NOT NULL,
   other_location_info TEXT NOT NULL,
-  max_participants NUMERIC DEFAULT 40,
+  max_participants INTEGER NOT NULL,
   exam_id BIGINT REFERENCES exam (id) NOT NULL
 );
 --;;
