@@ -2,4 +2,5 @@
 
 (def default-db
   {:name "virkailija-ui"
-   :user {}})
+   :user {}
+   :exam-sessions []})

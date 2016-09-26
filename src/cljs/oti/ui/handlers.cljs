@@ -20,20 +20,20 @@
     {:http-xhrio {:method          :get
                   :uri             "/oti/api/virkailija/user-info"
                   :response-format (ajax/transit-response-format)
-                  :on-success      [:process-response]
+                  :on-success      [:user-response]
                   :on-failure      [:bad-response]}}))
 
 (re-frame/reg-event-db
-  :process-response
+  :user-response
   (fn
     [db [_ response]]
-    (assoc db :user (js->clj response))))
+    (assoc db :user response)))
 
 (re-frame/reg-event-db
   :bad-response
   (fn
     [db [_ response]]
-    (assoc db :user {})))
+    (assoc db :error response)))
 
 (re-frame/reg-event-fx
   :add-exam-session
@@ -43,5 +43,20 @@
                   :params          data
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
-                  :on-success      [:process-response]
+                  :on-success      [:load-exam-sessions]
                   :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
+  :load-exam-sessions
+  (fn [_ _]
+    {:http-xhrio {:method          :get
+                  :uri             "/oti/api/virkailija/exam-sessions"
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:exam-sessions-response]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-db
+  :exam-sessions-response
+  (fn
+    [db [_ response]]
+    (assoc db :exam-sessions response)))

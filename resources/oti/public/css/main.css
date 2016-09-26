@@ -75,6 +75,9 @@
   letter-spacing: .2rem;
   vertical-align: middle;
 }
+.exam-sessions {
+  margin: 15px 0;
+}
 .exam-session-form span,
 .exam-session-form input {
   display: inline-block;

@@ -53,6 +53,8 @@
 
 (s/def ::exam-id pos-int?)
 
+(s/def ::id pos-int?)
+
 (s/def ::exam-session (s/keys :req [::session-date
                                     ::start-time
                                     ::end-time

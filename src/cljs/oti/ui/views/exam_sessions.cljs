@@ -4,6 +4,8 @@
             [reagent.core :as r]
             [cljs-time.format :as ctf]
             [cljs-time.coerce :as ctc]
+            [cljs-time.core :as time]
+            [cljs-time.local :as local]
             [clojure.string :as str]
             [cljs.spec :as s]))
 
@@ -31,6 +33,10 @@
       (-> (ctf/parse date-format date-str)
           (ctc/to-date))
       (catch js/Error _))))
+
+(defn unparse-date [date]
+  (->> (time/to-default-time-zone date)
+       (ctf/unparse date-format)))
 
 (defn exam-session-form []
   (let [form-data (r/atom {::oti.spec/exam-id 1})]
@@ -62,7 +68,28 @@
            "Tallenna"]]]]])))
 
 (defn exam-sessions-panel []
-  [:div
-   [:h2 "Tutkintotapahtumat"]
-   [exam-session-form]])
+  (re-frame/dispatch [:load-exam-sessions])
+  (let [exam-sessions (re-frame/subscribe [:exam-sessions])]
+    (fn []
+      [:div
+       [:h2 "Tutkintotapahtumat"]
+       [:div.exam-sessions
+        (when (seq @exam-sessions)
+          [:table
+           [:thead
+            [:tr
+             [:td "Päivämäärä ja aika"]
+             [:td "Katuosoite"]
+             [:td "Tilatieto"]
+             [:td "Enimmäismäärä"]]]
+           [:tbody
+            (doall
+              (for [{:oti.spec/keys [id city start-time end-time session-date street-address other-location-info max-participants]} @exam-sessions]
+                ^{:key id}
+                [:tr
+                 [:td (str (unparse-date session-date) " " start-time " - " end-time)]
+                 [:td (str city ", " street-address)]
+                 [:td other-location-info]
+                 [:td max-participants]]))]])]
+       [exam-session-form]])))
 
