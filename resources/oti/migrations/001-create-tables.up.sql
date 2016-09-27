@@ -127,6 +127,7 @@ CREATE TABLE IF NOT EXISTS payment (
 --;;
 CREATE TABLE IF NOT EXISTS section_score (
   id BIGSERIAL PRIMARY KEY,
+  evaluator TEXT NOT NULL,
   accepted BOOLEAN NOT NULL,
   section_id BIGINT REFERENCES section (id) NOT NULL,
   participant_id BIGINT REFERENCES participant (id) NOT NULL,
@@ -135,6 +136,7 @@ CREATE TABLE IF NOT EXISTS section_score (
 --;;
 CREATE TABLE IF NOT EXISTS module_score (
   id BIGSERIAL PRIMARY KEY,
+  evaluator TEXT NOT NULL,
   accepted BOOLEAN NOT NULL,
   points NUMERIC NOT NULL,
   module_id BIGINT REFERENCES module (id) NOT NULL,
