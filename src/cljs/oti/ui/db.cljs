@@ -3,4 +3,5 @@
 (def default-db
   {:name "virkailija-ui"
    :user {}
-   :exam-sessions []})
+   :exam-sessions []
+   :flash-message {}})

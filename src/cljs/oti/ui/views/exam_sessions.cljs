@@ -62,10 +62,11 @@
         (input-row form-data :oti.spec/max-participants "number" "Osallistujien enimmäismäärä")
         [:div.buttons
          [:div.right
-          [:button {:disabled (not (s/valid? :oti.spec/exam-session @form-data))
-                    :on-click (fn [e]
-                               (.preventDefault e)
-                                (re-frame/dispatch [:add-exam-session @form-data]))}
+          [:button.button-primary
+           {:disabled (not (s/valid? :oti.spec/exam-session @form-data))
+            :on-click (fn [e]
+                        (.preventDefault e)
+                        (re-frame/dispatch [:add-exam-session @form-data]))}
            "Tallenna"]]]]])))
 
 (defn exam-sessions-panel []

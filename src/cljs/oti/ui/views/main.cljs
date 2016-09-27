@@ -30,13 +30,23 @@
 
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])
-        user (re-frame/subscribe [:user])]
+        user (re-frame/subscribe [:user])
+        flash-message (re-frame/subscribe [:flash-message])]
     (fn []
-      [:div.container
-       [:div.header
-        [:div.logo
-         [:img {:src "http://www.oph.fi/instancedata/prime_product_julkaisu/oph/pics/opetushallitus.gif"}]]
-        [:div.text "Opetushallinnon tutkintorekisteri"]]
-       [navigation-panel @active-panel @user]
-       [:main
-        [show-panel @active-panel]]])))
+      [:div
+       [:div.container
+        [:div.header
+         [:div.logo
+          [:img {:src "http://www.oph.fi/instancedata/prime_product_julkaisu/oph/pics/opetushallitus.gif"}]]
+         [:div.text "Opetushallinnon tutkintorekisteri"]]
+        [navigation-panel @active-panel @user]
+        [:main
+         [show-panel @active-panel]]]
+       (when (seq @flash-message)
+         (let [{:keys [type text]} @flash-message]
+           [:div.flash-message
+            [:span.icon {:class (if (= :success type) "success" "error")}
+             (if (= :success type)
+               "\u2713"
+               "\u26A0")]
+            [:span.text text]]))])))
