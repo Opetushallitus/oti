@@ -120,3 +120,6 @@
 button[disabled] {
   opacity: 0.3;
 }
+input.invalid {
+  border-color: #ff2632;
+}
