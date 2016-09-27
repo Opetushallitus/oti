@@ -4,6 +4,17 @@
   &:after{ clear: both; }
 }
 
+@import "_flash";
+@import "_exam-sessions";
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
 .header {
   margin-top: 1rem;
   div {
@@ -25,7 +36,7 @@
   &:extend(.clearfix all);
   border-top: 1px solid lightgray;
   border-bottom: 1px solid lightgray;
-  margin: 10px 0;
+  margin: 15px 0;
   padding: 8px 0;
   line-height: 32px;
   text-transform: uppercase;
@@ -60,4 +71,12 @@
     letter-spacing: .2rem;
     vertical-align: middle;
   }
+}
+
+button[disabled] {
+  opacity: 0.3;
+}
+
+input.invalid {
+  border-color: #ff2632;
 }

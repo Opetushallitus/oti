@@ -5,8 +5,11 @@
               [pushy.core :as pushy]))
 
 (def routes
-  [{:view :exam-sessions-panel :url "/oti/virkailija" :text "Koetilaisuudet"}
+  [{:view :exam-sessions-panel :url "/oti/virkailija" :text "Tutkintotapahtumat"}
+   {:view :new-exam-session-panel :url "/oti/virkailija/tutkintotapahtuma"}
    {:view :students-panel :url "/oti/virkailija/henkilot" :text "Henkilötiedot"}])
+
+(def history (atom nil))
 
 (defn app-routes []
   (secretary/set-config! :prefix "/")
@@ -15,7 +18,11 @@
     (secretary/add-route! url #(re-frame/dispatch [:set-active-panel view])))
 
   ;; Pushy handles the HTML5 history based navigation
-  (-> (pushy/pushy secretary/dispatch!
-                   (fn [x]
-                     (when (secretary/locate-route x) x)))
-      (pushy/start!)))
+  (reset! history (pushy/pushy secretary/dispatch!
+                               (fn [x]
+                                 (when (secretary/locate-route x) x))))
+  (pushy/start! @history))
+
+(defn redirect [target]
+  (pushy/set-token! @history target)
+  (secretary/dispatch! target))

@@ -1,17 +1,69 @@
 .clearfix,
+.exam-session-form,
 .navbar {
   zoom: 1;
 }
 .clearfix:before,
 .clearfix:after,
+.exam-session-form:before,
+.exam-session-form:after,
 .navbar:before,
 .navbar:after {
   content: "";
   display: table;
 }
 .clearfix:after,
+.exam-session-form:after,
 .navbar:after {
   clear: both;
+}
+.flash-message {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  line-height: 5rem;
+}
+.flash-message .icon {
+  margin-right: 15px;
+  font-size: 5rem;
+}
+.flash-message .text {
+  vertical-align: top;
+  font-size: 2rem;
+}
+.flash-message .success {
+  color: #00af2f;
+}
+.flash-message .error {
+  color: #ff0012;
+}
+.exam-sessions {
+  margin: 15px 0;
+}
+.exam-session-form span,
+.exam-session-form input,
+.exam-session-form .times {
+  display: inline-block;
+}
+.exam-session-form .times input {
+  width: 80px;
+  margin: 0;
+}
+.exam-session-form .times .dash {
+  margin: 0 5px;
+}
+.exam-session-form input {
+  margin-right: 15px;
+}
+.exam-session-form .label {
+  width: 250px;
+}
+.left {
+  float: left;
+}
+.right {
+  float: right;
 }
 .header {
   margin-top: 1rem;
@@ -32,7 +84,7 @@
   width: 100%;
   border-top: 1px solid lightgray;
   border-bottom: 1px solid lightgray;
-  margin: 10px 0;
+  margin: 15px 0;
   padding: 8px 0;
   line-height: 32px;
   text-transform: uppercase;
@@ -64,4 +116,10 @@
   font-weight: 600;
   letter-spacing: .2rem;
   vertical-align: middle;
+}
+button[disabled] {
+  opacity: 0.3;
+}
+input.invalid {
+  border-color: #ff2632;
 }

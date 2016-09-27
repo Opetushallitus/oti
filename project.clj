@@ -14,6 +14,9 @@
                  [ring/ring-devel "1.5.0"]
                  [ring/ring-defaults "0.2.1"]
                  [ring/ring-json "0.4.0"]
+                 [com.cognitect/transit-clj "0.8.288"]
+                 [com.cognitect/transit-cljs "0.8.239"]
+                 [ring-middleware-format "0.7.0"]
                  [duct/hikaricp-component "0.1.0"]
                  [org.postgresql/postgresql "9.4.1211"]
                  [ragtime "0.6.3"]
@@ -23,7 +26,7 @@
                  [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
                  [com.taoensso/timbre "4.7.4"]
-                 [yesql "0.5.3"]
+                 [org.clojars.mpenttila/yesql "0.6.0"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.229"]
@@ -32,7 +35,8 @@
                  [re-frame "0.8.0"]
                  [day8.re-frame/http-fx "0.0.4"]
                  [kibu/pushy "0.3.6"]
-                 [secretary "1.2.3"]]
+                 [secretary "1.2.3"]
+                 [com.andrewmcveigh/cljs-time "0.4.0"]]
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
             [lein-figwheel "0.5.7"]
