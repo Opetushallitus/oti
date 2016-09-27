@@ -3,9 +3,9 @@
                :cljs [cljs.spec :as s])
                     [clojure.string :as str]))
 
-;(defn future-date? [candidate]
-;  #?(:clj ()
-;     ))
+(defn future-date? [candidate]
+  #?(:clj (.after candidate (java.util.Date.))
+     :cljs (= 1 (compare candidate (js/Date.)))))
 
 (s/def ::non-blank-string (s/and string? #(not (str/blank? %))))
 
@@ -14,13 +14,15 @@
 
 (defn date-conformer [x]
   #?(:clj (cond
-            (instance? java.time.LocalDate x) x
-            (instance? java.util.Date x) (-> x
-                                             .toInstant
-                                             (.atZone (java.time.ZoneId/of "Europe/Helsinki"))
-                                             .toLocalDate)
+            (instance? java.time.LocalDate x)
+            x
+            (and (instance? java.util.Date x) (future-date? x))
+            (-> x
+                .toInstant
+                (.atZone (java.time.ZoneId/of "Europe/Helsinki"))
+                .toLocalDate)
             :else ::s/invalid)
-     :cljs (if (inst? x)
+     :cljs (if (and (inst? x) (future-date? x))
              (inst-ms x)
              ::s/invalid)))
 
