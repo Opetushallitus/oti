@@ -31,7 +31,7 @@
   #?(:clj (cond
             (instance? java.time.LocalTime x) x
             (valid-time-string? x) (-> (str/replace x "." ":")
-                                       (java.time.LocalTime/parse))
+                                       (java.time.LocalTime/parse (java.time.format.DateTimeFormatter/ofPattern "H:mm")))
             :else ::s/invalid)
      :cljs (if (valid-time-string? x)
              x

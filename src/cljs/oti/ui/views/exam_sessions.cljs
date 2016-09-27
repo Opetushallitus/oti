@@ -9,10 +9,11 @@
             [clojure.string :as str]
             [cljs.spec :as s]))
 
-(defn input-element [form-data type key & [on-change-fn]]
+(defn input-element [form-data type key placeholder & [on-change-fn]]
   [:input {:class type
            :type type
            :value (key @form-data)
+           :placeholder placeholder
            :required true
            :on-change (or on-change-fn
                           (fn [e]
@@ -20,11 +21,11 @@
                                                 (= "number" type) (js/parseInt))]
                               (swap! form-data assoc key value))))}])
 
-(defn input-row [form-data key type label]
+(defn input-row [form-data key type label & [placeholder]]
   [:div.row
    [:label
     [:span.label label]
-    (input-element form-data type key)]])
+    (input-element form-data type key (or placeholder label))]])
 
 (def date-format (ctf/formatter "d.M.yyyy"))
 
@@ -51,15 +52,18 @@
            form-data
            "text"
            :oti.spec/session-date-str
+           "pp.kk.vvvv"
            (fn [e]
              (let [value (-> e .-target .-value)]
                (swap! form-data assoc :oti.spec/session-date-str value :oti.spec/session-date (parse-date value)))))
-         (input-element form-data "time" :oti.spec/start-time)
-         (input-element form-data "time" :oti.spec/end-time)]
+         [:div.times
+          (input-element form-data "text" :oti.spec/start-time "hh.mm")
+          [:span.dash "\u2014"]
+          (input-element form-data "text" :oti.spec/end-time "hh.mm")]]
         (input-row form-data :oti.spec/city "text" "Koepaikan kaupunki")
         (input-row form-data :oti.spec/street-address "text" "Koepaikan katuosoite")
         (input-row form-data :oti.spec/other-location-info "text" "Koepaikan tilatieto")
-        (input-row form-data :oti.spec/max-participants "number" "Osallistujien enimmäismäärä")
+        (input-row form-data :oti.spec/max-participants "number" "Osallistujien enimmäismäärä" "Määrä")
         [:div.buttons
          [:div.right
           [:button.button-primary

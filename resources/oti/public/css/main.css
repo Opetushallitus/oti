@@ -1,20 +1,20 @@
 .clearfix,
-.navbar,
-.exam-session-form {
+.exam-session-form,
+.navbar {
   zoom: 1;
 }
 .clearfix:before,
 .clearfix:after,
-.navbar:before,
-.navbar:after,
 .exam-session-form:before,
-.exam-session-form:after {
+.exam-session-form:after,
+.navbar:before,
+.navbar:after {
   content: "";
   display: table;
 }
 .clearfix:after,
-.navbar:after,
-.exam-session-form:after {
+.exam-session-form:after,
+.navbar:after {
   clear: both;
 }
 .flash-message {
@@ -37,6 +37,27 @@
 }
 .flash-message .error {
   color: #ff0012;
+}
+.exam-sessions {
+  margin: 15px 0;
+}
+.exam-session-form span,
+.exam-session-form input,
+.exam-session-form .times {
+  display: inline-block;
+}
+.exam-session-form .times input {
+  width: 80px;
+  margin: 0;
+}
+.exam-session-form .times .dash {
+  margin: 0 5px;
+}
+.exam-session-form input {
+  margin-right: 15px;
+}
+.exam-session-form .label {
+  width: 250px;
 }
 .left {
   float: left;
@@ -95,19 +116,6 @@
   font-weight: 600;
   letter-spacing: .2rem;
   vertical-align: middle;
-}
-.exam-sessions {
-  margin: 15px 0;
-}
-.exam-session-form span,
-.exam-session-form input {
-  display: inline-block;
-}
-.exam-session-form input {
-  margin-right: 15px;
-}
-.exam-session-form .label {
-  width: 250px;
 }
 button[disabled] {
   opacity: 0.3;
