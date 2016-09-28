@@ -47,7 +47,7 @@
     (if translated?
       [:div.input-group-inline
        (input-element-with-translations form-data invalids type key "FI" (or placeholder label))
-       (input-element-with-translations form-data invalids type key "SV" (or placeholder label))]
+       (input-element-with-translations form-data invalids type key "SV" (str (or placeholder label) " ruotsiksi"))]
       (input-element form-data invalids type key (or placeholder label)))]])
 
 (def date-format (ctf/formatter "d.M.yyyy"))
