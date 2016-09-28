@@ -9,7 +9,6 @@
             [cljs.spec :as s]))
 
 (defn- get-in-lang [e lang]
-  (println e)
   (get e lang))
 (defn- in-fi [e]
   (get-in-lang e "FI"))
@@ -117,7 +116,6 @@
              {:disabled (not (s/valid? ::spec/exam-session @form-data))
               :on-click (fn [e]
                           (.preventDefault e)
-                          (println @form-data)
                           (re-frame/dispatch [:add-exam-session @form-data]))}
              "Tallenna"]]]]]))))
 
