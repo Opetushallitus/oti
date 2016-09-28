@@ -3,6 +3,7 @@
     (:require [com.stuartsierra.component :as component]
               [duct.util.runtime :refer [add-shutdown-hook]]
               [duct.util.system :refer [load-system]]
+              [duct.component.ragtime :as ragtime]
               [environ.core :refer [env]]
               [clojure.java.io :as io]
               [taoensso.timbre :refer [info error]]))
@@ -13,5 +14,9 @@
         _ (info "Loading configuration from" prod-config-path)
         system (load-system [(io/resource "oti/system.edn") (io/file prod-config-path)] bindings)]
     (info "Starting HTTP server on port" (-> system :http :port))
-    (add-shutdown-hook ::stop-system #(component/stop system))
-    (component/start system)))
+    (add-shutdown-hook ::stop-system (fn []
+                                       (info "Shutting down system")
+                                       (component/stop system)))
+    (let [running-system (component/start system)]
+      (info "Running migrations")
+      (ragtime/migrate (:ragtime running-system)))))
