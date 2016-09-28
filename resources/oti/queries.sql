@@ -5,6 +5,7 @@ SELECT es.id,
        es.end_time,
        es.max_participants,
        es.exam_id,
+       es.published,
        est.city,
        est.street_address,
        est.language_code,
@@ -20,13 +21,15 @@ INSERT INTO exam_session (
   start_time,
   end_time,
   max_participants,
-  exam_id
+  exam_id,
+  published
 ) VALUES (
   :oti.spec/session-date,
   :oti.spec/start-time,
   :oti.spec/end-time,
   :oti.spec/max-participants,
-  :oti.spec/exam-id
+  :oti.spec/exam-id,
+  :oti.spec/published
 );
 
 -- name: insert-exam-session-translation!

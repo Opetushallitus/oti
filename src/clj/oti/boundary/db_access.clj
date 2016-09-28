@@ -28,7 +28,8 @@
                                       ::spec/start-time
                                       ::spec/end-time
                                       ::spec/exam-id
-                                      ::spec/max-participants])]
+                                      ::spec/max-participants
+                                      ::spec/published])]
     (or (insert-exam-session<! es {:connection tx})
         (throw (Exception. "Could not create new exam session.")))))
 

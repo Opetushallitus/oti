@@ -55,6 +55,7 @@
 (s/def ::max-participants    pos-int?)
 (s/def ::exam-id             pos-int?)
 (s/def ::exam-session-id     pos-int?)
+(s/def ::published           boolean?)
 
 (s/def ::exam-session (s/keys :req [::session-date
                                     ::start-time
@@ -63,4 +64,5 @@
                                     ::city
                                     ::other-location-info
                                     ::max-participants
-                                    ::exam-id]))
+                                    ::exam-id
+                                    ::published]))

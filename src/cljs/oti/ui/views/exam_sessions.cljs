@@ -73,27 +73,29 @@
             (::spec/session-date keys) (conj keys ::spec/session-date-str))))
 
 (defn new-exam-session-panel []
-  (let [form-data (r/atom {::spec/exam-id 1})]
+  (let [form-data (r/atom {::spec/exam-id 1
+                           ::spec/published false})]
     (fn []
       (let [invalids (invalid-keys form-data)]
         [:div.exam-session-form
          [:h3 "Uusi tutkintotapahtuma"]
          [:form
           [:div.row
-           [:span.label "Päivämäärä ja kellonaika"]
-           (input-element
-             form-data
-             invalids
-             "text"
-             ::spec/session-date-str
-             "pp.kk.vvvv"
-             (fn [e]
-               (let [value (-> e .-target .-value)]
-                 (swap! form-data assoc ::spec/session-date-str value ::spec/session-date (parse-date value)))))
-           [:div.times
-            (input-element form-data invalids "text" ::spec/start-time "hh.mm")
-            [:span.dash "\u2014"]
-            (input-element form-data invalids "text" ::spec/end-time "hh.mm")]]
+           [:label
+            [:span.label "Päivämäärä ja kellonaika"]
+            (input-element
+              form-data
+              invalids
+              "text"
+              ::spec/session-date-str
+              "pp.kk.vvvv"
+              (fn [e]
+                (let [value (-> e .-target .-value)]
+                  (swap! form-data assoc ::spec/session-date-str value ::spec/session-date (parse-date value)))))
+            [:div.times
+             (input-element form-data invalids "text" ::spec/start-time "hh.mm")
+             [:span.dash "\u2014"]
+             (input-element form-data invalids "text" ::spec/end-time "hh.mm")]]]
           (input-row form-data invalids {:key ::spec/city
                                          :type "text"
                                          :label "Koepaikan kaupunki"
@@ -113,6 +115,15 @@
                                          :type "number"
                                          :label "Osallistujien enimmäismäärä"
                                          :placeholder "Määrä"})
+          [:div.row
+           [:label
+            [:span.label "Julkaistu"]
+            [:input {:type "checkbox"
+                     :value (::spec/published @form-data)
+                     :required true
+                     :on-click (fn [e]
+                                 (let [value (cond-> (-> e .-target .-checked))]
+                                   (swap! form-data assoc ::spec/published value)))}]]]
           [:div.buttons
            [:button.button-primary
             {:disabled (not (s/valid? ::spec/exam-session @form-data))
