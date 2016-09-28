@@ -1,0 +1,2 @@
+ALTER TABLE exam_session
+  ADD COLUMN published BOOLEAN NOT NULL DEFAULT FALSE;
