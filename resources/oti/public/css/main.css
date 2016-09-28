@@ -206,6 +206,7 @@ input[type="button"] {
   font-size: 12px !important;
   font-weight: bold !important;
   padding: 10px 12px;
+  cursor: pointer;
   text-decoration: none;
 }
 .button:hover,
@@ -227,6 +228,7 @@ input[type="button"].button-primary {
   font-size: 12px !important;
   font-weight: bold !important;
   padding: 10px 12px;
+  cursor: pointer;
 }
 .button.button-primary:hover,
 button.button-primary:hover,
@@ -246,6 +248,14 @@ input[type="submit"]:disabled,
 input[type="reset"]:disabled,
 input[type="button"]:disabled {
   opacity: 0.3;
+  cursor: default;
+}
+.button:not(:first-child),
+button:not(:first-child),
+input[type="submit"]:not(:first-child),
+input[type="reset"]:not(:first-child),
+input[type="button"]:not(:first-child) {
+  margin-left: .7em;
 }
 .tulkki-name {
   color: #00a651;

@@ -114,13 +114,15 @@
                                          :label "Osallistujien enimmäismäärä"
                                          :placeholder "Määrä"})
           [:div.buttons
-           [:div.right
-            [:button.button-primary
-             {:disabled (not (s/valid? ::spec/exam-session @form-data))
-              :on-click (fn [e]
-                          (.preventDefault e)
-                          (re-frame/dispatch [:add-exam-session @form-data]))}
-             "Tallenna"]]]]]))))
+           [:button.button-primary
+            {:disabled (not (s/valid? ::spec/exam-session @form-data))
+             :on-click (fn [e]
+                         (.preventDefault e)
+                         (re-frame/dispatch [:add-exam-session @form-data]))}
+            "Tallenna"]
+           [:a.button
+            {:href "/oti/virkailija"}
+            "Peruuta"]]]]))))
 
 (defn exam-sessions-panel []
   (re-frame/dispatch [:load-exam-sessions])
