@@ -24,7 +24,7 @@
         (context "/exam-sessions" []
           (POST "/" {params :params}
             (let [conformed (s/conform ::os/exam-session params)]
-              (if (or (s/invalid? conformed) (not= 1 (dba/add-exam-session! db conformed)))
+              (if (or (s/invalid? conformed) (not (seq (dba/add-exam-session! db conformed))))
                 {:status 400
                  :body {:errors (s/explain ::os/exam-session params)}}
                 (response {:success true}))))
