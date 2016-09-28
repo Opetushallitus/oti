@@ -16,6 +16,5 @@
                 (content-type "text/html; charset=utf-8")
                 (header "Cache-Control" "no-store, must-revalidate")))
           (wrap-routes auth/wrap-authorization :redirect))
-      (-> (route/resources "/" {:root "/oti/public"
-                                :mime-types {"js" "text/javascript; charset=utf-8"}})
-          (wrap-routes auth/wrap-authorization)))))
+      (route/resources "/" {:root "/oti/public"
+                            :mime-types {"js" "text/javascript; charset=utf-8"}}))))
