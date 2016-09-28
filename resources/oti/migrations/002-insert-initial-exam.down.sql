@@ -1,10 +1,4 @@
-DELETE FROM module WHERE name = 'Yleishallinto-oikeus';
-DELETE FROM module WHERE name = 'Kunnallishallinto';
-DELETE FROM module WHERE name = 'Viranomaisen asiakirjat ja henkilötietojen julkisuus';
-DELETE FROM module WHERE name = 'Oikeudellinen vastuu';
-DELETE FROM module WHERE name = 'Henkilöstöhallinto';
-DELETE FROM module WHERE name = 'Talous';
-DELETE FROM module WHERE name = 'Opetushallinto';
-DELETE FROM section WHERE name = 'A';
-DELETE FROM section WHERE name = 'B';
-DELETE FROM exam WHERE id = 1;
+DELETE FROM module;
+DELETE FROM section;
+DELETE FROM exam;
+DELETE FROM language;
