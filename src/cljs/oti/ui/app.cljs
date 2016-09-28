@@ -6,6 +6,7 @@
             [oti.ui.subs]
             [oti.ui.routes :as routes]
             [oti.ui.views.main :as views]
+            [oti.ui.views.applicant :as applicant]
             [oti.ui.config :as config]))
 
 (defn dev-setup []
@@ -14,13 +15,16 @@
     (println "dev mode")
     (devtools/install!)))
 
-(defn mount-root []
-  (reagent/render [views/main-panel]
+(defn mount-root [mode]
+  (reagent/render (if (= "virkailija" mode)
+                    [views/main-panel]
+                    [applicant/main-panel])
                   (.getElementById js/document "app")))
 
-(defn ^:export start []
+(defn ^:export start [mode]
   (routes/app-routes)
   (re-frame/dispatch-sync [:initialize-db])
   (re-frame/dispatch [:load-user])
   (dev-setup)
-  (mount-root))
+  (mount-root mode)
+  (println mode))
