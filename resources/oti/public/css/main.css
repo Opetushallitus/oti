@@ -128,6 +128,9 @@ label > .label-body {
 .exam-session-form .label {
   width: 250px;
 }
+.exam-session-form .input-group-inline {
+  display: inline-block;
+}
 .left {
   float: left;
 }

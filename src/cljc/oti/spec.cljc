@@ -39,23 +39,22 @@
              x
              ::s/invalid)))
 
-(s/def ::session-date (s/conformer date-conformer))
-
-(s/def ::start-time (s/conformer time-conformer))
-
-(s/def ::end-time (s/conformer time-conformer))
-
-(s/def ::street-address ::non-blank-string)
-
-(s/def ::city ::non-blank-string)
-
-(s/def ::other-location-info ::non-blank-string)
-
-(s/def ::max-participants pos-int?)
-
-(s/def ::exam-id pos-int?)
-
 (s/def ::id pos-int?)
+
+;; i18n
+(s/def ::language-code (s/and ::non-blank-string #(= (count %) 2)))
+(s/def ::i18n-string (s/map-of ::language-code ::non-blank-string))
+
+;; exam-session
+(s/def ::session-date        (s/conformer date-conformer))
+(s/def ::start-time          (s/conformer time-conformer))
+(s/def ::end-time            (s/conformer time-conformer))
+(s/def ::street-address      ::i18n-string)
+(s/def ::city                ::i18n-string)
+(s/def ::other-location-info ::i18n-string)
+(s/def ::max-participants    pos-int?)
+(s/def ::exam-id             pos-int?)
+(s/def ::exam-session-id     pos-int?)
 
 (s/def ::exam-session (s/keys :req [::session-date
                                     ::start-time
