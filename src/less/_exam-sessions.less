@@ -4,8 +4,16 @@
 
 .exam-session-form {
   &:extend(.clearfix all);
+
+  .row {
+    margin-bottom: .7em;
+  }
+
   span, input, .times {
     display: inline-block;
+  }
+  input {
+    width: 230px;
   }
   .times {
     input {
@@ -22,4 +30,5 @@
   .label {
     width: 250px;
   }
+  
 }

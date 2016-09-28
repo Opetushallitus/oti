@@ -15,18 +15,22 @@
   [panels panel-name])
 
 (defn navigation-panel [active-page user]
-  [:nav.navbar
-   [:ul.navbar-list
-    (doall
-      (for [{:keys [view url text]} (filter :text routes)]
-        [:li.navbar-item {:key (name view)}
-         (if (= active-page view)
-           [:span text]
-           [:a {:href url} text])]))]
-   [:div.user
-    [:span (:username user)]
-    [:br]
-    [:a.logout {:href "/oti/auth/logout"} "Kirjaudu ulos"]]])
+  [:nav#nav-holder
+   (->
+        (reduce (fn [hiccup {:keys [view url text]}]
+                  (concat hiccup [[:li.divider]
+                                  [:li {:key (name view)
+                                        :class (when (= active-page view) "active")}
+                                   (if (= active-page view)
+                                     [:span text]
+                                     [:a {:href url} text])]]))
+                [:ul#main-nav]
+                (filter :text routes))
+        (concat [[:li.user
+                  [:span (:username user)]
+                  [:br]
+                  [:a.logout {:href "/oti/auth/logout"} "Kirjaudu ulos"]]])
+        (vec))])
 
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])
@@ -34,13 +38,13 @@
         flash-message (re-frame/subscribe [:flash-message])]
     (fn []
       [:div
-       [:div.container
-        [:div.header
-         [:div.logo
-          [:img {:src "http://www.oph.fi/instancedata/prime_product_julkaisu/oph/pics/opetushallitus.gif"}]]
-         [:div.text "Opetushallinnon tutkintorekisteri"]]
-        [navigation-panel @active-panel @user]
-        [:main
+       [:div#header
+        [:img {:src "/oti/img/opetushallitus.gif"}]
+        [:p "Opetushallinnon tutkintorekisteri"]
+        [:a {} "På svenska"]]
+       [navigation-panel @active-panel @user]
+       [:div#content-area
+        [:main.container
          [show-panel @active-panel]]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]
