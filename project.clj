@@ -52,7 +52,7 @@
   :cljsbuild
   {:builds
    {:dev {:source-paths ["src/cljs" "src/cljc" "dev"]
-          :figwheel     {:on-jsload "oti.ui.app/start"}
+          :figwheel     {:on-jsload "oti.ui.app/reload-hook"}
           :compiler     {:optimizations :none
                          :main "oti.ui.app"
                          :asset-path "/oti/js"

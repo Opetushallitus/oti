@@ -26,5 +26,7 @@
   (re-frame/dispatch-sync [:initialize-db])
   (re-frame/dispatch [:load-user])
   (dev-setup)
-  (mount-root mode)
-  (println mode))
+  (mount-root mode))
+
+(defn reload-hook []
+  (reagent/force-update-all))
