@@ -97,14 +97,17 @@
           (input-row form-data invalids {:key ::spec/city
                                          :type "text"
                                          :label "Koepaikan kaupunki"
+                                         :placeholder "Kaupunki"
                                          :translated? true})
           (input-row form-data invalids {:key ::spec/street-address
                                          :type "text"
                                          :label "Koepaikan katuosoite"
+                                         :placeholder "Katuosoite"
                                          :translated? true})
           (input-row form-data invalids {:key ::spec/other-location-info
                                          :type "text"
                                          :label "Koepaikan tilatieto"
+                                         :placeholder "Tilatieto"
                                          :translated? true})
           (input-row form-data invalids {:key ::spec/max-participants
                                          :type "number"
@@ -132,21 +135,25 @@
             [:tr
              [:td "Päivämäärä ja aika"]
              [:td "Osoite"]
-             [:td "Osoite SV"]
              [:td "Tilatieto"]
-             [:td "Tilatieto SV"]
-             [:td "Enimmäismäärä"]]]
+             [:td "Enimmäismäärä"]
+             [:td "Ilmoittautuneet"]]]
            [:tbody
             (doall
               (for [{::spec/keys [id city start-time end-time session-date street-address other-location-info max-participants]} @exam-sessions]
                 ^{:key id}
                 [:tr
                  [:td (str (unparse-date session-date) " " start-time " - " end-time)]
-                 [:td (str (in-fi city) ", " (in-fi street-address))]
-                 [:td (str (in-sv city) ", " (in-sv street-address))]
-                 [:td (in-fi other-location-info)]
-                 [:td (in-sv other-location-info)]
-                 [:td max-participants]]))]])]
+                 [:td
+                  (str (in-fi city) ", " (in-fi street-address))
+                  [:br]
+                  (str (in-sv city) ", " (in-sv street-address))]
+                 [:td
+                  (in-fi other-location-info)
+                  [:br]
+                  (in-sv other-location-info)]
+                 [:td max-participants]
+                 [:td "0"]]))]])]
        [:div.buttons
         [:div.right
          [:a.button {:href "/oti/virkailija/tutkintotapahtuma"} "Lisää uusi"]]]])))

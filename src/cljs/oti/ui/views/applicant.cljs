@@ -1,8 +1,5 @@
 (ns oti.ui.views.applicant
-  (:require [re-frame.core :as re-frame]
-            [oti.ui.views.exam-sessions :refer [exam-sessions-panel new-exam-session-panel]]
-            [oti.ui.views.students :refer [students-panel]]
-            [oti.ui.routes :refer [routes]]))
+  (:require [re-frame.core :as re-frame]))
 
 (defn navigation-panel []
   [:nav#nav-holder
