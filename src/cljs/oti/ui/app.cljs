@@ -6,7 +6,7 @@
             [oti.ui.subs]
             [oti.ui.routes :as routes]
             [oti.ui.views.virkailija-main :as virkailija]
-            [oti.ui.views.hakija-main :as hakija]
+            [oti.ui.registration.main-view :as registration]
             [oti.ui.config :as config]))
 
 (defn dev-setup []
@@ -20,13 +20,18 @@
 (defn mount-root []
   (reagent/render (if (= "virkailija" @mode-atom)
                     [virkailija/main-panel]
-                    [hakija/main-panel])
+                    [registration/main-panel])
                   (.getElementById js/document "app")))
+
+(defn init-mode [mode]
+  (if (= "virkailija" mode)
+    (re-frame/dispatch [:load-user])
+    (re-frame/dispatch [:set-language :fi])))
 
 (defn ^:export start [mode]
   (routes/app-routes)
   (re-frame/dispatch-sync [:initialize-db])
-  (re-frame/dispatch [:load-user])
+  (init-mode mode)
   (dev-setup)
   (reset! mode-atom mode)
   (mount-root))

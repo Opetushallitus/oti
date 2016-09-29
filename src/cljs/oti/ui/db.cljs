@@ -2,5 +2,7 @@
 
 (def default-db
   {:user {}
+   :language :fi
+   :translations {}
    :exam-sessions []
    :flash-message {}})

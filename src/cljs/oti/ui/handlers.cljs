@@ -22,14 +22,14 @@
     {:http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/user-info")
                   :response-format (ajax/transit-response-format)
-                  :on-success      [:user-response]
+                  :on-success      [:store-response-to-db :user]
                   :on-failure      [:bad-response]}}))
 
 (re-frame/reg-event-db
-  :user-response
+  :store-response-to-db
   (fn
-    [db [_ response]]
-    (assoc db :user response)))
+    [db [_ key response]]
+    (assoc db key response)))
 
 (re-frame/reg-event-db
   :bad-response
