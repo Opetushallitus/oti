@@ -9,10 +9,11 @@
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint
   :auth oti.endpoint.auth/auth-endpoint
-  :virkailija oti.endpoint.virkailija/virkailija-endpoint}
+  :virkailija oti.endpoint.virkailija/virkailija-endpoint
+  :hakija oti.endpoint.hakija/hakija-endpoint}
  :dependencies
  {:http [:app]
-  :app  [:status :frontend :auth :virkailija]
+  :app  [:status :frontend :auth :virkailija :hakija]
   :ragtime [:db]
   :status []
   :auth [:authentication :cas :ldap]
