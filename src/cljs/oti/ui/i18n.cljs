@@ -8,5 +8,6 @@
 
 (defn t [key]
   (let [translations (re-frame/subscribe [:translations])]
-    (println @translations)
-    (get @translations key key)))
+    (if-not (empty? @translations)
+      (get @translations key key)
+      "")))

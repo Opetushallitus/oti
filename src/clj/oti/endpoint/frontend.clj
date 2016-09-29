@@ -4,6 +4,12 @@
             [ring.util.response :refer [resource-response content-type redirect header]]
             [oti.util.auth :as auth]))
 
+(defn index-response [participant?]
+  (let [index (if participant? "participant-index.html" "virkailija-index.html")]
+    (-> (resource-response (str "/oti/public/" index))
+        (content-type "text/html; charset=utf-8")
+        (header "Cache-Control" "no-store, must-revalidate"))))
+
 (defn frontend-endpoint [_]
   (routes
     (GET "/" []
@@ -12,13 +18,11 @@
       (GET "/" []
         (redirect "/oti/virkailija"))
       (-> (GET "/virkailija*" []
-            (-> (resource-response "/oti/public/virkailija-index.html")
-                (content-type "text/html; charset=utf-8")
-                (header "Cache-Control" "no-store, must-revalidate")))
+            (index-response false))
           (wrap-routes auth/wrap-authorization :redirect))
-      (GET "/hakija*" []
-        (-> (resource-response "/oti/public/hakija-index.html")
-            (content-type "text/html; charset=utf-8")
-            (header "Cache-Control" "no-store, must-revalidate")))
+      (GET "/ilmoittaudu*" []
+        (index-response true))
+      (GET "/anmala*" []
+        (index-response true))
       (route/resources "/" {:root "/oti/public"
                             :mime-types {"js" "text/javascript; charset=utf-8"}}))))

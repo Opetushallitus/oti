@@ -10,7 +10,7 @@
   :frontend oti.endpoint.frontend/frontend-endpoint
   :auth oti.endpoint.auth/auth-endpoint
   :virkailija oti.endpoint.virkailija/virkailija-endpoint
-  :hakija oti.endpoint.hakija/hakija-endpoint}
+  :hakija oti.endpoint.participant/participant-endpoint}
  :dependencies
  {:http [:app]
   :app  [:status :frontend :auth :virkailija :hakija]

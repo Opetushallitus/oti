@@ -1,10 +1,11 @@
-(ns oti.endpoint.hakija
+(ns oti.endpoint.participant
   (:require [compojure.core :refer :all]
             [ring.util.response :refer [resource-response content-type redirect response]]
             [clojure.spec :as s]
             [oti.boundary.db-access :as dba]
             [oti.spec :as os]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [oti.routing :as routing]))
 
 (def translations
   {"Ilmoittautuminen" {:fi "Ilmoittautuminen" :sv "Anmälning"}
@@ -13,8 +14,8 @@
                          :sv "Anmälning till examen i undervisningsförvaltning"}})
 
 
-(defn hakija-endpoint [{:keys [db]}]
-  (context "/oti/api/hakija" []
+(defn participant-endpoint [{:keys [db]}]
+  (context routing/participant-api-root []
     (GET "/translations" [lang]
       (if (str/blank? lang)
         {:status 400 :body {:error "Missing lang parameter"}}

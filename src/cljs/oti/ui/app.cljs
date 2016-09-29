@@ -7,7 +7,8 @@
             [oti.ui.routes :as routes]
             [oti.ui.views.virkailija-main :as virkailija]
             [oti.ui.registration.main-view :as registration]
-            [oti.ui.config :as config]))
+            [oti.ui.config :as config]
+            [clojure.string :as str]))
 
 (defn dev-setup []
   (when config/debug?
@@ -23,10 +24,16 @@
                     [registration/main-panel])
                   (.getElementById js/document "app")))
 
+(defn resolve-lang []
+  (let [pathname (-> js/window .-location .-pathname)]
+    (if (str/includes? pathname "/anmala")
+      :sv
+      :fi)))
+
 (defn init-mode [mode]
   (if (= "virkailija" mode)
     (re-frame/dispatch [:load-user])
-    (re-frame/dispatch [:set-language :fi])))
+    (re-frame/dispatch [:set-language (resolve-lang)])))
 
 (defn ^:export start [mode]
   (routes/app-routes)
