@@ -62,13 +62,16 @@
 
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
-  (add-exam-session! [db exam-session]))
+  (add-exam-session! [db exam-session])
+  (published-exam-sessions-with-space-left [db]))
 
 (extend-type HikariCP
   DbAccess
-  (upcoming-exam-sessions [db]
-    (group-exam-session-translations (exam-sessions-in-future {} {:connection (:spec db)})))
-  (add-exam-session! [db exam-session]
-    (jdbc/with-db-transaction [tx (:spec db)]
+  (upcoming-exam-sessions [{:keys [spec]}]
+    (group-exam-session-translations (exam-sessions-in-future {} {:connection spec})))
+  (published-exam-sessions-with-space-left [{:keys [spec]}]
+    (group-exam-session-translations (published-exam-sessions-in-future-with-space-left {} {:connection spec})))
+  (add-exam-session! [{:keys [spec]} exam-session]
+    (jdbc/with-db-transaction [tx spec]
       (let [exam-session-id (:id (insert-exam-session tx exam-session))]
         (insert-exam-session-translations tx (assoc exam-session ::spec/id exam-session-id))))))

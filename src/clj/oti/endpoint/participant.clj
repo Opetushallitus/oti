@@ -5,7 +5,8 @@
             [oti.boundary.db-access :as dba]
             [oti.spec :as os]
             [clojure.string :as str]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [oti.util.coercion :as c]))
 
 (def translations
   {"Ilmoittautuminen" {:fi "Ilmoittautuminen" :sv "Anmälning"}
@@ -63,4 +64,9 @@
                                            :hetu (random-hetu)}}))
         {:status 400 :body {:error "Missing callback uri"}}))
     (GET "/participant-data" {session :session}
-      (response (:participant session)))))
+      (response (:participant session)))
+    (context "/exam-sessions" []
+      (GET "/" []
+        (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
+                            (map c/convert-session-row))]
+          (response sessions))))))

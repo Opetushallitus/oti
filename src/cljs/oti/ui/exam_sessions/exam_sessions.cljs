@@ -1,13 +1,10 @@
 (ns oti.ui.exam-sessions.exam-sessions
   (:require [oti.ui.exam-sessions.handlers]
             [oti.ui.exam-sessions.subs]
+            [oti.ui.exam-sessions.utils :refer [parse-date unparse-date]]
             [oti.spec :as spec]
             [re-frame.core :as re-frame]
             [reagent.core :as r]
-            [cljs-time.format :as ctf]
-            [cljs-time.coerce :as ctc]
-            [cljs-time.core :as time]
-            [clojure.string :as str]
             [cljs.spec :as s]
             [oti.routing :as routing]))
 
@@ -52,19 +49,6 @@
        (input-element-with-translations form-data invalids type key "FI" (or placeholder label))
        (input-element-with-translations form-data invalids type key "SV" (str (or placeholder label) " ruotsiksi"))]
       (input-element form-data invalids type key (or placeholder label)))]])
-
-(def date-format (ctf/formatter "d.M.yyyy"))
-
-(defn parse-date [date-str]
-  (when-not (str/blank? date-str)
-    (try
-      (-> (ctf/parse date-format date-str)
-          (ctc/to-date))
-      (catch js/Error _))))
-
-(defn unparse-date [date]
-  (->> (time/to-default-time-zone date)
-       (ctf/unparse date-format)))
 
 (defn invalid-keys [form-data]
   (let [keys (->> (s/explain-data ::spec/exam-session @form-data)

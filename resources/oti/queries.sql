@@ -12,6 +12,26 @@ SELECT es.id,
        est.other_location_info FROM exam_session es JOIN exam_session_translation est ON es.id = est.exam_session_id
 WHERE session_date > now();
 
+-- name: published-exam-sessions-in-future-with-space-left
+SELECT es.id,
+  es.session_date,
+  es.start_time,
+  es.end_time,
+  es.max_participants,
+  es.exam_id,
+  es.published,
+  est.city,
+  est.street_address,
+  est.language_code,
+  est.other_location_info,
+  (es.max_participants - COUNT(r.id)) AS available
+FROM exam_session es JOIN exam_session_translation est ON es.id = est.exam_session_id
+  LEFT JOIN registration r ON es.id = r.exam_session_id
+WHERE session_date > now() AND es.published = TRUE
+GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
+  est.street_address, est.language_code, est.other_location_info
+HAVING (es.max_participants - COUNT(r.id)) > 0;
+
 -- name: exams
 SELECT * FROM exam;
 

@@ -33,8 +33,8 @@
        [:div#content-area
         [:main.container
          (cond
-           (empty @participant-data) [av/authentication-panel]
-           (seq @participant-data) [rv/registration-panel])]]
+           (empty? @participant-data) [av/authentication-panel]
+           (seq @participant-data) [rv/registration-panel @participant-data])]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]
            [:div.flash-message

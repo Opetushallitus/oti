@@ -16,10 +16,19 @@
 
 (re-frame/reg-event-fx
   :load-participant-data
+  (fn [_ _]
+    {:http-xhrio {:method          :get
+                  :uri             (routing/p-a-route "/participant-data")
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:store-response-to-db :participant-data]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
+  :load-available-sessions
   (fn [{:keys [db]} [_ lang]]
     {:db         (assoc db :language lang)
      :http-xhrio {:method          :get
-                  :uri             (routing/p-a-route "/participant-data")
+                  :uri             (routing/p-a-route "/exam-sessions")
                   :response-format (ajax/transit-response-format)
-                  :on-success      [:store-response-to-db :partipant-data]
+                  :on-success      [:store-response-to-db :exam-sessions]
                   :on-failure      [:bad-response]}}))

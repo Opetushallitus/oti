@@ -10,14 +10,15 @@
   :frontend oti.endpoint.frontend/frontend-endpoint
   :auth oti.endpoint.auth/auth-endpoint
   :virkailija oti.endpoint.virkailija/virkailija-endpoint
-  :hakija oti.endpoint.participant/participant-endpoint}
+  :participant oti.endpoint.participant/participant-endpoint}
  :dependencies
  {:http [:app]
-  :app  [:status :frontend :auth :virkailija :hakija]
+  :app  [:status :frontend :auth :virkailija :participant]
   :ragtime [:db]
   :status []
   :auth [:authentication :cas :ldap]
-  :virkailija [:db]}
+  :virkailija [:db]
+  :participant [:db]}
  :config
  {:app
   {:middleware
