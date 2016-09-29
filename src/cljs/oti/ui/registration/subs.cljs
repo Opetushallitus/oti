@@ -1,7 +1,10 @@
 (ns oti.ui.registration.subs
   (:require [re-frame.core :as re-frame]))
 
-(re-frame/reg-sub
-  :language
-  (fn [db _]
-    (:language db)))
+(def interesting-keys [:language :participant-authenticated?])
+
+(doseq [key interesting-keys]
+  (re-frame/reg-sub
+    key
+    (fn [db _]
+      (key db))))

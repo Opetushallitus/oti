@@ -257,6 +257,9 @@ input[type="reset"]:not(:first-child),
 input[type="button"]:not(:first-child) {
   margin-left: .7em;
 }
+.buttons {
+  margin-top: .7em;
+}
 .tulkki-name {
   color: #00a651;
   cursor: pointer;

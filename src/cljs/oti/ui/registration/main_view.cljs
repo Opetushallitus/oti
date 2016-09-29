@@ -1,6 +1,7 @@
 (ns oti.ui.registration.main-view
   (:require [oti.ui.registration.handlers]
             [oti.ui.registration.subs]
+            [oti.ui.registration.authentication-view :as av]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]
             [oti.ui.i18n :refer [t]]))
@@ -14,9 +15,9 @@
     [:li.divider]]])
 
 (defn main-panel []
-  (let [user (re-frame/subscribe [:user])
-        flash-message (re-frame/subscribe [:flash-message])
-        current-language (re-frame/subscribe [:language])]
+  (let [flash-message (re-frame/subscribe [:flash-message])
+        current-language (re-frame/subscribe [:language])
+        participant-authenticated? (re-frame/subscribe [:participant-authenticated?])]
     (fn []
       [:div
        [:div#header
@@ -26,9 +27,11 @@
                                    (.preventDefault e)
                                    (re-frame/dispatch [:set-language (if (= @current-language :fi) :sv :fi)]))}
          (t "switch-language")]]
-       [navigation-panel @user]
+       [navigation-panel]
        [:div#content-area
-        [:main.container]]
+        [:main.container
+         (cond
+           (not @participant-authenticated?) [av/authentication-panel])]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]
            [:div.flash-message

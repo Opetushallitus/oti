@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [oti.ui.exam-sessions.exam-sessions :refer [exam-sessions-panel new-exam-session-panel]]
             [oti.ui.views.students :refer [students-panel]]
-            [oti.ui.routes :refer [routes]]
+            [oti.ui.routes :refer [virkailija-routes]]
             [oti.routing :as routing]))
 
 (defmulti panels identity)
@@ -26,7 +26,7 @@
                                      [:span text]
                                      [:a {:href url} text])]]))
                 [:ul#main-nav]
-                (filter :text routes))
+                (filter :text virkailija-routes))
         (concat [[:li.user
                   [:span (:username user)]
                   [:br]

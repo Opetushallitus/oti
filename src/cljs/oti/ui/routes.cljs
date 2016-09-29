@@ -5,7 +5,7 @@
             [pushy.core :as pushy]
             [oti.routing :as routing]))
 
-(def routes
+(def virkailija-routes
   [{:view :exam-sessions-panel :url routing/virkailija-root :text "Tutkintotapahtumat"}
    {:view :new-exam-session-panel :url (routing/v-route "/tutkintotapahtuma")}
    {:view :students-panel :url (routing/v-route "/henkilot") :text "Henkilötiedot"}])
@@ -15,7 +15,7 @@
 (defn app-routes []
   (secretary/set-config! :prefix "/")
 
-  (doseq [{:keys [view url]} routes]
+  (doseq [{:keys [view url]} virkailija-routes]
     (secretary/add-route! url #(re-frame/dispatch [:set-active-panel view])))
 
   ;; Pushy handles the HTML5 history based navigation
