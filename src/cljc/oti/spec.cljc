@@ -9,7 +9,8 @@
 
 (s/def ::non-blank-string (s/and string? #(not (str/blank? %))))
 
-(def time-regexp #"\d?\d[:\.]\d\d")
+(def time-regexp #"(0?[0-9]|1[0-9]|2[0-3])[:\.]([0-5][0-9])")
+
 (s/def ::time (s/and string? #(re-matches time-regexp %)))
 
 (defn date-conformer [x]
