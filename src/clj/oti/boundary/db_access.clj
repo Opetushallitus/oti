@@ -39,22 +39,21 @@
      ::spec/exam-session-id     exam-session-id}
     (throw (Exception. "Error occured creating exam-session translation. Missing or invalid params."))))
 
-(defn- insert-exam-session-translation [tx exam-session]
-  (fn [lang]
-    (let [street-address      (get-in exam-session [::spec/street-address lang])
-          city                (get-in exam-session [::spec/city lang])
-          other-location-info (get-in exam-session [::spec/other-location-info lang])
-          exam-session-id     (get exam-session ::spec/id)
-          translation         (exam-session-translation street-address
-                                                        city
-                                                        other-location-info
-                                                        lang exam-session-id)]
-      (insert-exam-session-translation! translation {:connection tx}))))
+(defn- insert-exam-session-translation [lang tx exam-session]
+  (let [street-address      (get-in exam-session [::spec/street-address lang])
+        city                (get-in exam-session [::spec/city lang])
+        other-location-info (get-in exam-session [::spec/other-location-info lang])
+        exam-session-id     (get exam-session ::spec/id)
+        translation         (exam-session-translation street-address
+                                                      city
+                                                      other-location-info
+                                                      lang exam-session-id)]
+    (insert-exam-session-translation! translation {:connection tx})))
 
 (defn insert-exam-session-translations [tx exam-session]
   (let [langs (set (mapcat keys-of-mapval (translatable-keys-from-exam-session exam-session)))]
     (if (::spec/id exam-session)
-      (mapv (insert-exam-session-translation tx exam-session) langs)
+      (mapv #(insert-exam-session-translation % tx exam-session) langs)
       (throw (Exception. "Error occured inserting translations. Missing exam session id.")))))
 
 (defn insert-exam-session [tx exam-session]
