@@ -1,5 +1,7 @@
-(ns oti.ui.views.exam-sessions
-  (:require [oti.spec :as spec]
+(ns oti.ui.exam-sessions.exam-sessions
+  (:require [oti.ui.exam-sessions.handlers]
+            [oti.ui.exam-sessions.subs]
+            [oti.spec :as spec]
             [re-frame.core :as re-frame]
             [reagent.core :as r]
             [cljs-time.format :as ctf]

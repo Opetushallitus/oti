@@ -5,8 +5,8 @@
             [oti.ui.handlers]
             [oti.ui.subs]
             [oti.ui.routes :as routes]
-            [oti.ui.views.main :as views]
-            [oti.ui.views.applicant :as applicant]
+            [oti.ui.views.virkailija-main :as virkailija]
+            [oti.ui.views.hakija-main :as hakija]
             [oti.ui.config :as config]))
 
 (defn dev-setup []
@@ -17,8 +17,8 @@
 
 (defn mount-root [mode]
   (reagent/render (if (= "virkailija" mode)
-                    [views/main-panel]
-                    [applicant/main-panel])
+                    [virkailija/main-panel]
+                    [hakija/main-panel])
                   (.getElementById js/document "app")))
 
 (defn ^:export start [mode]

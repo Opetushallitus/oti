@@ -1,4 +1,4 @@
-(ns oti.ui.views.applicant
+(ns oti.ui.views.hakija-main
   (:require [re-frame.core :as re-frame]))
 
 (defn navigation-panel []

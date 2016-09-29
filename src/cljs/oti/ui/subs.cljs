@@ -13,11 +13,6 @@
    (:active-panel db)))
 
 (re-frame/reg-sub
-  :exam-sessions
-  (fn [db _]
-    (:exam-sessions db)))
-
-(re-frame/reg-sub
   :flash-message
   (fn [db _]
     (:flash-message db)))

@@ -1,6 +1,6 @@
-(ns oti.ui.views.main
+(ns oti.ui.views.virkailija-main
   (:require [re-frame.core :as re-frame]
-            [oti.ui.views.exam-sessions :refer [exam-sessions-panel new-exam-session-panel]]
+            [oti.ui.exam-sessions.exam-sessions :refer [exam-sessions-panel new-exam-session-panel]]
             [oti.ui.views.students :refer [students-panel]]
             [oti.ui.routes :refer [routes]]))
 
