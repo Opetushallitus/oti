@@ -15,8 +15,10 @@
     (println "dev mode")
     (devtools/install!)))
 
-(defn mount-root [mode]
-  (reagent/render (if (= "virkailija" mode)
+(defonce mode-atom (reagent/atom ""))
+
+(defn mount-root []
+  (reagent/render (if (= "virkailija" @mode-atom)
                     [virkailija/main-panel]
                     [hakija/main-panel])
                   (.getElementById js/document "app")))
@@ -26,7 +28,8 @@
   (re-frame/dispatch-sync [:initialize-db])
   (re-frame/dispatch [:load-user])
   (dev-setup)
-  (mount-root mode))
+  (reset! mode-atom mode)
+  (mount-root))
 
 (defn reload-hook []
-  (reagent/force-update-all))
+  (mount-root))
