@@ -1,13 +1,14 @@
 (ns oti.ui.routes
     (:require-macros [secretary.core :refer [defroute]])
-    (:require [secretary.core :as secretary]
-              [re-frame.core :as re-frame]
-              [pushy.core :as pushy]))
+  (:require [secretary.core :as secretary]
+            [re-frame.core :as re-frame]
+            [pushy.core :as pushy]
+            [oti.routing :as routing]))
 
 (def routes
-  [{:view :exam-sessions-panel :url "/oti/virkailija" :text "Tutkintotapahtumat"}
-   {:view :new-exam-session-panel :url "/oti/virkailija/tutkintotapahtuma"}
-   {:view :students-panel :url "/oti/virkailija/henkilot" :text "Henkilötiedot"}])
+  [{:view :exam-sessions-panel :url routing/virkailija-root :text "Tutkintotapahtumat"}
+   {:view :new-exam-session-panel :url (routing/v-route "/tutkintotapahtuma")}
+   {:view :students-panel :url (routing/v-route "/henkilot") :text "Henkilötiedot"}])
 
 (def history (atom nil))
 

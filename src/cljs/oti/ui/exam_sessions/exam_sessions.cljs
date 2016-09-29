@@ -8,7 +8,8 @@
             [cljs-time.coerce :as ctc]
             [cljs-time.core :as time]
             [clojure.string :as str]
-            [cljs.spec :as s]))
+            [cljs.spec :as s]
+            [oti.routing :as routing]))
 
 (defn- get-in-lang [e lang]
   (get e lang))
@@ -134,7 +135,7 @@
                          (re-frame/dispatch [:add-exam-session @form-data]))}
             "Tallenna"]
            [:a.button
-            {:href "/oti/virkailija"}
+            {:href routing/virkailija-root}
             "Peruuta"]]]]))))
 
 (defn exam-sessions-panel []
@@ -171,5 +172,5 @@
                  [:td "0"]]))]])]
        [:div.buttons
         [:div.right
-         [:a.button {:href "/oti/virkailija/tutkintotapahtuma"} "Lisää uusi"]]]])))
+         [:a.button {:href (routing/v-route "/tutkintotapahtuma")} "Lisää uusi"]]]])))
 

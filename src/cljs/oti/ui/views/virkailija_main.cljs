@@ -2,7 +2,8 @@
   (:require [re-frame.core :as re-frame]
             [oti.ui.exam-sessions.exam-sessions :refer [exam-sessions-panel new-exam-session-panel]]
             [oti.ui.views.students :refer [students-panel]]
-            [oti.ui.routes :refer [routes]]))
+            [oti.ui.routes :refer [routes]]
+            [oti.routing :as routing]))
 
 (defmulti panels identity)
 (defmethod panels :exam-sessions-panel [] [exam-sessions-panel])
@@ -29,7 +30,7 @@
         (concat [[:li.user
                   [:span (:username user)]
                   [:br]
-                  [:a.logout {:href "/oti/auth/logout"} "Kirjaudu ulos"]]])
+                  [:a.logout {:href (routing/auth-route "/logoout")} "Kirjaudu ulos"]]])
         (vec))])
 
 (defn main-panel []
@@ -39,7 +40,7 @@
     (fn []
       [:div
        [:div#header
-        [:img {:src "/oti/img/opetushallitus.gif"}]
+        [:img {:src (routing/img "opetushallitus.gif")}]
         [:p "Opetushallinnon tutkintorekisteri"]
         [:a {} "På svenska"]]
        [navigation-panel @active-panel @user]

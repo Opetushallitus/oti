@@ -1,5 +1,6 @@
 (ns oti.ui.views.hakija-main
-  (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [oti.routing :as routing]))
 
 (defn navigation-panel []
   [:nav#nav-holder
@@ -15,7 +16,7 @@
     (fn []
       [:div
        [:div#header
-        [:img {:src "/oti/img/opetushallitus.gif"}]
+        [:img {:src (routing/img "opetushallitus.gif")}]
         [:p "Opetushallinnon tutkintoon ilmoittautuminen"]
         [:a {} "På svenska"]]
        [navigation-panel @user]

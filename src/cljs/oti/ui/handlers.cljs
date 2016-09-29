@@ -3,7 +3,8 @@
             [re-frame.core :as re-frame]
             [oti.ui.db :as db]
             [ajax.core :as ajax]
-            [oti.ui.routes :as routes]))
+            [oti.ui.routes :as routes]
+            [oti.routing :as routing]))
 
 (re-frame/reg-event-db
  :initialize-db
@@ -19,7 +20,7 @@
   :load-user
   (fn [_ _]
     {:http-xhrio {:method          :get
-                  :uri             "/oti/api/virkailija/user-info"
+                  :uri             (routing/v-a-route "/user-info")
                   :response-format (ajax/transit-response-format)
                   :on-success      [:user-response]
                   :on-failure      [:bad-response]}}))
