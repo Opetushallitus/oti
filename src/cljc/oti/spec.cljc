@@ -42,8 +42,8 @@
 (s/def ::id pos-int?)
 
 ;; i18n
-(s/def ::language-code (s/and ::non-blank-string #(= (count %) 2)))
-(s/def ::i18n-string (s/map-of ::language-code ::non-blank-string))
+(s/def ::language-code #(or (= % "FI") (= % "SV")))
+(s/def ::i18n-string (s/map-of ::language-code ::non-blank-string :count 2))
 
 ;; exam-session
 (s/def ::session-date        (s/conformer date-conformer))
