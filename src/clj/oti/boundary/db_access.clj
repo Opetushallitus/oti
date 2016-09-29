@@ -8,11 +8,11 @@
 
 (defqueries "oti/queries.sql")
 
-(defn translation-by-key-fn [key]
+(defn- translation-by-key-fn [key]
   (fn [ts e]
     (assoc ts (:language_code e) (key e))))
 
-(defn group-exam-session-translations [exam-sessions]
+(defn- group-exam-session-translations [exam-sessions]
   (->> (group-by :id exam-sessions)
        (mapv (fn [[_ sessions]]
                (let [session (apply merge sessions)
@@ -23,36 +23,43 @@
                                  :city cities
                                  :other_location_info other-location-infos}))))))
 
-(defn insert-exam-session [tx exam-session]
-  (let [es (select-keys exam-session [::spec/session-date
-                                      ::spec/start-time
-                                      ::spec/end-time
-                                      ::spec/exam-id
-                                      ::spec/max-participants
-                                      ::spec/published])]
-    (or (insert-exam-session<! es {:connection tx})
-        (throw (Exception. "Could not create new exam session.")))))
+(defn- translatable-keys-from-exam-session [es]
+  (select-keys es [::spec/city
+                   ::spec/street-address
+                   ::spec/other-location-info]))
+
+(defn- keys-of-mapval [m] (-> m second keys))
+
+(defn- exam-session-translation [street-address city other-location-info lang exam-session-id]
+  (if (and street-address city other-location-info lang exam-session-id)
+    {::spec/street-address      street-address
+     ::spec/city                city
+     ::spec/other-location-info other-location-info
+     ::spec/language-code       lang
+     ::spec/exam-session-id     exam-session-id}
+    (throw (Exception. "Error occured creating exam-session translation. Missing or invalid params."))))
+
+(defn- insert-exam-session-translation [tx exam-session]
+  (fn [lang]
+    (let [street-address      (get-in exam-session [::spec/street-address lang])
+          city                (get-in exam-session [::spec/city lang])
+          other-location-info (get-in exam-session [::spec/other-location-info lang])
+          exam-session-id     (get exam-session ::spec/id)
+          translation         (exam-session-translation street-address
+                                                        city
+                                                        other-location-info
+                                                        lang exam-session-id)]
+      (insert-exam-session-translation! translation {:connection tx}))))
 
 (defn insert-exam-session-translations [tx exam-session]
-  (let [translations (select-keys exam-session [::spec/city
-                                                ::spec/street-address
-                                                ::spec/other-location-info])
-        exam-session-id (::spec/id exam-session)]
-    (if exam-session-id
-      (mapv (fn [lang ]
-               (let [street-address (get-in translations [::spec/street-address lang])
-                     city (get-in translations [::spec/city lang])
-                     other-location-info (get-in translations [::spec/other-location-info lang])
-                     translation {::spec/street-address      street-address
-                                  ::spec/city                city
-                                  ::spec/other-location-info other-location-info
-                                  ::spec/language-code       lang
-                                  ::spec/exam-session-id     exam-session-id}]
-                 (if (and street-address city other-location-info)
-                   (insert-exam-session-translation! translation {:connection tx})
-                   (throw (Exception. "Error occured inserting translations.")))))
-           (set (mapcat #(-> % second keys) translations)))
+  (let [langs (set (mapcat keys-of-mapval (translatable-keys-from-exam-session exam-session)))]
+    (if (::spec/id exam-session)
+      (mapv (insert-exam-session-translation tx exam-session) langs)
       (throw (Exception. "Error occured inserting translations. Missing exam session id.")))))
+
+(defn insert-exam-session [tx exam-session]
+  (or (insert-exam-session<! exam-session {:connection tx})
+      (throw (Exception. "Could not create new exam session."))))
 
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
