@@ -15,14 +15,14 @@
 (defn v-route [path]
   (str virkailija-root path))
 
-(defn h-route [path]
+(defn p-route [path]
   (str participant-root path))
 
 (defn v-a-route [path]
   (str virkailija-api-root path))
 
-(defn h-a-route [path]
-  (str participant-api-root path))
+(defn p-a-route [& path-parts]
+  (apply str participant-api-root path-parts))
 
 (defn img [file]
   (str app-root "/img/" file))

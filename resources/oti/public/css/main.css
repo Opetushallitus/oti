@@ -207,6 +207,7 @@ input[type="button"] {
   font-weight: bold !important;
   padding: 10px 12px;
   cursor: pointer;
+  display: inline-block;
   text-decoration: none;
 }
 .button:hover,
@@ -229,6 +230,7 @@ input[type="button"].button-primary {
   font-weight: bold !important;
   padding: 10px 12px;
   cursor: pointer;
+  display: inline-block;
 }
 .button.button-primary:hover,
 button.button-primary:hover,

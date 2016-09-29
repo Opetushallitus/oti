@@ -2,6 +2,7 @@
   (:require [oti.ui.registration.handlers]
             [oti.ui.registration.subs]
             [oti.ui.registration.authentication-view :as av]
+            [oti.ui.registration.registration-view :as rv]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]
             [oti.ui.i18n :refer [t]]))
@@ -15,9 +16,10 @@
     [:li.divider]]])
 
 (defn main-panel []
+  (re-frame/dispatch [:load-participant-data])
   (let [flash-message (re-frame/subscribe [:flash-message])
         current-language (re-frame/subscribe [:language])
-        participant-authenticated? (re-frame/subscribe [:participant-authenticated?])]
+        participant-data (re-frame/subscribe [:participant-data])]
     (fn []
       [:div
        [:div#header
@@ -31,7 +33,8 @@
        [:div#content-area
         [:main.container
          (cond
-           (not @participant-authenticated?) [av/authentication-panel])]]
+           (empty @participant-data) [av/authentication-panel]
+           (seq @participant-data) [rv/registration-panel])]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]
            [:div.flash-message
