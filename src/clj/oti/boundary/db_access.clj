@@ -13,15 +13,15 @@
     (assoc ts (keyword (:language_code e)) (key e))))
 
 (defn- group-exam-session-translations [exam-sessions]
-  (->> (group-by :id exam-sessions)
-       (mapv (fn [[_ sessions]]
-               (let [session (apply merge sessions)
-                     street-addresses (reduce (translation-by-key-fn :street_address) {} sessions)
-                     cities (reduce (translation-by-key-fn :city) {} sessions)
-                     other-location-infos (reduce (translation-by-key-fn :other_location_info) {} sessions)]
-                 (merge session {:street_address street-addresses
-                                 :city cities
-                                 :other_location_info other-location-infos}))))))
+  (->> (partition-by :id exam-sessions)
+       (map (fn [sessions]
+              (let [session (apply merge sessions)
+                    street-addresses (reduce (translation-by-key-fn :street_address) {} sessions)
+                    cities (reduce (translation-by-key-fn :city) {} sessions)
+                    other-location-infos (reduce (translation-by-key-fn :other_location_info) {} sessions)]
+                (merge session {:street_address street-addresses
+                                :city cities
+                                :other_location_info other-location-infos}))))))
 
 (defn- translatable-keys-from-exam-session [es]
   (select-keys es [::spec/city
