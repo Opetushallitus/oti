@@ -6,31 +6,25 @@
             [re-frame.core :as re-frame]
             [reagent.core :as r]
             [cljs.spec :as s]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [clojure.string :as str]))
 
-(defn input-element [form-data invalids type key placeholder & [on-change-fn]]
-  [:input {:class (when (key invalids) "invalid")
-           :type type
-           :value (key @form-data)
-           :placeholder placeholder
-           :required true
-           :on-change (or on-change-fn
-                          (fn [e]
-                            (let [value (cond-> (-> e .-target .-value)
-                                                (= "number" type) (js/parseInt))]
-                              (swap! form-data assoc key value))))}])
+(defn parse-int [x]
+  (when-not (str/blank? x)
+    (js/parseInt x)))
 
-(defn input-element-with-translations [form-data invalids type key lang placeholder & [on-change-fn]]
-  [:input {:class       (when (key invalids) "invalid")
-           :type        type
-           :value       (get-in @form-data [key lang])
-           :placeholder placeholder
-           :required    true
-           :on-change   (or on-change-fn
-                            (fn [e]
-                              (let [value (cond-> (-> e .-target .-value)
-                                                  (= "number" type) (js/parseInt))]
-                                (swap! form-data assoc-in [key lang] value))))}])
+(defn input-element [form-data invalids type key lang placeholder & [on-change-fn]]
+  (let [value-path (if lang [key lang] [key])]
+    [:input {:class       (when (key invalids) "invalid")
+             :type        type
+             :value       (get-in @form-data value-path)
+             :placeholder placeholder
+             :required    true
+             :on-change   (or on-change-fn
+                              (fn [e]
+                                (let [value (cond-> (-> e .-target .-value)
+                                                    (= "number" type) (parse-int))]
+                                  (swap! form-data assoc-in value-path value))))}]))
 
 (defn input-row [form-data invalids {:keys [key type label placeholder translated?]
                                      :or {translated? false}}]
@@ -39,9 +33,9 @@
     [:span.label label]
     (if translated?
       [:div.input-group-inline
-       (input-element-with-translations form-data invalids type key :fi (or placeholder label))
-       (input-element-with-translations form-data invalids type key :sv (str (or placeholder label) " ruotsiksi"))]
-      (input-element form-data invalids type key (or placeholder label)))]])
+       (input-element form-data invalids type key :fi (or placeholder label))
+       (input-element form-data invalids type key :sv (str (or placeholder label) " ruotsiksi"))]
+      (input-element form-data invalids type key nil (or placeholder label)))]])
 
 (defn invalid-keys [form-data]
   (let [keys (->> (s/explain-data ::spec/exam-session @form-data)
@@ -68,14 +62,15 @@
               invalids
               "text"
               ::spec/session-date-str
+              nil
               "pp.kk.vvvv"
               (fn [e]
                 (let [value (-> e .-target .-value)]
                   (swap! form-data assoc ::spec/session-date-str value ::spec/session-date (parse-date value)))))
             [:div.times
-             (input-element form-data invalids "text" ::spec/start-time "hh.mm")
+             (input-element form-data invalids "text" ::spec/start-time nil "hh.mm")
              [:span.dash "\u2014"]
-             (input-element form-data invalids "text" ::spec/end-time "hh.mm")]]]
+             (input-element form-data invalids "text" ::spec/end-time nil "hh.mm")]]]
           (input-row form-data invalids {:key ::spec/city
                                          :type "text"
                                          :label "Koepaikan kaupunki"
