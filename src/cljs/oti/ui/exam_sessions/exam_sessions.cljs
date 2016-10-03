@@ -38,13 +38,14 @@
       (input-element form-data invalids type key nil (or placeholder label)))]])
 
 (defn invalid-keys [form-data]
-  (let [keys (->> (s/explain-data ::spec/exam-session @form-data)
-                  ::s/problems
-                  (map #(first (:path %)))
-                  (remove nil?)
-                  set)]
-    (cond-> keys
-            (::spec/session-date keys) (conj keys ::spec/session-date-str))))
+  (let [problems (::s/problems (s/explain-data ::spec/exam-session @form-data))]
+    (let [keys (->> problems
+                    (map #(first (:path %)))
+                    (remove nil?)
+                    set)]
+      (cond-> keys
+              (::spec/session-date keys) (conj keys ::spec/session-date-str)
+              (some #(= 'start-before-end-time? (:pred %)) problems) (conj keys ::spec/end-time)))))
 
 (defn new-exam-session-panel []
   (let [form-data (r/atom {::spec/exam-id 1

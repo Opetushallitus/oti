@@ -40,6 +40,14 @@
              x
              ::s/invalid)))
 
+(defn start-before-end-time? [{::keys [start-time end-time]}]
+  #?(:clj (.isBefore start-time end-time)
+     :cljs (let [[s-h s-m] (->> (str/split start-time #"[:\.]")
+                                (map js/parseInt))
+                 [e-h e-m] (->> (str/split end-time #"[:\.]")
+                                (map js/parseInt))]
+             (or (< s-h e-h) (and (= s-h e-h) (< s-m e-m))))))
+
 (s/def ::id pos-int?)
 
 ;; i18n
@@ -58,12 +66,14 @@
 (s/def ::exam-session-id     pos-int?)
 (s/def ::published           boolean?)
 
-(s/def ::exam-session (s/keys :req [::session-date
-                                    ::start-time
-                                    ::end-time
-                                    ::street-address
-                                    ::city
-                                    ::other-location-info
-                                    ::max-participants
-                                    ::exam-id
-                                    ::published]))
+(s/def ::exam-session (s/and
+                        (s/keys :req [::session-date
+                                      ::start-time
+                                      ::end-time
+                                      ::street-address
+                                      ::city
+                                      ::other-location-info
+                                      ::max-participants
+                                      ::exam-id
+                                      ::published])
+                        start-before-end-time?))
