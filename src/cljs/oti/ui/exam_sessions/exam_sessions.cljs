@@ -7,7 +7,13 @@
             [reagent.core :as r]
             [cljs.spec :as s]
             [oti.routing :as routing]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [cljsjs.moment]
+            [cljsjs.moment.locale.fi]
+            [cljs-pikaday.reagent :as pikaday]
+            [oti.ui.i18n :as i18n]))
+
+(.locale js/moment "fi")
 
 (defn parse-int [x]
   (when-not (str/blank? x)
@@ -48,8 +54,14 @@
               (some #(= 'start-before-end-time? (:pred %)) problems) (conj keys ::spec/end-time)))))
 
 (defn new-exam-session-panel []
-  (let [form-data (r/atom {::spec/exam-id 1
-                           ::spec/published false})]
+  (let [tomorrow (-> (js/moment.) (.add 1 "days") .toDate)
+        pikaday-date (r/atom tomorrow)
+        form-data (r/atom {::spec/exam-id 1
+                           ::spec/published false
+                           ::spec/session-date tomorrow})]
+    (add-watch pikaday-date :update-form-data
+               (fn [_ _ _ new-date]
+                 (swap! form-data assoc ::spec/session-date new-date)))
     (fn []
       (let [invalids (invalid-keys form-data)]
         [:div.exam-session-form
@@ -58,16 +70,14 @@
           [:div.row
            [:label
             [:span.label "Päivämäärä ja kellonaika"]
-            (input-element
-              form-data
-              invalids
-              "text"
-              ::spec/session-date-str
-              nil
-              "pp.kk.vvvv"
-              (fn [e]
-                (let [value (-> e .-target .-value)]
-                  (swap! form-data assoc ::spec/session-date-str value ::spec/session-date (parse-date value)))))
+            [:div.pikaday-input
+             [pikaday/date-selector {:date-atom pikaday-date
+                                     :pikaday-attrs {:format "D.M.YYYY"
+                                                     :i18n i18n/pikaday-i18n
+                                                     :minDate tomorrow}
+                                     :input-attrs {:type "text"
+                                                   :id "pikaday-input"}}]
+             [:i.icon-calendar.date-picker-icon]]
             [:div.times
              (input-element form-data invalids "text" ::spec/start-time nil "hh.mm")
              [:span.dash "\u2014"]

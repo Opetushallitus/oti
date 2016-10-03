@@ -11,3 +11,10 @@
     (if-not (empty? @translations)
       (get @translations key key)
       "")))
+
+(def pikaday-i18n
+  {:previous-month "Edellinen kuukausi"
+   :next-month "Seuraava kuukausi",
+   :months ["Tammikuu" "Helmikuu" "Maaliskuu" "Huhtikuu" "Toukokuu" "Kesäkuu" "Heinäkuu" "Elokuu" "Syyskuu" "Lokakuu" "Marraskuu" "Joulukuu"]
+   :weekdays ["Sunnuntai" "Maanantai" "Tiistai" "Keskiviikko" "Torstai" "Perjantai" "Lauantai"]
+   :weekdays-short ["Su" "Ma" "Ti" "Ke" "To" "Pe" "La"]})
