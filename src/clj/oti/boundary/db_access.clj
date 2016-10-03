@@ -10,7 +10,7 @@
 
 (defn- translation-by-key-fn [key]
   (fn [ts e]
-    (assoc ts (:language_code e) (key e))))
+    (assoc ts (keyword (:language_code e)) (key e))))
 
 (defn- group-exam-session-translations [exam-sessions]
   (->> (group-by :id exam-sessions)
@@ -35,7 +35,7 @@
     {::spec/street-address      street-address
      ::spec/city                city
      ::spec/other-location-info other-location-info
-     ::spec/language-code       lang
+     ::spec/language-code       (name lang)
      ::spec/exam-session-id     exam-session-id}
     (throw (Exception. "Error occured creating exam-session translation. Missing or invalid params."))))
 

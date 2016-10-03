@@ -43,7 +43,7 @@
 (s/def ::id pos-int?)
 
 ;; i18n
-(s/def ::language-code #(or (= % "FI") (= % "SV")))
+(s/def ::language-code #{:fi :sv})
 (s/def ::i18n-string (s/map-of ::language-code ::non-blank-string :count 2))
 
 ;; exam-session

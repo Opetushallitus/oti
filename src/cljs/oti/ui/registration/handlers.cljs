@@ -25,9 +25,8 @@
 
 (re-frame/reg-event-fx
   :load-available-sessions
-  (fn [{:keys [db]} [_ lang]]
-    {:db         (assoc db :language lang)
-     :http-xhrio {:method          :get
+  (fn [_ _]
+    {:http-xhrio {:method          :get
                   :uri             (routing/p-a-route "/exam-sessions")
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :exam-sessions]

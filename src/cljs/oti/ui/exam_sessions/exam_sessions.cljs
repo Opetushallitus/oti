@@ -8,13 +8,6 @@
             [cljs.spec :as s]
             [oti.routing :as routing]))
 
-(defn- get-in-lang [e lang]
-  (get e lang))
-(defn- in-fi [e]
-  (get-in-lang e "FI"))
-(defn- in-sv [e]
-  (get-in-lang e "SV"))
-
 (defn input-element [form-data invalids type key placeholder & [on-change-fn]]
   [:input {:class (when (key invalids) "invalid")
            :type type
@@ -46,8 +39,8 @@
     [:span.label label]
     (if translated?
       [:div.input-group-inline
-       (input-element-with-translations form-data invalids type key "FI" (or placeholder label))
-       (input-element-with-translations form-data invalids type key "SV" (str (or placeholder label) " ruotsiksi"))]
+       (input-element-with-translations form-data invalids type key :fi (or placeholder label))
+       (input-element-with-translations form-data invalids type key :sv (str (or placeholder label) " ruotsiksi"))]
       (input-element form-data invalids type key (or placeholder label)))]])
 
 (defn invalid-keys [form-data]
@@ -145,16 +138,15 @@
                 [:tr
                  [:td (str (unparse-date session-date) " " start-time " - " end-time)]
                  [:td
-                  (str (in-fi city) ", " (in-fi street-address))
+                  (str (:fi city) ", " (:fi street-address))
                   [:br]
-                  (str (in-sv city) ", " (in-sv street-address))]
+                  (str (:sv city) ", " (:sv street-address))]
                  [:td
-                  (in-fi other-location-info)
+                  (:fi other-location-info)
                   [:br]
-                  (in-sv other-location-info)]
+                  (:sv other-location-info)]
                  [:td max-participants]
                  [:td "0"]]))]])]
        [:div.buttons
         [:div.right
          [:a.button {:href (routing/v-route "/tutkintotapahtuma")} "Lisää uusi"]]]])))
-
