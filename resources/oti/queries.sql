@@ -66,7 +66,6 @@ INSERT INTO exam_session_translation (
   :oti.spec/exam-session-id
 );
 
-
 -- name: select-modules-available-for-user
 SELECT DISTINCT
   s.id AS section_id, m.id AS module_id, st.name AS section_name, st.language_code, mt.name AS module_name,
@@ -94,3 +93,16 @@ ORDER BY section_id, module_id, language_code;
 SELECT m.id, json_object_agg(mt.language_code, mt.name) AS NAMES
 FROM (SELECT language_code, name FROM module_translation WHERE module_id = 1) AS mt, module m
 GROUP BY m.id;
+
+-- name: select-valid-payment-count-for-user
+SELECT
+  COUNT(*)
+FROM payment p
+JOIN registration r ON p.registration_id = r.id
+JOIN participant pp ON r.participant_id = pp.id
+JOIN exam_session e ON r.exam_session_id = e.id
+LEFT JOIN section_score ss ON (ss.exam_session_id = e.id AND ss.participant_id = p.id)
+LEFT JOIN module_score ms ON ms.section_score_id = ss.id
+WHERE pp.ext_reference_id = :external-user-id AND p.state = 'OK' AND p.type = 'FULL' AND
+      (((ss.accepted IS NULL OR ss.accepted = FALSE ) AND (ms.accepted IS NULL OR ms.accepted = FALSE))
+        OR (ss.created >= (SELECT current_date - interval '2 years'))) ;

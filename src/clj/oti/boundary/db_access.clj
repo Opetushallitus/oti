@@ -87,7 +87,8 @@
   (upcoming-exam-sessions [db])
   (add-exam-session! [db exam-session])
   (published-exam-sessions-with-space-left [db])
-  (modules-available-for-user [db external-user-id]))
+  (modules-available-for-user [db external-user-id])
+  (valid-full-payments-for-user [db external-user-id]))
 
 (extend-type HikariCP
   DbAccess
@@ -101,4 +102,8 @@
         (insert-exam-session-translations tx (assoc exam-session ::spec/id exam-session-id)))))
   (modules-available-for-user [{:keys [spec]} external-user-id]
     (->> (select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
-         group-sections-and-modules)))
+         group-sections-and-modules))
+  (valid-full-payments-for-user [{:keys [spec]} external-user-id]
+    (-> (select-valid-payment-count-for-user {:external-user-id external-user-id} {:connection spec})
+        first
+        :count)))

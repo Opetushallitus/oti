@@ -18,7 +18,7 @@
   :status []
   :auth [:authentication :cas :ldap]
   :virkailija [:db]
-  :participant [:db]}
+  :participant [:db :payments]}
  :config
  {:app
   {:middleware
@@ -45,4 +45,6 @@
   {:port http-port
    :thread 80}
   :ragtime
-  {:resource-path "oti/migrations"}}}
+  {:resource-path "oti/migrations"}
+  :payments {:amounts {:full 212
+                       :retry 87}}}}

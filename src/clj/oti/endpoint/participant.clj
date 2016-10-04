@@ -47,7 +47,13 @@
        (apply str)
        (str/capitalize)))
 
-(defn participant-endpoint [{:keys [db]}]
+(defn- wrap-authentication [handler]
+  (fn [request]
+    (if (-> request :session :participant :external-user-id)
+      (handler request)
+      {:status 401 :body {:error "Identification required"}})))
+
+(defn participant-endpoint [{:keys [db payments]}]
   (context routing/participant-api-root []
     (GET "/translations" [lang]
       (if (str/blank? lang)
@@ -61,12 +67,23 @@
         (-> (redirect callback)
             (assoc :session {:participant {:first-name (random-name)
                                            :last-name (random-name)
-                                           :hetu (random-hetu)}}))
+                                           :hetu (random-hetu)
+                                           :external-user-id "A"}}))
         {:status 400 :body {:error "Missing callback uri"}}))
-    (GET "/participant-data" {session :session}
-      (response (:participant session)))
     (context "/exam-sessions" []
       (GET "/" []
         (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
                             (map c/convert-session-row))]
-          (response sessions))))))
+          (response sessions))))
+    (-> (context "/authenticated" {session :session}
+          (GET "/participant-data" []
+            (response (:participant session)))
+          (GET "/registration-options" []
+            (let [user-id (-> session :participant :external-user-id)
+                  paid? (pos? (dba/valid-full-payments-for-user db user-id))
+                  payments {:full (if paid? 0 (-> payments :amounts :full))
+                            :retry (-> payments :amounts :retry)}]
+              (->> {:sections (dba/modules-available-for-user db user-id)
+                    :payments payments}
+                   (response)))))
+        (wrap-routes wrap-authentication))))

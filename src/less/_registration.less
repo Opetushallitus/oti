@@ -1,5 +1,6 @@
 form.registration {
   .section {
+    &:extend(.clearfix all);
     margin-bottom: 1.5em;
   }
   .exam-session {
@@ -20,5 +21,26 @@ form.registration {
         width: 200px;
       }
     }
+  }
+  .exam-sections {
+    .row {
+      margin: 5px 0 5px 30px;
+      input {
+        margin-right: 10px;
+        vertical-align: top;
+      }
+      .modules {
+        margin: 5px 0 5px 20px;
+        font-size: .9rem;
+        input {
+          vertical-align: middle;
+          margin: 0 5px;
+        }
+      }
+    }
+  }
+  .price {
+    text-transform: uppercase;
+    font-weight: bold !important;
   }
 }

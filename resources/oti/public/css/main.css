@@ -1,6 +1,7 @@
 @charset "UTF-8";
 .clearfix,
 .exam-session-form,
+form.registration .section,
 #nav-holder ul {
   zoom: 1;
 }
@@ -8,6 +9,8 @@
 .clearfix:after,
 .exam-session-form:before,
 .exam-session-form:after,
+form.registration .section:before,
+form.registration .section:after,
 #nav-holder ul:before,
 #nav-holder ul:after {
   content: "";
@@ -15,6 +18,7 @@
 }
 .clearfix:after,
 .exam-session-form:after,
+form.registration .section:after,
 #nav-holder ul:after {
   clear: both;
 }
@@ -181,6 +185,25 @@ form.registration .participant .email {
 form.registration .participant .email input {
   margin-left: .5em;
   width: 200px;
+}
+form.registration .exam-sections .row {
+  margin: 5px 0 5px 30px;
+}
+form.registration .exam-sections .row input {
+  margin-right: 10px;
+  vertical-align: top;
+}
+form.registration .exam-sections .row .modules {
+  margin: 5px 0 5px 20px;
+  font-size: .9rem;
+}
+form.registration .exam-sections .row .modules input {
+  vertical-align: middle;
+  margin: 0 5px;
+}
+form.registration .price {
+  text-transform: uppercase;
+  font-weight: bold !important;
 }
 /*!
  * Pikaday
@@ -428,14 +451,8 @@ li {
   }
 }
 body {
-  font: 100% Arial, Helvetica, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #1b1b1b !important;
-}
-body p,
-body span,
-body table,
-body a {
-  font: 100% Arial, Helvetica, sans-serif;
 }
 table {
   max-width: 940px !important;
