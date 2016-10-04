@@ -23,6 +23,29 @@
                                 :city cities
                                 :other_location_info other-location-infos}))))))
 
+(defn- group-modules [module-groups]
+  (map (fn [modules]
+         (let [{:keys [module_id module_accepted module_score_id]} (apply merge modules)
+               name (reduce (translation-by-key-fn :module_name) {} modules)]
+           {:id module_id
+            :previously-attempted? module_score_id
+            :accepted module_accepted
+            :name name}))
+       module-groups))
+
+(defn- group-sections-and-modules [resultset]
+  (->> (partition-by :section_id resultset)
+       (map (fn [sections]
+              (let [{:keys [section_id section_accepted section_score_id]} (apply merge sections)
+                    name (reduce (translation-by-key-fn :section_name) {} sections)
+                    modules (->> (partition-by :module_id sections)
+                                 group-modules)]
+                {:id section_id
+                 :previously-attempted? section_score_id
+                 :accepted? section_accepted
+                 :name name
+                 :modules modules})))))
+
 (defn- translatable-keys-from-exam-session [es]
   (select-keys es [::spec/city
                    ::spec/street-address
@@ -63,7 +86,8 @@
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
   (add-exam-session! [db exam-session])
-  (published-exam-sessions-with-space-left [db]))
+  (published-exam-sessions-with-space-left [db])
+  (modules-available-for-user [db external-user-id]))
 
 (extend-type HikariCP
   DbAccess
@@ -74,4 +98,7 @@
   (add-exam-session! [{:keys [spec]} exam-session]
     (jdbc/with-db-transaction [tx spec]
       (let [exam-session-id (:id (insert-exam-session tx exam-session))]
-        (insert-exam-session-translations tx (assoc exam-session ::spec/id exam-session-id))))))
+        (insert-exam-session-translations tx (assoc exam-session ::spec/id exam-session-id)))))
+  (modules-available-for-user [{:keys [spec]} external-user-id]
+    (->> (select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
+         group-sections-and-modules)))

@@ -34,9 +34,6 @@ GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants
 HAVING (es.max_participants - COUNT(r.id)) > 0
 ORDER BY es.session_date, es.start_time;
 
--- name: exams
-SELECT * FROM exam;
-
 -- name: insert-exam-session<!
 INSERT INTO exam_session (
   session_date,
@@ -68,3 +65,32 @@ INSERT INTO exam_session_translation (
   :oti.spec/language-code,
   :oti.spec/exam-session-id
 );
+
+
+-- name: select-modules-available-for-user
+SELECT DISTINCT
+  s.id AS section_id, m.id AS module_id, st.name AS section_name, st.language_code, mt.name AS module_name,
+  ss.id AS section_score_id, ms.id AS module_score_id, ss.accepted AS section_accepted, ms.accepted AS module_accepted,
+  recm.id, recs.id, aem.id, aes.id
+FROM exam e
+JOIN section s ON e.id = s.exam_id
+JOIN module m ON m.section_id = s.id
+JOIN section_translation st ON s.id = st.section_id
+JOIN module_translation mt ON (m.id = mt.module_id AND mt.language_code = st.language_code)
+JOIN exam_session es ON (e.id = es.exam_id AND es.session_date > current_date AND es.published = TRUE)
+LEFT JOIN participant p ON p.ext_reference_id = :external-user-id
+LEFT JOIN section_score ss ON (ss.section_id = s.id AND ss.participant_id = p.id)
+LEFT JOIN module_score ms ON (ms.module_id = m.id AND ms.section_score_id = ss.id)
+LEFT JOIN registration r ON (r.exam_session_id = es.id AND r.participant_id = p.id)
+LEFT JOIN registration_exam_content_module recm ON r.id = recm.registration_id
+LEFT JOIN registration_exam_content_section recs ON r.id = recs.registration_id
+LEFT JOIN accredited_exam_module aem ON (m.id = aem.module_id AND aem.participant_id = p.id)
+LEFT JOIN accredited_exam_section aes ON (s.id = aes.section_id AND aes.participant_id = p.id)
+WHERE (ss.accepted IS NULL OR ss.accepted = FALSE OR ms.accepted IS NULL OR ms.accepted = FALSE)
+      AND recm.id IS NULL AND recs.id IS NULL AND aem.id IS NULL AND aes.id IS NULL AND e.id = 1
+ORDER BY section_id, module_id, language_code;
+
+-- name: modules
+SELECT m.id, json_object_agg(mt.language_code, mt.name) AS NAMES
+FROM (SELECT language_code, name FROM module_translation WHERE module_id = 1) AS mt, module m
+GROUP BY m.id;
