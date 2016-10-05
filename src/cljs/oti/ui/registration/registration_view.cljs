@@ -60,71 +60,78 @@
         form-data (reagent/atom {})]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
-        [:form.registration {:method "post" :action (routing/p-a-route "/authenticated/register") :accept-charset "UTF-8"}
-         [:input {:type "hidden" :name "registration-data" :value (serialize-form-data form-data)}]
-         [:div.section.exam-session
-          [session-select @lang @exam-sessions form-data]]
-         [:div.section.participant
-          (let [{:keys [first-name last-name hetu]} participant-data]
-            [:div.name (str first-name " " last-name ", " hetu)])
-          [:div.email
-           [:label (t "Sähköpostiosoite:")
-            [:input {:type "email" :name "email" :value (::spec/email @form-data)
-                     :on-change (partial set-val form-data ::spec/email)
-                     :class (when (::spec/email invalids) "invalid")}]]]]
-         [:div.section.exam-sections
-          [:h3 "Koeosiot, joihin osallistun"]
-          (doall
-            (for [{:keys [id name modules previously-attempted?]} (:sections @registration-options)]
-              (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))
-                    can-accredit-partially? (:can-accredit-partially? (get rules/rules-by-section-id id))
-                    selected-options (get-in @form-data [::spec/sections id])
-                    attending? (and (seq selected-options) (not (::spec/accredit? selected-options)))]
-                [:div.exam-section {:key id}
-                 [:h4 (str (t "Osio") " " (@lang name))]
-                 [:div.row
-                  [:label
-                   [:input {:type "radio" :name (str "section-" id "-participation") :value "participate"
-                            :on-click #(add-section form-data id {::spec/retry? (true? previously-attempted?)})}]
-                   [:span (cond
-                            (not previously-attempted?) (t "Osallistun kokeeseen")
-                            (and previously-attempted? can-retry-partially?) (t "Osallistun uusintakokeeseen seuraavista osa-alueista:")
-                            :else (t "Osallistun uusintakokeeseen"))]]
-                  (when (and previously-attempted? can-retry-partially?)
-                    [:div.modules
-                     (doall
-                       (for [module modules]
-                         [:label {:key (:id module)}'
-                             [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                      :on-click (module-selection form-data id (:id module) ::spec/retry-modules)}]
-                          [:span (@lang (:name module))]]))])]
-                 [:div.row
-                  [:label
-                   [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
-                            :on-click #(add-section form-data id {::spec/accredit? true})}]
-                   [:span (t "Olen saanut korvaavuuden / korvannut kurssisuorituksella tai esseellä koko osion")]]]
-                 [:div.row
-                  [:label
-                   [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
-                            :on-click #(swap! form-data update ::spec/sections dissoc id)}]
-                   [:span (t "En osallistu")]]]
-                 (when (and can-accredit-partially? attending?)
-                   [:div.row.partial-accreditation
-                    [:span (t "Olen saanut korvaavuuden seuraavista osa-alueista:")]
-                    [:div.modules
-                     (doall
-                       (for [module modules]
-                         [:label {:key (:id module)}
-                          [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                   :on-click (module-selection form-data id (:id module) ::spec/accredit-modules)}]
-                          [:span (@lang (:name module))]]))]])])))]
-         [:div.section.price
-          [:div.right
-           [:span (str (t "Osallistumismaksu") " " (-> @registration-options :payments :full format-price))]]]
-         [:div.section.buttons
-          [:div.left
-           [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")]]
-          [:div.right
-           [:button.button-primary {:disabled (not (s/valid? ::spec/registration @form-data))
-                                    :type "submit"}
-            (t "Jatka maksamaan >>")]]]]))))
+        (if (pos? (count (:sections @registration-options)))
+          [:form.registration {:method "post" :action (routing/p-a-route "/authenticated/register") :accept-charset "UTF-8"}
+           [:input {:type "hidden" :name "registration-data" :value (serialize-form-data form-data)}]
+           [:div.section.exam-session
+            [session-select @lang @exam-sessions form-data]]
+           [:div.section.participant
+            (let [{:keys [first-name last-name hetu]} participant-data]
+              [:div.name (str first-name " " last-name ", " hetu)])
+            [:div.email
+             [:label (t "Sähköpostiosoite:")
+              [:input {:type "email" :name "email" :value (::spec/email @form-data)
+                       :on-change (partial set-val form-data ::spec/email)
+                       :class (when (::spec/email invalids) "invalid")}]]]]
+           [:div.section.exam-sections
+            [:h3 "Koeosiot, joihin osallistun"]
+            (doall
+              (for [{:keys [id name modules previously-attempted?]} (:sections @registration-options)]
+                (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))
+                      can-accredit-partially? (:can-accredit-partially? (get rules/rules-by-section-id id))
+                      selected-options (get-in @form-data [::spec/sections id])
+                      attending? (and (seq selected-options) (not (::spec/accredit? selected-options)))]
+                  [:div.exam-section {:key id}
+                   [:h4 (str (t "Osio") " " (@lang name))]
+                   [:div.row
+                    [:label
+                     [:input {:type "radio" :name (str "section-" id "-participation") :value "participate"
+                              :on-click #(add-section form-data id {::spec/retry? (true? previously-attempted?)})}]
+                     [:span (cond
+                              (not previously-attempted?) (t "Osallistun kokeeseen")
+                              (and previously-attempted? can-retry-partially?) (t "Osallistun uusintakokeeseen seuraavista osa-alueista:")
+                              :else (t "Osallistun uusintakokeeseen"))]]
+                    (when (and previously-attempted? can-retry-partially?)
+                      [:div.modules
+                       (doall
+                         (for [module modules]
+                           [:label {:key (:id module)}'
+                               [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
+                                        :on-click (module-selection form-data id (:id module) ::spec/retry-modules)}]
+                            [:span (@lang (:name module))]]))])]
+                   [:div.row
+                    [:label
+                     [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
+                              :on-click #(add-section form-data id {::spec/accredit? true})}]
+                     [:span (t "Olen saanut korvaavuuden / korvannut kurssisuorituksella tai esseellä koko osion")]]]
+                   [:div.row
+                    [:label
+                     [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
+                              :on-click #(swap! form-data update ::spec/sections dissoc id)}]
+                     [:span (t "En osallistu")]]]
+                   (when (and can-accredit-partially? attending?)
+                     [:div.row.partial-accreditation
+                      [:span (t "Olen saanut korvaavuuden seuraavista osa-alueista:")]
+                      [:div.modules
+                       (doall
+                         (for [module modules]
+                           [:label {:key (:id module)}
+                            [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
+                                     :on-click (module-selection form-data id (:id module) ::spec/accredit-modules)}]
+                            [:span (@lang (:name module))]]))]])])))]
+           [:div.section.price
+            [:div.right
+             [:span (str (t "Osallistumismaksu") " " (-> @registration-options :payments :full format-price))]]]
+           [:div.section.buttons
+            [:div.left
+             [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")]]
+            [:div.right
+             [:button.button-primary {:disabled (not (s/valid? ::spec/registration @form-data))
+                                      :type "submit"}
+              (t "Jatka maksamaan >>")]]]]
+          [:div.section
+           [:h3 "Ilmoittautuminen ei ole mahdollista"]
+           [:div.section
+            "Olet jo ilmoittautunut kaikkiin tutkinnon osiin tai sinulle on kirjattu tutkintoon tarvittavat suoritukset."]
+           [:div.section.buttons
+            [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")]]])))))
