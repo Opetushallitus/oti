@@ -37,7 +37,6 @@
 
 (defn- logout [{:keys [opintopolku-logout-uri oti-login-success-uri]} session]
   (info "username" (-> session :identity :username) "logged out")
-  (println (-> session :identity :ticket))
   (auth/logout (-> session :identity :ticket))
   (-> (resp/redirect (str opintopolku-logout-uri oti-login-success-uri))
       (assoc :session {:identity nil})))

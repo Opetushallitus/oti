@@ -6,7 +6,8 @@
             [oti.spec :as os]
             [clojure.string :as str]
             [oti.routing :as routing]
-            [oti.util.coercion :as c]))
+            [oti.util.coercion :as c]
+            [ring.util.response :as resp]))
 
 (def translations
   {"Ilmoittautuminen" {:fi "Ilmoittautuminen" :sv "Anmälning"}
@@ -54,36 +55,40 @@
       {:status 401 :body {:error "Identification required"}})))
 
 (defn participant-endpoint [{:keys [db payments]}]
-  (context routing/participant-api-root []
-    (GET "/translations" [lang]
-      (if (str/blank? lang)
-        {:status 400 :body {:error "Missing lang parameter"}}
-        (response (->> translations
-                       (map (fn [[k v]] [k ((keyword lang) v)]))
-                       (into {})))))
-    ;; FIXME: This is a dummy route
-    (GET "/authenticate" [callback]
-      (if-not (str/blank? callback)
-        (-> (redirect callback)
-            (assoc :session {:participant {:first-name (random-name)
-                                           :last-name (random-name)
-                                           :hetu (random-hetu)
-                                           :external-user-id "A"}}))
-        {:status 400 :body {:error "Missing callback uri"}}))
-    (context "/exam-sessions" []
-      (GET "/" []
-        (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
-                            (map c/convert-session-row))]
-          (response sessions))))
-    (-> (context "/authenticated" {session :session}
-          (GET "/participant-data" []
-            (response (:participant session)))
-          (GET "/registration-options" []
-            (let [user-id (-> session :participant :external-user-id)
-                  paid? (pos? (dba/valid-full-payments-for-user db user-id))
-                  payments {:full (if paid? 0 (-> payments :amounts :full))
-                            :retry (-> payments :amounts :retry)}]
-              (->> {:sections (dba/modules-available-for-user db user-id)
-                    :payments payments}
-                   (response)))))
-        (wrap-routes wrap-authentication))))
+  (routes
+    (GET "/oti/abort" []
+      (-> (resp/redirect "/oti/ilmoittaudu")
+          (assoc :session {})))
+    (context routing/participant-api-root []
+      (GET "/translations" [lang]
+        (if (str/blank? lang)
+          {:status 400 :body {:error "Missing lang parameter"}}
+          (response (->> translations
+                         (map (fn [[k v]] [k ((keyword lang) v)]))
+                         (into {})))))
+      ;; FIXME: This is a dummy route
+      (GET "/authenticate" [callback]
+        (if-not (str/blank? callback)
+          (-> (redirect callback)
+              (assoc :session {:participant {:first-name (random-name)
+                                             :last-name (random-name)
+                                             :hetu (random-hetu)
+                                             :external-user-id "A"}}))
+          {:status 400 :body {:error "Missing callback uri"}}))
+      (context "/exam-sessions" []
+        (GET "/" []
+          (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
+                              (map c/convert-session-row))]
+            (response sessions))))
+      (-> (context "/authenticated" {session :session}
+            (GET "/participant-data" []
+              (response (:participant session)))
+            (GET "/registration-options" []
+              (let [user-id (-> session :participant :external-user-id)
+                    paid? (pos? (dba/valid-full-payments-for-user db user-id))
+                    payments {:full (if paid? 0 (-> payments :amounts :full))
+                              :retry (-> payments :amounts :retry)}]
+                (->> {:sections (dba/modules-available-for-user db user-id)
+                      :payments payments}
+                     (response)))))
+          (wrap-routes wrap-authentication)))))

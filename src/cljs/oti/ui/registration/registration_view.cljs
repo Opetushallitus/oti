@@ -114,6 +114,6 @@
            [:span (str (t "Osallistumismaksu") " " (-> @registration-options :payments :full format-price))]]]
          [:div.section.buttons
           [:div.left
-           [:button (t "Keskeytä ilmoittautuminen")]]
+           [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")]]
           [:div.right
            [:button.button-primary {:disabled (not (s/valid? ::spec/registration @form-data))} (t "Jatka maksamaan >>")]]]]))))
