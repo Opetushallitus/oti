@@ -7,7 +7,10 @@
             [clojure.string :as str]
             [oti.routing :as routing]
             [oti.util.coercion :as c]
-            [ring.util.response :as resp]))
+            [ring.util.response :as resp]
+            [cognitect.transit :as transit]
+            [clojure.java.io :as io]
+            [taoensso.timbre :refer [error]]))
 
 (def translations
   {"Ilmoittautuminen" {:fi "Ilmoittautuminen" :sv "Anmälning"}
@@ -54,6 +57,22 @@
       (handler request)
       {:status 401 :body {:error "Identification required"}})))
 
+(defn- register [db {session :session params :params}]
+  (if-let [transit-data (:registration-data params)]
+    (with-open [is (io/input-stream (.getBytes transit-data "UTF-8"))]
+      (let [parsed-data (-> is (transit/reader :json) (transit/read))
+            conformed (s/conform ::os/registration parsed-data)
+            user-id (-> session :participant :external-user-id)]
+        (if (s/invalid? conformed)
+          {:error (s/explain-data ::os/registration parsed-data)}
+          (try
+            (dba/register! db parsed-data user-id)
+            (catch Throwable t
+              (error "Error inserting registration")
+              (error t)
+              {:error "Internal error"})))))
+    {:error "Missing registration data"}))
+
 (defn participant-endpoint [{:keys [db payments]}]
   (routes
     (GET "/oti/abort" []
@@ -75,11 +94,10 @@
                                              :hetu (random-hetu)
                                              :external-user-id "A"}}))
           {:status 400 :body {:error "Missing callback uri"}}))
-      (context "/exam-sessions" []
-        (GET "/" []
-          (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
-                              (map c/convert-session-row))]
-            (response sessions))))
+      (GET "/exam-sessions" []
+        (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
+                            (map c/convert-session-row))]
+          (response sessions)))
       (-> (context "/authenticated" {session :session}
             (GET "/participant-data" []
               (response (:participant session)))
@@ -90,5 +108,9 @@
                               :retry (-> payments :amounts :retry)}]
                 (->> {:sections (dba/modules-available-for-user db user-id)
                       :payments payments}
-                     (response)))))
+                     (response))))
+            (POST "/register" request
+              (if-let [{:keys [error]} (register db request)]
+                (:status 400 {:error error})
+                (response {:status "Registered"}))))
           (wrap-routes wrap-authentication)))))

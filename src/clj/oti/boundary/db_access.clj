@@ -2,7 +2,9 @@
   (:require [yesql.core :refer [defqueries]]
             [clojure.java.jdbc :as jdbc]
             [duct.component.hikaricp]
-            [oti.spec :as spec])
+            [oti.spec :as spec]
+            [clojure.set :as cs]
+            [taoensso.timbre :refer [error]])
   (:import [duct.component.hikaricp HikariCP]))
 
 
@@ -72,7 +74,6 @@
                                                       other-location-info
                                                       lang exam-session-id)]
     (insert-exam-session-translation! translation {:connection tx})))
-
 (defn insert-exam-session-translations [tx exam-session]
   (let [langs (set (mapcat keys-of-mapval (translatable-keys-from-exam-session exam-session)))]
     (if (::spec/id exam-session)
@@ -83,12 +84,34 @@
   (or (insert-exam-session<! exam-session {:connection tx})
       (throw (Exception. "Could not create new exam session."))))
 
+(defn store-registration! [tx {::spec/keys [session-id sections]} external-user-id]
+  (let [conn {:connection tx}]
+    (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
+      (when (pos? (count registarable-sections))
+        (if-let [reg-id (:id (insert-registration<! {:session-id session-id :external-user-id external-user-id} conn))]
+          (doseq [[section-id opts] registarable-sections]
+            (let [params {:section-id section-id
+                          :external-user-id external-user-id
+                          :registration-id reg-id}]
+              (insert-section-registration! params conn)
+              (let [all-modules (->> (select-modules-for-section params conn) (map :id) set)
+                    register-modules (or (seq (::spec/retry-modules opts))
+                                         (cs/difference all-modules (::spec/accredit-modules opts)))]
+                (doseq [module-id register-modules]
+                  (insert-module-registration! (assoc params :module-id module-id) conn))
+                (doseq [module-id (::spec/accredit-modules opts)]
+                  (insert-module-accreditation! (assoc params :module-id module-id) conn)))))
+          (throw (Exception. "No registeration id received.")))))
+    (doseq [[section-id _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
+      (insert-section-accreditation! {:section-id section-id :external-user-id external-user-id} conn))))
+
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
   (add-exam-session! [db exam-session])
   (published-exam-sessions-with-space-left [db])
   (modules-available-for-user [db external-user-id])
-  (valid-full-payments-for-user [db external-user-id]))
+  (valid-full-payments-for-user [db external-user-id])
+  (register! [db registration-data external-user-id]))
 
 (extend-type HikariCP
   DbAccess
@@ -106,4 +129,7 @@
   (valid-full-payments-for-user [{:keys [spec]} external-user-id]
     (-> (select-valid-payment-count-for-user {:external-user-id external-user-id} {:connection spec})
         first
-        :count)))
+        :count))
+  (register! [{:keys [spec]} registration-data external-user-id]
+    (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+      (store-registration! tx registration-data external-user-id))))

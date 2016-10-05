@@ -6,7 +6,9 @@
             [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
             [oti.exam-rules :as rules]
             [clojure.string :as str]
-            [cljs.spec :as s]))
+            [cljs.spec :as s]
+            [oti.routing :as routing]
+            [cognitect.transit :as transit]))
 
 (defn set-val [form-data key event]
   (let [val (-> event .-target .-value)
@@ -15,11 +17,13 @@
     true))
 
 (defn session-select [lang exam-sessions form-data]
+  (when (and (nil? (::spec/session-id @form-data)) (seq exam-sessions))
+    (swap! form-data  assoc ::spec/session-id (-> exam-sessions first ::spec/id)))
   [:div
    [:label {:for "exam-session-select"} (t "Tapahtuma:")]
    (when lang
      [:select#exam-session-select
-      {:value (::spec/session-id @form-data)
+      {:value (or (::spec/session-id @form-data) "")
        :on-change (partial set-val form-data ::spec/session-id)}
       (doall
         (for [{::spec/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
@@ -43,16 +47,21 @@
                         (disj s id)))]
       (swap! form-data update-in [::spec/sections section-id key] update-fn module-id))))
 
+(defn serialize-form-data [form-data]
+  (let [w (transit/writer :json)]
+    (transit/write w @form-data)))
+
 (defn registration-panel [participant-data]
   (re-frame/dispatch [:load-available-sessions])
   (re-frame/dispatch [:load-registration-options])
   (let [lang (re-frame/subscribe [:language])
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
-        form-data (reagent/atom {::spec/session-id 3})]
+        form-data (reagent/atom {})]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
-        [:form.registration
+        [:form.registration {:method "post" :action (routing/p-a-route "/authenticated/register") :accept-charset "UTF-8"}
+         [:input {:type "hidden" :name "registration-data" :value (serialize-form-data form-data)}]
          [:div.section.exam-session
           [session-select @lang @exam-sessions form-data]]
          [:div.section.participant
@@ -116,4 +125,6 @@
           [:div.left
            [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")]]
           [:div.right
-           [:button.button-primary {:disabled (not (s/valid? ::spec/registration @form-data))} (t "Jatka maksamaan >>")]]]]))))
+           [:button.button-primary {:disabled (not (s/valid? ::spec/registration @form-data))
+                                    :type "submit"}
+            (t "Jatka maksamaan >>")]]]]))))

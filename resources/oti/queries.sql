@@ -106,3 +106,35 @@ LEFT JOIN module_score ms ON ms.section_score_id = ss.id
 WHERE pp.ext_reference_id = :external-user-id AND p.state = 'OK' AND p.type = 'FULL' AND
       (((ss.accepted IS NULL OR ss.accepted = FALSE ) AND (ms.accepted IS NULL OR ms.accepted = FALSE))
         OR (ss.created >= (SELECT current_date - interval '2 years'))) ;
+
+-- name: insert-registration<!
+WITH pp AS (
+    SELECT id FROM participant WHERE ext_reference_id = :external-user-id
+), session AS (
+    SELECT es.id FROM exam_session es LEFT JOIN registration r ON es.id = r.exam_session_id
+      WHERE es.id = :session-id
+    GROUP BY (es.id) HAVING (es.max_participants - COUNT(r.id)) > 0
+)
+INSERT INTO registration (state, exam_session_id, participant_id)
+  SELECT 'OK', session.id, pp.id FROM pp, session
+RETURNING registration.id;
+
+
+-- name: insert-section-registration!
+INSERT INTO registration_exam_content_section (section_id, participant_id, registration_id)
+SELECT :section-id, id, :registration-id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: select-modules-for-section
+SELECT id FROM module WHERE section_id = :section-id;
+
+-- name: insert-module-registration!
+INSERT INTO registration_exam_content_module (module_id, participant_id, registration_id)
+SELECT :module-id, id, :registration-id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: insert-section-accreditation!
+INSERT INTO accredited_exam_section (section_id, participant_id)
+SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: insert-module-accreditation!
+INSERT INTO accredited_exam_module (module_id, participant_id)
+SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
