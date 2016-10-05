@@ -77,3 +77,27 @@
                                       ::exam-id
                                       ::published])
                         start-before-end-time?))
+
+;; registration
+(s/def ::email (s/and string? #(re-matches #".+@.+\..+" %)))
+(s/def ::retry any?)
+(s/def ::accredit? any?)
+(s/def ::retry-modules (s/* ::id))
+(s/def ::accredit-modules (s/* ::id))
+(s/def ::session-id pos-int?)
+
+(defn retry-or-accredit? [{::keys [retry? accredit?]}]
+  (not (and retry? accredit?)))
+
+(s/def ::section (s/and (s/keys :opt [::retry?
+                                      ::accredit?
+                                      ::retry-modules
+                                      ::accredit-modules])
+                        retry-or-accredit?))
+
+(s/def ::sections (s/and (s/map-of ::id ::section)
+                         seq))
+
+(s/def ::registration (s/keys :req [::email
+                                    ::session-id
+                                    ::sections]))

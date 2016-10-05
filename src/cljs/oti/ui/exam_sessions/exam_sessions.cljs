@@ -1,7 +1,7 @@
 (ns oti.ui.exam-sessions.exam-sessions
   (:require [oti.ui.exam-sessions.handlers]
             [oti.ui.exam-sessions.subs]
-            [oti.ui.exam-sessions.utils :refer [parse-date unparse-date]]
+            [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
             [oti.spec :as spec]
             [re-frame.core :as re-frame]
             [reagent.core :as r]
@@ -43,16 +43,6 @@
        (input-element form-data invalids type key :sv (str (or placeholder label) " ruotsiksi"))]
       (input-element form-data invalids type key nil (or placeholder label)))]])
 
-(defn invalid-keys [form-data]
-  (let [problems (::s/problems (s/explain-data ::spec/exam-session @form-data))]
-    (let [keys (->> problems
-                    (map #(first (:path %)))
-                    (remove nil?)
-                    set)]
-      (cond-> keys
-              (::spec/session-date keys) (conj keys ::spec/session-date-str)
-              (some #(= 'start-before-end-time? (:pred %)) problems) (conj keys ::spec/end-time)))))
-
 (defn new-exam-session-panel []
   (let [tomorrow (-> (js/moment.) (.add 1 "days") .toDate)
         pikaday-date (r/atom tomorrow)
@@ -63,7 +53,7 @@
                (fn [_ _ _ new-date]
                  (swap! form-data assoc ::spec/session-date new-date)))
     (fn []
-      (let [invalids (invalid-keys form-data)]
+      (let [invalids (invalid-keys form-data ::spec/exam-session)]
         [:div.exam-session-form
          [:h3 "Uusi tutkintotapahtuma"]
          [:form

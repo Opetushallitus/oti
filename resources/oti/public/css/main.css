@@ -201,6 +201,12 @@ form.registration .exam-sections .row .modules input {
   vertical-align: middle;
   margin: 0 5px;
 }
+form.registration .exam-sections .partial-accreditation {
+  margin: 10px 0 5px 55px;
+}
+form.registration .exam-sections .partial-accreditation .modules {
+  margin-left: -3px;
+}
 form.registration .price {
   text-transform: uppercase;
   font-weight: bold !important;
