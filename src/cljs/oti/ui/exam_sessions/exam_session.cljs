@@ -22,6 +22,8 @@
 (defn input-element [form-data invalids type key lang placeholder & [on-change-fn]]
   (let [value-path (if lang [key lang] [key])]
     [:input {:class       (when (key invalids) "invalid")
+             :name        (name key)
+             :lang        (if lang (name lang) "fi")
              :type        type
              :value       (get-in @form-data value-path)
              :placeholder placeholder
@@ -100,6 +102,7 @@
            [:label
             [:span.label "Julkaistu"]
             [:input {:type "checkbox"
+                     :name "published"
                      :checked (::spec/published @form-data)
                      :on-change (fn [e]
                                   (let [value (cond-> (-> e .-target .-checked))]
