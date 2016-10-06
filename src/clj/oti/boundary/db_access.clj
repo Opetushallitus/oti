@@ -57,14 +57,14 @@
 
 (defn- exam-session-translation [street-address city other-location-info lang exam-session-id]
   (if (and street-address city other-location-info lang exam-session-id)
-    {::spec/street-address      street-address
-     ::spec/city                city
-     ::spec/other-location-info other-location-info
-     ::spec/language-code       (name lang)
-     ::spec/exam-session-id     exam-session-id}
+    {:street-address      street-address
+     :city                city
+     :other-location-info other-location-info
+     :language-code       (name lang)
+     :exam-session-id     exam-session-id}
     (throw (Exception. "Error occured creating exam-session translation. Missing or invalid params."))))
 
-(defn- insert-exam-session-translation [lang tx exam-session]
+(defn- store-exam-session-translation [lang tx exam-session update?]
   (let [street-address      (get-in exam-session [::spec/street-address lang])
         city                (get-in exam-session [::spec/city lang])
         other-location-info (get-in exam-session [::spec/other-location-info lang])
@@ -72,12 +72,14 @@
         translation         (exam-session-translation street-address
                                                       city
                                                       other-location-info
-                                                      lang exam-session-id)]
-    (insert-exam-session-translation! translation {:connection tx})))
-(defn insert-exam-session-translations [tx exam-session]
+                                                      lang exam-session-id)
+        db-fn               (if update? update-exam-session-translation! insert-exam-session-translation!)]
+    (db-fn translation {:connection tx})))
+
+(defn store-exam-session-translations [tx exam-session update?]
   (let [langs (set (mapcat keys-of-mapval (translatable-keys-from-exam-session exam-session)))]
     (if (::spec/id exam-session)
-      (mapv #(insert-exam-session-translation % tx exam-session) langs)
+      (mapv #(store-exam-session-translation % tx exam-session update?) langs)
       (throw (Exception. "Error occured inserting translations. Missing exam session id.")))))
 
 (defn insert-exam-session [tx exam-session]
@@ -110,6 +112,7 @@
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
   (add-exam-session! [db exam-session])
+  (save-exam-session! [db exam-session])
   (published-exam-sessions-with-space-left [db])
   (exam-session [db id])
   (modules-available-for-user [db external-user-id])
@@ -127,7 +130,11 @@
   (add-exam-session! [{:keys [spec]} exam-session]
     (jdbc/with-db-transaction [tx spec]
       (let [exam-session-id (:id (insert-exam-session tx exam-session))]
-        (insert-exam-session-translations tx (assoc exam-session ::spec/id exam-session-id)))))
+        (store-exam-session-translations tx (assoc exam-session ::spec/id exam-session-id) false))))
+  (save-exam-session! [{:keys [spec]} exam-session]
+    (jdbc/with-db-transaction [tx spec]
+      (update-exam-session! exam-session {:connection tx})
+      (store-exam-session-translations tx exam-session :update)))
   (modules-available-for-user [{:keys [spec]} external-user-id]
     (->> (select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
          group-sections-and-modules))

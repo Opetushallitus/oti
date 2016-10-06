@@ -27,10 +27,17 @@
             (let [sessions (->> (dba/upcoming-exam-sessions db)
                                 (map c/convert-session-row))]
               (response sessions)))
-          (GET "/:id{[0-9]+}" [id :<< as-int]
-            (if-let [exam-session (->> (dba/exam-session db id)
-                                       (map c/convert-session-row)
-                                       first)]
-              (response exam-session)
-              (not-found {})))))
+          (context "/:id{[0-9]+}" [id :<< as-int]
+            (GET "/" []
+              (if-let [exam-session (->> (dba/exam-session db id)
+                                         (map c/convert-session-row)
+                                         first)]
+                (response exam-session)
+                (not-found {})))
+            (PUT "/" {params :params}
+              (let [conformed (s/conform ::os/exam-session (assoc params ::os/id id))]
+                (if (or (s/invalid? conformed) (not (seq (dba/save-exam-session! db conformed))))
+                  {:status 400
+                   :body {:errors (s/explain ::os/exam-session params)}}
+                  (response {:success true})))))))
       (wrap-routes auth/wrap-authorization)))

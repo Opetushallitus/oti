@@ -85,12 +85,29 @@ INSERT INTO exam_session_translation (
   language_code,
   exam_session_id
 ) VALUES (
-  :oti.spec/street-address,
-  :oti.spec/city,
-  :oti.spec/other-location-info,
-  :oti.spec/language-code,
-  :oti.spec/exam-session-id
+  :street-address,
+  :city,
+  :other-location-info,
+  :language-code,
+  :exam-session-id
 );
+
+-- name: update-exam-session!
+UPDATE exam_session SET
+  session_date = :oti.spec/session-date,
+  start_time = :oti.spec/start-time,
+  end_time = :oti.spec/end-time,
+  max_participants = :oti.spec/max-participants,
+  exam_id = :oti.spec/exam-id,
+  published = :oti.spec/published
+WHERE id = :oti.spec/id;
+
+-- name: update-exam-session-translation!
+UPDATE exam_session_translation SET
+  street_address = :street-address,
+  city = :city,
+  other_location_info = :other-location-info
+WHERE language_code = :language-code AND exam_session_id = :exam-session-id;
 
 -- name: select-modules-available-for-user
 SELECT

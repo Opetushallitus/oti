@@ -77,7 +77,8 @@
                                       ::other-location-info
                                       ::max-participants
                                       ::exam-id
-                                      ::published])
+                                      ::published]
+                                :opt [::id])
                         start-before-end-time?))
 
 ;; registration

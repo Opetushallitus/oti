@@ -4,7 +4,7 @@
             [oti.routing :as routing]))
 
 (re-frame/reg-event-db
-  :exam-session-added
+  :exam-session-saved
   (fn [_ _]
     (re-frame/dispatch [:redirect routing/virkailija-root])
     (re-frame/dispatch [:show-flash :success "Tallennettu"])))
@@ -17,7 +17,18 @@
                   :params          data
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
-                  :on-success      [:exam-session-added]
+                  :on-success      [:exam-session-saved]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
+  :save-exam-session
+  (fn [_ [_ id data]]
+    {:http-xhrio {:method          :put
+                  :uri             (routing/v-a-route "/exam-sessions/" id)
+                  :params          data
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:exam-session-saved]
                   :on-failure      [:bad-response]}}))
 
 (re-frame/reg-event-fx

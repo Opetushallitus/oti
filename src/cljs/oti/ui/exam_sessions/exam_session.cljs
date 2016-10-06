@@ -117,7 +117,9 @@
                            (= existing-data @form-data))
              :on-click (fn [e]
                          (.preventDefault e)
-                         (re-frame/dispatch [:add-exam-session @form-data]))}
+                         (if edit-id
+                           (re-frame/dispatch [:save-exam-session edit-id @form-data])
+                           (re-frame/dispatch [:add-exam-session @form-data])))}
             (str "Tallenna" (when edit-id " muutokset"))]
            [:a.button
             {:href routing/virkailija-root}
