@@ -1,7 +1,7 @@
 @charset "UTF-8";
 .clearfix,
 .exam-session-form,
-form.registration .section,
+.registration .section,
 #nav-holder ul {
   zoom: 1;
 }
@@ -9,8 +9,8 @@ form.registration .section,
 .clearfix:after,
 .exam-session-form:before,
 .exam-session-form:after,
-form.registration .section:before,
-form.registration .section:after,
+.registration .section:before,
+.registration .section:after,
 #nav-holder ul:before,
 #nav-holder ul:after {
   content: "";
@@ -18,7 +18,7 @@ form.registration .section:after,
 }
 .clearfix:after,
 .exam-session-form:after,
-form.registration .section:after,
+.registration .section:after,
 #nav-holder ul:after {
   clear: both;
 }
@@ -166,48 +166,48 @@ td:last-child {
   right: 20px;
   opacity: 0.7;
 }
-form.registration .section {
-  margin-bottom: 1.5em;
+.registration .section {
+  margin-bottom: 1em;
 }
-form.registration .exam-session {
+.registration .exam-session {
   font-weight: bold;
 }
-form.registration .exam-session label {
+.registration .exam-session label {
   margin-right: .5em;
 }
-form.registration .exam-session select {
+.registration .exam-session select {
   width: 60%;
   max-width: 500px;
 }
-form.registration .participant .email {
+.registration .participant .email {
   margin-top: .5em;
 }
-form.registration .participant .email input {
+.registration .participant .email input {
   margin-left: .5em;
   width: 200px;
 }
-form.registration .exam-sections .row {
+.registration .exam-sections .row {
   margin: 5px 0 5px 30px;
 }
-form.registration .exam-sections .row input {
+.registration .exam-sections .row input {
   margin-right: 10px;
   vertical-align: top;
 }
-form.registration .exam-sections .row .modules {
+.registration .exam-sections .row .modules {
   margin: 5px 0 5px 20px;
   font-size: .9rem;
 }
-form.registration .exam-sections .row .modules input {
+.registration .exam-sections .row .modules input {
   vertical-align: middle;
   margin: 0 5px;
 }
-form.registration .exam-sections .partial-accreditation {
+.registration .exam-sections .partial-accreditation {
   margin: 10px 0 5px 55px;
 }
-form.registration .exam-sections .partial-accreditation .modules {
+.registration .exam-sections .partial-accreditation .modules {
   margin-left: -3px;
 }
-form.registration .price {
+.registration .price {
   text-transform: uppercase;
   font-weight: bold !important;
 }
