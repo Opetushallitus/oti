@@ -98,6 +98,10 @@
                                          :type "number"
                                          :label "Osallistujien enimmäismäärä"
                                          :placeholder "Määrä"})
+          (when (::spec/registration-count existing-data)
+            [:div.row
+             [:span.label "Ilmoittautuneita tällä hetkellä"]
+             [:span.value (::spec/registration-count existing-data)]])
           [:div.row
            [:label
             [:span.label "Julkaistu"]
