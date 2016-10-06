@@ -86,7 +86,7 @@
                    [:div.row
                     [:label
                      [:input {:type "radio" :name (str "section-" id "-participation") :value "participate"
-                              :on-click #(add-section form-data id {::spec/retry? (true? previously-attempted?)})}]
+                              :on-click #(add-section form-data id {::spec/retry? previously-attempted?})}]
                      [:span (cond
                               (not previously-attempted?) (t "Osallistun kokeeseen")
                               (and previously-attempted? can-retry-partially?) (t "Osallistun uusintakokeeseen seuraavista osa-alueista:")
@@ -121,7 +121,10 @@
                             [:span (@lang (:name module))]]))]])])))]
            [:div.section.price
             [:div.right
-             [:span (str (t "Osallistumismaksu") " " (-> @registration-options :payments :full format-price))]]]
+             [:span (str (t "Osallistumismaksu") " " (-> @registration-options
+                                                         :payments
+                                                         ((rules/price-type-for-registration @form-data))
+                                                         format-price))]]]
            [:div.section.buttons
             [:div.left
              [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")]]
