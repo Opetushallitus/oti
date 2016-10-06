@@ -1,9 +1,10 @@
 (ns oti.util.coercion
   (:require [oti.spec]))
 
-(defn convert-session-row [{:keys [id session_date start_time end_time street_address city
+(defn convert-session-row [{:keys [id exam_id session_date start_time end_time street_address city
                                    other_location_info max_participants published registration_count]}]
   #:oti.spec{:id id
+             :exam-id exam_id
              :session-date session_date
              :start-time (str (.toLocalTime start_time))
              :end-time (str (.toLocalTime end_time))

@@ -111,6 +111,7 @@
   (upcoming-exam-sessions [db])
   (add-exam-session! [db exam-session])
   (published-exam-sessions-with-space-left [db])
+  (exam-session [db id])
   (modules-available-for-user [db external-user-id])
   (valid-full-payments-for-user [db external-user-id])
   (register! [db registration-data external-user-id]))
@@ -121,6 +122,8 @@
     (group-exam-session-translations (exam-sessions-in-future {} {:connection spec})))
   (published-exam-sessions-with-space-left [{:keys [spec]}]
     (group-exam-session-translations (published-exam-sessions-in-future-with-space-left {} {:connection spec})))
+  (exam-session [{:keys [spec]} id]
+    (-> (exam-session-by-id {:id id} {:connection spec}) group-exam-session-translations))
   (add-exam-session! [{:keys [spec]} exam-session]
     (jdbc/with-db-transaction [tx spec]
       (let [exam-session-id (:id (insert-exam-session tx exam-session))]

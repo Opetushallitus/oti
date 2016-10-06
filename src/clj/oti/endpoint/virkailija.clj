@@ -1,11 +1,15 @@
 (ns oti.endpoint.virkailija
   (:require [compojure.core :refer :all]
-            [ring.util.response :refer [resource-response content-type redirect response]]
+            [ring.util.response :refer [response not-found]]
             [oti.util.auth :as auth]
             [clojure.spec :as s]
             [oti.boundary.db-access :as dba]
             [oti.spec :as os]
             [oti.util.coercion :as c]))
+
+(defn- as-int [x]
+  (try (Integer/parseInt x)
+       (catch Throwable _)))
 
 (defn virkailija-endpoint [{:keys [db]}]
   (-> (context "/oti/api/virkailija" []
@@ -22,5 +26,11 @@
           (GET "/" []
             (let [sessions (->> (dba/upcoming-exam-sessions db)
                                 (map c/convert-session-row))]
-              (response sessions)))))
+              (response sessions)))
+          (GET "/:id{[0-9]+}" [id :<< as-int]
+            (if-let [exam-session (->> (dba/exam-session db id)
+                                       (map c/convert-session-row)
+                                       first)]
+              (response exam-session)
+              (not-found {})))))
       (wrap-routes auth/wrap-authorization)))

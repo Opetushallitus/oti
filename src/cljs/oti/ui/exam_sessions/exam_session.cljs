@@ -1,4 +1,4 @@
-(ns oti.ui.exam-sessions.exam-sessions
+(ns oti.ui.exam-sessions.exam-session
   (:require [oti.ui.exam-sessions.handlers]
             [oti.ui.exam-sessions.subs]
             [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
@@ -43,19 +43,24 @@
        (input-element form-data invalids type key :sv (str (or placeholder label) " ruotsiksi"))]
       (input-element form-data invalids type key nil (or placeholder label)))]])
 
-(defn new-exam-session-panel []
-  (let [tomorrow (-> (js/moment.) (.add 1 "days") .toDate)
-        pikaday-date (r/atom tomorrow)
-        form-data (r/atom {::spec/exam-id 1
-                           ::spec/published false
-                           ::spec/session-date tomorrow})]
+(def tomorrow (-> (js/moment.) (.add 1 "days") .toDate))
+
+(def base-form-data
+  {::spec/exam-id 1
+   ::spec/published false
+   ::spec/session-date tomorrow})
+
+(defn exam-session-panel [existing-data]
+  (let [pikaday-date (r/atom (or (::spec/session-date existing-data) tomorrow))
+        form-data (r/atom (or existing-data base-form-data))
+        edit-id (::spec/id existing-data)]
     (add-watch pikaday-date :update-form-data
                (fn [_ _ _ new-date]
                  (swap! form-data assoc ::spec/session-date new-date)))
     (fn []
       (let [invalids (invalid-keys form-data ::spec/exam-session)]
         [:div.exam-session-form
-         [:h3 "Uusi tutkintotapahtuma"]
+         [:h3 (if edit-id "Muokkaa tutkintotapahtumaa" "Uusi tutkintotapahtuma")]
          [:form
           [:div.row
            [:label
@@ -95,55 +100,28 @@
            [:label
             [:span.label "Julkaistu"]
             [:input {:type "checkbox"
-                     :value (::spec/published @form-data)
-                     :required true
-                     :on-click (fn [e]
-                                 (let [value (cond-> (-> e .-target .-checked))]
-                                   (swap! form-data assoc ::spec/published value)))}]]]
+                     :checked (::spec/published @form-data)
+                     :on-change (fn [e]
+                                  (let [value (cond-> (-> e .-target .-checked))]
+                                    (swap! form-data assoc ::spec/published value)))}]]]
           [:div.buttons
            [:button.button-primary
-            {:disabled (not (s/valid? ::spec/exam-session @form-data))
+            {:disabled (or (not (s/valid? ::spec/exam-session @form-data))
+                           (= existing-data @form-data))
              :on-click (fn [e]
                          (.preventDefault e)
                          (re-frame/dispatch [:add-exam-session @form-data]))}
-            "Tallenna"]
+            (str "Tallenna" (when edit-id " muutokset"))]
            [:a.button
             {:href routing/virkailija-root}
             "Peruuta"]]]]))))
 
-(defn exam-sessions-panel []
-  (re-frame/dispatch [:load-exam-sessions])
-  (let [exam-sessions (re-frame/subscribe [:exam-sessions])]
+(defn new-exam-session []
+  [exam-session-panel])
+
+(defn edit-exam-session []
+  (let [data (re-frame/subscribe [:active-panel-data])]
     (fn []
       [:div
-       [:h2 "Tutkintotapahtumat"]
-       [:div.exam-sessions
-        (when (seq @exam-sessions)
-          [:table
-           [:thead
-            [:tr
-             [:td "Päivämäärä ja aika"]
-             [:td "Osoite"]
-             [:td "Tilatieto"]
-             [:td "Enimmäismäärä"]
-             [:td "Ilmoittautuneet"]]]
-           [:tbody
-            (doall
-              (for [{::spec/keys [id city start-time end-time session-date street-address
-                                  other-location-info max-participants registration-count]} @exam-sessions]
-                ^{:key id}
-                [:tr
-                 [:td (str (unparse-date session-date) " " start-time " - " end-time)]
-                 [:td
-                  (str (:fi city) ", " (:fi street-address))
-                  [:br]
-                  (str (:sv city) ", " (:sv street-address))]
-                 [:td
-                  (:fi other-location-info)
-                  [:br]
-                  (:sv other-location-info)]
-                 [:td max-participants]
-                 [:td registration-count]]))]])]
-       [:div.buttons
-        [:div.right
-         [:a.button {:href (routing/v-route "/tutkintotapahtuma")} "Lisää uusi"]]]])))
+       (when (seq @data)
+         [exam-session-panel @data])])))

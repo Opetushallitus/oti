@@ -34,3 +34,19 @@
   (fn
     [db [_ response]]
     (assoc db :exam-sessions response)))
+
+(re-frame/reg-event-fx
+  :load-exam-session-editor
+  (fn [{:keys [db]}  [_ params]]
+    {:db         (assoc db :active-panel-data nil)
+     :http-xhrio {:method          :get
+                  :uri             (routing/v-a-route "/exam-sessions/" (first params))
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:exam-session-loaded]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-db
+  :exam-session-loaded
+  (fn
+    [db [_ response]]
+    (assoc db :active-panel :edit-exam-session-panel :active-panel-data response)))

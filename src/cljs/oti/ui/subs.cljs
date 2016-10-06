@@ -2,17 +2,10 @@
     (:require-macros [reagent.ratom :refer [reaction]])
     (:require [re-frame.core :as re-frame]))
 
-(re-frame/reg-sub
- :user
- (fn [db]
-   (:user db)))
+(def interesting-keys [:user :active-panel :flash-message :active-panel-data])
 
-(re-frame/reg-sub
- :active-panel
- (fn [db _]
-   (:active-panel db)))
-
-(re-frame/reg-sub
-  :flash-message
-  (fn [db _]
-    (:flash-message db)))
+(doseq [key interesting-keys]
+  (re-frame/reg-sub
+    key
+    (fn [db _]
+      (key db))))

@@ -8,6 +8,7 @@
 (def virkailija-routes
   [{:view :exam-sessions-panel :url routing/virkailija-root :text "Tutkintotapahtumat"}
    {:view :new-exam-session-panel :url (routing/v-route "/tutkintotapahtuma")}
+   {:action :load-exam-session-editor :url (re-pattern (routing/v-route "/tutkintotapahtuma/(\\d+)"))}
    {:view :students-panel :url (routing/v-route "/henkilot") :text "Henkilötiedot"}])
 
 (def history (atom nil))
@@ -15,8 +16,12 @@
 (defn app-routes []
   (secretary/set-config! :prefix "/")
 
-  (doseq [{:keys [view url]} virkailija-routes]
-    (secretary/add-route! url #(re-frame/dispatch [:set-active-panel view])))
+  (doseq [{:keys [action view url]} virkailija-routes]
+    (secretary/add-route! url (fn [params]
+                                (re-frame/dispatch
+                                  (if action
+                                    [action params]
+                                    [:set-active-panel view params])))))
 
   ;; Pushy handles the HTML5 history based navigation
   (reset! history (pushy/pushy secretary/dispatch!

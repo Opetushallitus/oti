@@ -12,14 +12,14 @@
 
 (def participant-api-root (str api-root "/participant"))
 
-(defn v-route [path]
-  (str virkailija-root path))
+(defn v-route [& path-parts]
+  (apply str virkailija-root path-parts))
 
 (defn p-route [path]
   (str participant-root path))
 
-(defn v-a-route [path]
-  (str virkailija-api-root path))
+(defn v-a-route [& path-parts]
+  (apply str virkailija-api-root path-parts))
 
 (defn p-a-route [& path-parts]
   (apply str participant-api-root path-parts))
