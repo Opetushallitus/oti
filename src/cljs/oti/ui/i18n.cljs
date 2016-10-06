@@ -9,7 +9,8 @@
 (defn t [key]
   (let [translations (re-frame/subscribe [:translations])]
     (if-not (empty? @translations)
-      (get @translations key key)
+      (let [k (if (keyword? key) (name key) key)]
+        (get @translations k k))
       "")))
 
 (def pikaday-i18n

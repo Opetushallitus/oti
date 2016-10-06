@@ -51,7 +51,8 @@
 (s/def ::id pos-int?)
 
 ;; i18n
-(s/def ::language-code #{:fi :sv})
+(def recognized-languages #{:fi :sv})
+(s/def ::language-code recognized-languages)
 (s/def ::i18n-string (s/map-of ::language-code ::non-blank-string :count 2))
 
 ;; exam-session
@@ -100,4 +101,5 @@
 
 (s/def ::registration (s/keys :req [::email
                                     ::session-id
+                                    ::language-code
                                     ::sections]))

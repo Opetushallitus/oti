@@ -51,13 +51,22 @@
   (let [w (transit/writer :json)]
     (transit/write w @form-data)))
 
+(defn attending-ids [form-data]
+  (reduce
+    (fn [ids [id section-opts]]
+      (if-not (::spec/accredit? section-opts)
+        (conj ids id)
+        ids))
+    #{}
+    (::spec/sections @form-data)))
+
 (defn registration-panel [participant-data]
   (re-frame/dispatch [:load-available-sessions])
   (re-frame/dispatch [:load-registration-options])
   (let [lang (re-frame/subscribe [:language])
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
-        form-data (reagent/atom {})]
+        form-data (reagent/atom {::spec/language-code @lang})]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
         (if (pos? (count (:sections @registration-options)))
@@ -79,8 +88,7 @@
               (for [{:keys [id name modules previously-attempted?]} (:sections @registration-options)]
                 (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))
                       can-accredit-partially? (:can-accredit-partially? (get rules/rules-by-section-id id))
-                      selected-options (get-in @form-data [::spec/sections id])
-                      attending? (and (seq selected-options) (not (::spec/accredit? selected-options)))]
+                      attending? (contains? (attending-ids form-data) id)]
                   [:div.exam-section {:key id}
                    [:h4 (str (t "Osio") " " (@lang name))]
                    [:div.row
@@ -118,7 +126,18 @@
                            [:label {:key (:id module)}
                             [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
                                      :on-click (module-selection form-data id (:id module) ::spec/accredit-modules)}]
-                            [:span (@lang (:name module))]]))]])])))]
+                            [:span (@lang (:name module))]]))]])])))
+            (when-not (empty? (attending-ids form-data))
+              [:div.exam-section
+               [:h4 (t "Tenttikysymysten kieli")]
+               (doall
+                 (for [lang spec/recognized-languages]
+                   [:div.row {:key (name lang)}
+                    [:label
+                     [:input {:type "radio" :name "language" :value (name lang)
+                              :checked (= lang (::spec/language-code @form-data))
+                              :on-change #(swap! form-data assoc ::spec/language-code lang)}]
+                     [:span (t lang)]]]))])]
            [:div.section.price
             [:div.right
              [:span (str (t "Osallistumismaksu") " " (-> @registration-options
