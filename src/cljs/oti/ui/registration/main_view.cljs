@@ -3,6 +3,7 @@
             [oti.ui.registration.subs]
             [oti.ui.registration.authentication-view :as av]
             [oti.ui.registration.registration-view :as rv]
+            [oti.ui.registration.registration-result-view :as rrv]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]
             [oti.ui.i18n :refer [t]]))
@@ -34,6 +35,7 @@
         [:main.container
          (cond
            (empty? @participant-data) [av/authentication-panel]
+           (:registration-status @participant-data) [rrv/result-panel @participant-data]
            (seq @participant-data) [rv/registration-panel @participant-data])]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]

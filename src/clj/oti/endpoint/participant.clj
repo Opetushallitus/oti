@@ -10,13 +10,16 @@
             [ring.util.response :as resp]
             [cognitect.transit :as transit]
             [clojure.java.io :as io]
-            [taoensso.timbre :refer [error]]))
+            [taoensso.timbre :refer [error]]
+            [meta-merge.core :refer [meta-merge]]))
 
 (def translations
   {"Ilmoittautuminen" {:fi "Ilmoittautuminen" :sv "Anmälning"}
    "switch-language" {:fi "Pä svenska" :sv "Suomeksi"}
    "registration-title" {:fi "Opetushallinnon tutkintoon ilmoittautuminen"
-                         :sv "Anmälning till examen i undervisningsförvaltning"}})
+                         :sv "Anmälning till examen i undervisningsförvaltning"}
+   "fi" {:fi "Suomi" :sv "Finska"}
+   "sv" {:fi "Ruotsi" :sv "Svenska"}})
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -57,21 +60,29 @@
       (handler request)
       {:status 401 :body {:error "Identification required"}})))
 
+(defn- registration-response [status text lang session]
+  (let [url (if (= lang :sv) "/oti/anmala" "/oti/ilmoittaudu")]
+    (-> (redirect url :see-other)
+        (assoc :session (meta-merge session {:participant {:registration-status status
+                                                           :registration-message text}})))))
+
 (defn- register [db {session :session params :params}]
   (if-let [transit-data (:registration-data params)]
     (with-open [is (io/input-stream (.getBytes transit-data "UTF-8"))]
       (let [parsed-data (-> is (transit/reader :json) (transit/read))
             conformed (s/conform ::os/registration parsed-data)
-            user-id (-> session :participant :external-user-id)]
+            user-id (-> session :participant :external-user-id)
+            lang (::os/language-code conformed)]
         (if (s/invalid? conformed)
           {:error (s/explain-data ::os/registration parsed-data)}
           (try
             (dba/register! db parsed-data user-id)
+            (registration-response :success "Ilmoittautumisesi on rekisteröity" lang session)
             (catch Throwable t
               (error "Error inserting registration")
               (error t)
-              {:error "Internal error"})))))
-    {:error "Missing registration data"}))
+              (registration-response :failure "Ilmoittautumisessa tapahtui odottamaton virhe" lang session))))))
+    (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)))
 
 (defn participant-endpoint [{:keys [db payments]}]
   (routes
@@ -110,7 +121,5 @@
                       :payments payments}
                      (response))))
             (POST "/register" request
-              (if-let [{:keys [error]} (register db request)]
-                (:status 400 {:error error})
-                (response {:status "Registered"}))))
+              (register db request)))
           (wrap-routes wrap-authentication)))))
