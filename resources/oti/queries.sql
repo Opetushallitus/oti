@@ -9,8 +9,14 @@ SELECT es.id,
        est.city,
        est.street_address,
        est.language_code,
-       est.other_location_info FROM exam_session es JOIN exam_session_translation est ON es.id = est.exam_session_id
+       est.other_location_info,
+       count(r.id) AS registration_count
+FROM exam_session es
+  JOIN exam_session_translation est ON es.id = est.exam_session_id
+  LEFT JOIN registration r ON es.id = r.exam_session_id
 WHERE session_date > now()
+GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
+  est.street_address, est.language_code, est.other_location_info
 ORDER BY es.session_date, es.start_time, id;
 
 -- name: published-exam-sessions-in-future-with-space-left

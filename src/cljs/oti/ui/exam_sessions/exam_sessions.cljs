@@ -129,7 +129,8 @@
              [:td "Ilmoittautuneet"]]]
            [:tbody
             (doall
-              (for [{::spec/keys [id city start-time end-time session-date street-address other-location-info max-participants]} @exam-sessions]
+              (for [{::spec/keys [id city start-time end-time session-date street-address
+                                  other-location-info max-participants registration-count]} @exam-sessions]
                 ^{:key id}
                 [:tr
                  [:td (str (unparse-date session-date) " " start-time " - " end-time)]
@@ -142,7 +143,7 @@
                   [:br]
                   (:sv other-location-info)]
                  [:td max-participants]
-                 [:td "0"]]))]])]
+                 [:td registration-count]]))]])]
        [:div.buttons
         [:div.right
          [:a.button {:href (routing/v-route "/tutkintotapahtuma")} "Lisää uusi"]]]])))

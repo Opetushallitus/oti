@@ -66,6 +66,7 @@
 (s/def ::exam-id             pos-int?)
 (s/def ::exam-session-id     pos-int?)
 (s/def ::published           boolean?)
+(s/def ::registration-count  int?)
 
 (s/def ::exam-session (s/and
                         (s/keys :req [::session-date
