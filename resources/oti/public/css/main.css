@@ -180,16 +180,6 @@ td:last-child {
 .registration .section {
   margin-bottom: 1em;
 }
-.registration .exam-session {
-  font-weight: bold;
-}
-.registration .exam-session label {
-  margin-right: .5em;
-}
-.registration .exam-session select {
-  width: 60%;
-  max-width: 500px;
-}
 .registration .participant .email {
   margin-top: .5em;
 }
@@ -221,6 +211,16 @@ td:last-child {
 .registration .price {
   text-transform: uppercase;
   font-weight: bold !important;
+}
+.exam-session-selection {
+  font-weight: bold;
+}
+.exam-session-selection label {
+  margin-right: .5em;
+}
+.exam-session-selection select {
+  width: 60%;
+  max-width: 500px;
 }
 /*!
  * Pikaday

@@ -80,7 +80,7 @@
          (if (pos? (count (:sections @registration-options)))
            [:form.registration {:method "post" :action (routing/p-a-route "/authenticated/register") :accept-charset "UTF-8"}
             [:input {:type "hidden" :name "registration-data" :value (serialize-form-data form-data)}]
-            [:div.section.exam-session
+            [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
             [:div.section.participant
              (participant-div participant-data)

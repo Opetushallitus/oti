@@ -9,7 +9,8 @@
   [{:view :exam-sessions-panel :url routing/virkailija-root :text "Tutkintotapahtumat"}
    {:view :new-exam-session-panel :url (routing/v-route "/tutkintotapahtuma")}
    {:action :load-exam-session-editor :url (re-pattern (routing/v-route "/tutkintotapahtuma/(\\d+)"))}
-   {:view :students-panel :url (routing/v-route "/henkilot") :text "Henkilötiedot"}])
+   {:view :registrations-panel :url (routing/v-route "/ilmoittautumiset") :text "Ilmoittautumiset"}
+   {:view :registrations-panel :url (re-pattern (routing/v-route "/ilmoittautumiset/(\\d+)"))}])
 
 (def history (atom nil))
 

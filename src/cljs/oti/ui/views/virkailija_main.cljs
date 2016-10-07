@@ -2,20 +2,19 @@
   (:require [re-frame.core :as re-frame]
             [oti.ui.exam-sessions.session-list :refer [exam-sessions-panel]]
             [oti.ui.exam-sessions.exam-session :refer [new-exam-session edit-exam-session]]
-            [oti.ui.views.students :refer [students-panel]]
+            [oti.ui.exam-registrations.registration-list :as registration-list]
             [oti.ui.routes :refer [virkailija-routes]]
             [oti.routing :as routing]))
 
 (defmulti panels identity)
-(defmethod panels :exam-sessions-panel [] [exam-sessions-panel])
-(defmethod panels :students-panel [] [students-panel])
-(defmethod panels :new-exam-session-panel [] [new-exam-session])
-(defmethod panels :edit-exam-session-panel [] [edit-exam-session])
-(defmethod panels :default [] [:div])
+(defmethod panels :exam-sessions-panel []  exam-sessions-panel)
+(defmethod panels :registrations-panel [] registration-list/reg-list-panel)
+(defmethod panels :new-exam-session-panel [] new-exam-session)
+(defmethod panels :edit-exam-session-panel [] edit-exam-session)
+(defmethod panels :default [] :div)
 
-(defn show-panel
-  [panel-name]
-  [panels panel-name])
+(defn show-panel [panel-name data]
+  [(panels panel-name) data])
 
 (defn navigation-panel [active-page user]
   [:nav#nav-holder
@@ -37,6 +36,7 @@
 
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])
+        active-panel-data (re-frame/subscribe [:active-panel-data])
         user (re-frame/subscribe [:user])
         flash-message (re-frame/subscribe [:flash-message])]
     (fn []
@@ -48,7 +48,7 @@
        [navigation-panel @active-panel @user]
        [:div#content-area
         [:main.container
-         [show-panel @active-panel]]]
+         [show-panel @active-panel @active-panel-data]]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]
            [:div.flash-container
