@@ -39,5 +39,9 @@
                 (if (or (s/invalid? conformed) (not (seq (dba/save-exam-session! db conformed))))
                   {:status 400
                    :body {:errors (s/explain ::os/exam-session params)}}
-                  (response {:success true})))))))
+                  (response {:success true}))))
+            (DELETE "/" []
+              (if (pos? (dba/remove-exam-session! db id))
+                (response {:success true})
+                (not-found {}))))))
       (wrap-routes auth/wrap-authorization)))

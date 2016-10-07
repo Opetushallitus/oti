@@ -115,6 +115,7 @@
            [:button.button-primary
             {:disabled (or (not (s/valid? ::spec/exam-session @form-data))
                            (= existing-data @form-data))
+             :type "submit"
              :on-click (fn [e]
                          (.preventDefault e)
                          (if edit-id
@@ -123,7 +124,13 @@
             (str "Tallenna" (when edit-id " muutokset"))]
            [:a.button
             {:href routing/virkailija-root}
-            "Peruuta"]]]]))))
+            "Peruuta"]
+           (when edit-id
+             [:div.right
+              [:button.button-danger {:on-click (fn [e]
+                                                  (.preventDefault e)
+                                                  (re-frame/dispatch [:delete-exam-session edit-id]))}
+               "Poista tapahtuma"]])]]]))))
 
 (defn new-exam-session []
   [exam-session-panel])

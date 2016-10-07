@@ -61,3 +61,19 @@
   (fn
     [db [_ response]]
     (assoc db :active-panel :edit-exam-session-panel :active-panel-data response)))
+
+(re-frame/reg-event-fx
+  :delete-exam-session
+  (fn [_ [_ id]]
+    {:http-xhrio {:method          :delete
+                  :uri             (routing/v-a-route "/exam-sessions/" id)
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:exam-session-deleted]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-db
+  :exam-session-deleted
+  (fn [_ _]
+    (re-frame/dispatch [:redirect routing/virkailija-root])
+    (re-frame/dispatch [:show-flash :success "Poistettu"])))

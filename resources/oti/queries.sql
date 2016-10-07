@@ -109,6 +109,12 @@ UPDATE exam_session_translation SET
   other_location_info = :other-location-info
 WHERE language_code = :language-code AND exam_session_id = :exam-session-id;
 
+-- name: delete-exam-session!
+DELETE FROM exam_session WHERE id = :exam-session-id;
+
+-- name: delete-exam-session-translations!
+DELETE FROM exam_session_translation WHERE exam_session_id = :exam-session-id;
+
 -- name: select-modules-available-for-user
 SELECT
   s.id AS section_id, m.id AS module_id, st.name AS section_name, st.language_code, mt.name AS module_name,

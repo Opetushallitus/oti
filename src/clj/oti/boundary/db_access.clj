@@ -113,6 +113,7 @@
   (upcoming-exam-sessions [db])
   (add-exam-session! [db exam-session])
   (save-exam-session! [db exam-session])
+  (remove-exam-session! [db id])
   (published-exam-sessions-with-space-left [db])
   (exam-session [db id])
   (modules-available-for-user [db external-user-id])
@@ -135,6 +136,9 @@
     (jdbc/with-db-transaction [tx spec]
       (update-exam-session! exam-session {:connection tx})
       (store-exam-session-translations tx exam-session :update)))
+  (remove-exam-session! [{:keys [spec]} id]
+    (delete-exam-session-translations! {:exam-session-id id} {:connection spec})
+    (delete-exam-session! {:exam-session-id id} {:connection spec}))
   (modules-available-for-user [{:keys [spec]} external-user-id]
     (->> (select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
          group-sections-and-modules))
