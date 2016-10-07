@@ -4,7 +4,8 @@
             [duct.component.hikaricp]
             [oti.spec :as spec]
             [clojure.set :as cs]
-            [taoensso.timbre :refer [error]])
+            [taoensso.timbre :refer [error]]
+            [meta-merge.core :refer [meta-merge]])
   (:import [duct.component.hikaricp HikariCP]))
 
 
@@ -118,7 +119,9 @@
   (exam-session [db id])
   (modules-available-for-user [db external-user-id])
   (valid-full-payments-for-user [db external-user-id])
-  (register! [db registration-data external-user-id]))
+  (register! [db registration-data external-user-id])
+  (registrations-for-session [db exam-session])
+  (section-and-module-names [db]))
 
 (extend-type HikariCP
   DbAccess
@@ -148,4 +151,24 @@
         :count))
   (register! [{:keys [spec]} registration-data external-user-id]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-      (store-registration! tx registration-data external-user-id))))
+      (store-registration! tx registration-data external-user-id)))
+  (registrations-for-session [{:keys [spec]} exam-session-id]
+    (->> (q/select-registrations-for-exam-session {:exam-session-id exam-session-id} {:connection spec})
+         (partition-by :id)
+         (map (fn [registration-rows]
+                (let [sections (->> (partition-by :section_id registration-rows)
+                                    (map (fn [s-rows] {:id (:section_id (first s-rows))
+                                                       :modules (map :module_id s-rows)})))
+                      {:keys [id created language_code, participant_id ext_reference_id]} (first registration-rows)]
+                  {:id id
+                   :created created
+                   :lang (keyword language_code)
+                   :participant-id participant_id
+                   :external-user-id ext_reference_id
+                   :sections sections})))))
+  (section-and-module-names [{:keys [spec]}]
+    (->> (q/select-section-and-module-names {} {:connection spec})
+         (reduce (fn [names {:keys [section_id section_name module_id module_name]}]
+                   (meta-merge names {:sections {section_id section_name}
+                                      :modules {module_id module_name}}))
+                 {}))))

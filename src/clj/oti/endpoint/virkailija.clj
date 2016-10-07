@@ -43,5 +43,10 @@
             (DELETE "/" []
               (if (pos? (dba/remove-exam-session! db id))
                 (response {:success true})
-                (not-found {}))))))
+                (not-found {})))
+            (GET "/registrations" []
+              (let [regs (dba/registrations-for-session db id)
+                    names (dba/section-and-module-names db)]
+                (response {:registrations regs
+                           :translations names}))))))
       (wrap-routes auth/wrap-authorization)))

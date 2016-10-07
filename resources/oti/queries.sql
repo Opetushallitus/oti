@@ -188,3 +188,22 @@ SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-
 -- name: insert-module-accreditation!
 INSERT INTO accredited_exam_module (module_id, participant_id)
 SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: select-registrations-for-exam-session
+SELECT
+  r.id, r.created, r.language_code, p.id AS participant_id, p.ext_reference_id, recs.section_id, recm.module_id
+FROM registration r
+  JOIN participant p ON r.participant_id = p.id
+  LEFT JOIN registration_exam_content_section recs ON r.id = recs.registration_id
+  LEFT JOIN module m ON recs.section_id = m.section_id
+  LEFT JOIN registration_exam_content_module recm ON r.id = recm.registration_id AND m.id = recm.module_id
+WHERE r.exam_session_id = :exam-session-id
+ORDER BY r.id, recs.section_id, recm.module_id;
+
+-- name: select-section-and-module-names
+SELECT st.section_id, st.name AS section_name, mt.module_id, mt.name AS module_name
+FROM section_translation st
+  LEFT JOIN module m ON st.section_id = m.section_id
+  LEFT JOIN module_translation mt ON mt.module_id = m.id AND mt.language_code = 'fi'
+WHERE st.language_code = 'fi'
+ORDER BY section_id, module_id;
