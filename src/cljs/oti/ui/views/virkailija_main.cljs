@@ -51,9 +51,10 @@
          [show-panel @active-panel]]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]
-           [:div.flash-message
-            [:span.icon {:class (if (= :success type) "success" "error")}
-             (if (= :success type)
-               "\u2713"
-               "\u26A0")]
-            [:span.text text]]))])))
+           [:div.flash-container
+            [:div.flash-message
+             [:span.icon {:class (if (= :success type) "success" "error")}
+              (if (= :success type)
+                "\u2713"
+                "\u26A0")]
+             [:span.text text]]]))])))

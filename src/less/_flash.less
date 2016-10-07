@@ -1,17 +1,30 @@
-.flash-message {
+.flash-container {
   position: fixed;
   bottom: 10px;
   width: 100%;
   text-align: center;
-  line-height: 5rem;
+
+  .flash-message {
+    background-color: #e6e6e6;
+    display: inline-block;
+    line-height: normal;
+    padding: 5px 15px;
+    border-radius: 7px;
+    opacity: 0.9;
+
+    span {
+      display: inline-block;
+    }
+  }
 
   .icon {
     margin-right: 15px;
-    font-size: 5rem;
+    font-size: 3rem;
+    vertical-align: middle;
   }
   .text {
-    vertical-align: top;
-    font-size: 2rem;
+    vertical-align: middle;
+    font-size: 1.5rem;
   }
   .success {
     color: #00af2f;
