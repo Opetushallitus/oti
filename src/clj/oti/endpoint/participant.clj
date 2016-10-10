@@ -11,7 +11,8 @@
             [cognitect.transit :as transit]
             [clojure.java.io :as io]
             [taoensso.timbre :refer [error]]
-            [meta-merge.core :refer [meta-merge]]))
+            [meta-merge.core :refer [meta-merge]]
+            [oti.boundary.api-client-access :as api]))
 
 (def translations
   {"Ilmoittautuminen" {:fi "Ilmoittautuminen" :sv "Anmälning"}
@@ -48,6 +49,15 @@
         check-digit (get check-digits (mod full 31))]
     (str d m y "-" serial check-digit)))
 
+(defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} lang]
+  (api/add-person! api-client
+                   {:sukunimi sukunimi
+                    :etunimet etunimet
+                    :kutsumanimi (first etunimet)
+                    :hetu hetu
+                    :henkiloTyyppi "OPPIJA"
+                    :asiointiKieli {:kieliKoodi (name lang)}}))
+
 (defn- random-name []
   (->> (repeatedly #(rand-nth "aefhijklmnoprstuvy"))
        (take 10)
@@ -56,7 +66,7 @@
 
 (defn- wrap-authentication [handler]
   (fn [request]
-    (if (-> request :session :participant :external-user-id)
+    (if (-> request :session :participant :hetu)
       (handler request)
       {:status 401 :body {:error "Identification required"}})))
 
@@ -66,17 +76,19 @@
         (assoc :session (meta-merge session {:participant {:registration-status status
                                                            :registration-message text}})))))
 
-(defn- register [db {session :session params :params}]
+(defn- register [{:keys [db api-client]} {session :session params :params}]
   (if-let [transit-data (:registration-data params)]
     (with-open [is (io/input-stream (.getBytes transit-data "UTF-8"))]
       (let [parsed-data (-> is (transit/reader :json) (transit/read))
             conformed (s/conform ::os/registration parsed-data)
-            user-id (-> session :participant :external-user-id)
-            lang (::os/language-code conformed)]
+            lang (::os/language-code conformed)
+            participant-data (-> session :participant)
+            external-user-id (or (:external-user-id participant-data)
+                                 (store-person-to-service! api-client participant-data lang))]
         (if (s/invalid? conformed)
           {:error (s/explain-data ::os/registration parsed-data)}
           (try
-            (dba/register! db parsed-data user-id)
+            (dba/register! db parsed-data external-user-id)
             (registration-response :success "Ilmoittautumisesi on rekisteröity" lang session)
             (catch Throwable t
               (error "Error inserting registration")
@@ -84,7 +96,7 @@
               (registration-response :failure "Ilmoittautumisessa tapahtui odottamaton virhe" lang session))))))
     (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)))
 
-(defn participant-endpoint [{:keys [db payments]}]
+(defn participant-endpoint [{:keys [db payments api-client] :as config}]
   (routes
     (GET "/oti/abort" []
       (-> (resp/redirect "/oti/ilmoittaudu")
@@ -99,11 +111,13 @@
       ;; FIXME: This is a dummy route
       (GET "/authenticate" [callback]
         (if-not (str/blank? callback)
-          (-> (redirect callback)
-              (assoc :session {:participant {:first-name (random-name)
-                                             :last-name (random-name)
-                                             :hetu (random-hetu)
-                                             :external-user-id "A"}}))
+          (let [hetu (random-hetu)
+                {:keys [oidHenkilo]} (api/get-person-by-hetu api-client hetu)]
+            (-> (redirect callback)
+                (assoc :session {:participant {:etunimet [(random-name)]
+                                               :sukunimi (random-name)
+                                               :hetu (random-hetu)
+                                               :external-user-id oidHenkilo}})))
           {:status 400 :body {:error "Missing callback uri"}}))
       (GET "/exam-sessions" []
         (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
@@ -113,13 +127,13 @@
             (GET "/participant-data" []
               (response (:participant session)))
             (GET "/registration-options" []
-              (let [user-id (-> session :participant :external-user-id)
-                    paid? (pos? (dba/valid-full-payments-for-user db user-id))
+              (let [user-id (-> session :participant :external-user-id) ; user-id is nil at this stage if the user is new
+                    paid? (and user-id (pos? (dba/valid-full-payments-for-user db user-id)))
                     payments {:full (if paid? 0 (-> payments :amounts :full))
                               :retry (-> payments :amounts :retry)}]
                 (->> {:sections (dba/modules-available-for-user db user-id)
                       :payments payments}
                      (response))))
             (POST "/register" request
-              (register db request)))
+              (register config request)))
           (wrap-routes wrap-authentication)))))

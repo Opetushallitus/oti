@@ -19,7 +19,7 @@
   :status []
   :auth [:authentication :cas :ldap]
   :virkailija [:db]
-  :participant [:db :payments]
+  :participant [:db :payments :api-client]
   :api-client [:cas]}
  :config
  {:app

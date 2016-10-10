@@ -66,8 +66,8 @@
   [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")])
 
 (defn participant-div [participant-data]
-  (let [{:keys [first-name last-name hetu]} participant-data]
-    [:div.name (str first-name " " last-name ", " hetu)]))
+  (let [{:keys [etunimet sukunimi hetu]} participant-data]
+    [:div.name (str (str/join " " etunimet) " " sukunimi ", " hetu)]))
 
 (defn registration-panel [participant-data session-id]
   (re-frame/dispatch [:load-available-sessions])
