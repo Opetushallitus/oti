@@ -1,7 +1,7 @@
 (ns oti.ui.exam-sessions.exam-session
   (:require [oti.ui.exam-sessions.handlers]
             [oti.ui.exam-sessions.subs]
-            [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
+            [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys parse-int]]
             [oti.spec :as spec]
             [re-frame.core :as re-frame]
             [reagent.core :as r]
@@ -14,10 +14,6 @@
             [oti.ui.i18n :as i18n]))
 
 (.locale js/moment "fi")
-
-(defn parse-int [x]
-  (when-not (str/blank? x)
-    (js/parseInt x)))
 
 (defn input-element [form-data invalids type key lang placeholder & [on-change-fn]]
   (let [value-path (if lang [key lang] [key])]

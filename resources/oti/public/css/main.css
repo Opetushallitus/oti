@@ -158,6 +158,9 @@ table {
 .exam-session-form input {
   width: 230px;
 }
+.exam-session-form input[type="checkbox"] {
+  width: auto;
+}
 .exam-session-form .times input {
   width: 80px;
   margin: 0;

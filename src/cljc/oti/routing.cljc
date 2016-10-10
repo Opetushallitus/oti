@@ -6,6 +6,8 @@
 
 (def participant-root (str app-root "/ilmoittaudu"))
 
+(def participant-sv-root (str app-root "/anmala"))
+
 (def api-root (str app-root "/api"))
 
 (def virkailija-api-root (str api-root "/virkailija"))

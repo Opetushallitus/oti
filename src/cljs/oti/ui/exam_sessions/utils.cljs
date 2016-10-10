@@ -28,3 +28,7 @@
       (cond-> keys
               (::spec/session-date keys) (conj keys ::spec/session-date-str)
               (some #(= 'start-before-end-time? (:pred %)) problems) (conj keys ::spec/end-time)))))
+
+(defn parse-int [x]
+  (when-not (str/blank? x)
+    (js/parseInt x)))

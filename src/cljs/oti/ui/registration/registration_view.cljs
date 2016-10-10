@@ -17,8 +17,10 @@
     true))
 
 (defn session-select [lang exam-sessions form-data]
-  (when (and (nil? (::spec/session-id @form-data)) (seq exam-sessions))
-    (swap! form-data  assoc ::spec/session-id (-> exam-sessions first ::spec/id)))
+  (when (and (seq exam-sessions)
+             (or (nil? (::spec/session-id @form-data))
+                 (nil? (some #(= (::spec/id %) (::spec/session-id @form-data)) exam-sessions))))
+    (swap! form-data assoc ::spec/session-id (-> exam-sessions first ::spec/id)))
   [:div
    [:label {:for "exam-session-select"} (t "Tapahtuma:")]
    (when lang
@@ -67,13 +69,14 @@
   (let [{:keys [first-name last-name hetu]} participant-data]
     [:div.name (str first-name " " last-name ", " hetu)]))
 
-(defn registration-panel [participant-data]
+(defn registration-panel [participant-data session-id]
   (re-frame/dispatch [:load-available-sessions])
   (re-frame/dispatch [:load-registration-options])
   (let [lang (re-frame/subscribe [:language])
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
-        form-data (reagent/atom {::spec/language-code @lang})]
+        form-data (reagent/atom #::spec{:language-code @lang
+                                        :session-id session-id})]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
         [:div.registration

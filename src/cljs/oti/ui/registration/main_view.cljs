@@ -4,6 +4,7 @@
             [oti.ui.registration.authentication-view :as av]
             [oti.ui.registration.registration-view :as rv]
             [oti.ui.registration.registration-result-view :as rrv]
+            [oti.ui.exam-sessions.utils :as utils]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]
             [oti.ui.i18n :refer [t]]))
@@ -15,6 +16,12 @@
     [:li.active
      [:span (t "Ilmoittautuminen")]]
     [:li.divider]]])
+
+(defn parse-session-id []
+  (let [path (-> js/window .-location .-pathname)]
+    (->> (re-matches (re-pattern (str "(" routing/participant-root "|" routing/participant-sv-root ")/(\\d+)")) path)
+         (last)
+         (utils/parse-int))))
 
 (defn main-panel []
   (re-frame/dispatch [:load-participant-data])
@@ -36,7 +43,7 @@
          (cond
            (empty? @participant-data) [av/authentication-panel]
            (:registration-status @participant-data) [rrv/result-panel @participant-data]
-           (seq @participant-data) [rv/registration-panel @participant-data])]]
+           (seq @participant-data) [rv/registration-panel @participant-data (parse-session-id)])]]
        (when (seq @flash-message)
          (let [{:keys [type text]} @flash-message]
            [:div.flash-message
