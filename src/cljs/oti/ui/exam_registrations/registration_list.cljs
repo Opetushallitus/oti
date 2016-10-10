@@ -39,23 +39,22 @@
                    [:th {:key name} (str "Koe " name)]))
                [:th "Kokeen kieli"]]]
              [:tbody
-              (for [reg registrations]
-                [:tr {:key (:id reg)}
-                 [:td (:external-user-id reg)]
-                 (let [sections (:sections reg)]
-                   (doall
-                     (for [[id _] (:sections translations)]
-                       [:td {:key id}
-                        (if-let [modules (get sections id)]
-                          (let [rules (rules/rules-by-section-id id)]
-                            (if (or (:can-retry-partially? rules) (:can-accredit-partially? rules))
-                              [:div
-                               "Suorittaa osiot:"
-                               [:br]
-                               (->> modules (map #(get (:modules translations) %)) (str/join ", "))]
-                              [:div "Suorittaa"]))
-                          [:div "Ei suorita"])])))
-                 [:td (if (= :sv (:lang reg))
+              (for [{:keys [sections id etunimet sukunimi lang]} registrations]
+                [:tr {:key id}
+                 [:td (str etunimet " " sukunimi)]
+                 (doall
+                   (for [[id _] (:sections translations)]
+                     [:td {:key id}
+                      (if-let [modules (get sections id)]
+                        (let [rules (rules/rules-by-section-id id)]
+                          (if (or (:can-retry-partially? rules) (:can-accredit-partially? rules))
+                            [:div
+                             "Suorittaa osiot:"
+                             [:br]
+                             (->> modules (map #(get (:modules translations) %)) (str/join ", "))]
+                            [:div "Suorittaa"]))
+                        [:div "Ei suorita"])]))
+                 [:td (if (= :sv lang)
                         "Ruotsi"
                         "Suomi")]])]]))]])))
 

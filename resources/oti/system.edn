@@ -18,7 +18,7 @@
   :ragtime [:db]
   :status []
   :auth [:authentication :cas :ldap]
-  :virkailija [:db]
+  :virkailija [:db :api-client]
   :participant [:db :payments :api-client]
   :api-client [:cas]}
  :config
