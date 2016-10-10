@@ -104,6 +104,9 @@ th:last-child,
 td:last-child {
   padding-right: 0;
 }
+table {
+  border-collapse: collapse;
+}
 .flash-container {
   position: fixed;
   bottom: 10px;
@@ -451,6 +454,15 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   content: '\e800';
 }
 /* '' */
+.registrations {
+  margin-top: 1em;
+}
+.registrations table {
+  width: 100%;
+}
+.registrations table td {
+  width: 25%;
+}
 .left {
   float: left;
 }
