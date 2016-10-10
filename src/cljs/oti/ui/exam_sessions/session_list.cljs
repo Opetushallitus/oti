@@ -40,7 +40,9 @@
                   [:br]
                   (:sv other-location-info)]
                  [:td max-participants]
-                 [:td registration-count]]))]])]
+                 [:td (if (pos? registration-count)
+                        [:a {:href (routing/v-route "/ilmoittautumiset/" id)} registration-count]
+                        [:span registration-count])]]))]])]
        [:div.buttons
         [:div.right
          [:a.button {:href (routing/v-route "/tutkintotapahtuma")} "Lisää uusi"]]]])))
