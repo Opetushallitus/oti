@@ -496,6 +496,15 @@ table {
 .container p {
   color: #1b1b1b !important;
 }
+.container a,
+.container a:visited,
+.container a:active {
+  color: #00a651;
+  text-decoration: none;
+}
+.container a:hover {
+  text-decoration: underline;
+}
 input,
 .form-control,
 .btn {
