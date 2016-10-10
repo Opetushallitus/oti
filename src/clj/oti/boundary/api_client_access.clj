@@ -6,7 +6,7 @@
   (:import [oti.component.api_client ApiClient]))
 
 (defprotocol ApiClientAccess
-  (get-person [client external-user-id])
+  (get-persons [client ids])
   (get-person-by-hetu [client hetu])
   (add-person! [client person]))
 
@@ -23,10 +23,16 @@
     body
     (error "API request error:" response)))
 
+(defn- json-post [data]
+  {:method :post
+   :body (json/encode data)
+   :headers {"Content-Type" "application/json; charset=utf-8"}})
+
 (extend-protocol ApiClientAccess
   ApiClient
-  (get-person [{:keys [authentication-service-path cas] :as client} external-user-id]
-    (->> (request-map client "/resources/henkilo/" external-user-id)
+  (get-persons [{:keys [authentication-service-path cas] :as client} ids]
+    (->> (request-map client "/resources/henkilo/henkilotByHenkiloOidList")
+         (merge (json-post ids))
          (cas-api/request cas authentication-service-path)
          parse))
   (get-person-by-hetu [{:keys [authentication-service-path cas] :as client} hetu]
@@ -37,8 +43,6 @@
          first))
   (add-person! [{:keys [authentication-service-path cas] :as client} person]
     (->> (request-map client "/resources/henkilo")
-         (merge {:method :post
-                 :body (json/encode person)
-                 :headers {"Content-Type" "application/json; charset=utf-8"}})
+         (merge (json-post person))
          (cas-api/request cas authentication-service-path)
          parse-oid)))
