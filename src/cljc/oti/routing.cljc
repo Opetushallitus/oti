@@ -17,8 +17,11 @@
 (defn v-route [& path-parts]
   (apply str virkailija-root path-parts))
 
-(defn p-route [path]
-  (str participant-root path))
+(defn p-route [& path-parts]
+  (apply str participant-root path-parts))
+
+(defn p-sv-route [& path-parts]
+  (apply str participant-sv-root path-parts))
 
 (defn v-a-route [& path-parts]
   (apply str virkailija-api-root path-parts))

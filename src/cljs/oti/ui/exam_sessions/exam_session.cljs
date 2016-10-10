@@ -48,6 +48,15 @@
    ::spec/published false
    ::spec/session-date tomorrow})
 
+(defn registration-url [lang id]
+  (let [location (-> js/window .-location)
+        host (.-host location)
+        protocol (.-protocol location)]
+    (str protocol "//" host
+         (if (= :sv lang)
+           (routing/p-sv-route "/" id)
+           (routing/p-route "/" id)))))
+
 (defn exam-session-panel [existing-data]
   (let [pikaday-date (r/atom (or (::spec/session-date existing-data) tomorrow))
         form-data (r/atom (or existing-data base-form-data))
@@ -107,6 +116,14 @@
                      :on-change (fn [e]
                                   (let [value (cond-> (-> e .-target .-checked))]
                                     (swap! form-data assoc ::spec/published value)))}]]]
+          (when (and edit-id (::spec/published @form-data))
+            [:div
+             (doall
+               (for [lang [:fi :sv]]
+                 [:div.row {:key lang}
+                  [:span.label (str "Ilmoittautumislinkki (" (name lang) ")")]
+                  (let [url (registration-url lang edit-id)]
+                    [:a.value {:href url} url])]))])
           [:div.buttons
            [:button.button-primary
             {:disabled (or (not (s/valid? ::spec/exam-session @form-data))
