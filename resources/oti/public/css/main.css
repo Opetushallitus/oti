@@ -508,6 +508,9 @@ table {
 .container a:hover {
   text-decoration: underline;
 }
+.container a.button {
+  text-decoration: none;
+}
 input,
 .form-control,
 .btn {
