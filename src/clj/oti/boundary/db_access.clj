@@ -89,11 +89,12 @@
 
 (defn store-registration! [tx {::spec/keys [session-id language-code sections]} external-user-id]
   (let [conn {:connection tx}]
+    (q/insert-participant! {:external-user-id external-user-id} conn)
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
         (if-let [reg-id (:id (q/insert-registration<! {:session-id session-id
-                                                     :external-user-id external-user-id
-                                                     :language-code (name language-code)} conn))]
+                                                       :external-user-id external-user-id
+                                                       :language-code (name language-code)} conn))]
           (doseq [[section-id opts] registarable-sections]
             (let [params {:section-id section-id
                           :external-user-id external-user-id

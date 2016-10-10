@@ -157,6 +157,11 @@ WHERE pp.ext_reference_id = :external-user-id AND p.state = 'OK' AND p.type = 'F
       (((ss.accepted IS NULL OR ss.accepted = FALSE ) AND (ms.accepted IS NULL OR ms.accepted = FALSE))
         OR (ss.created >= (SELECT current_date - interval '2 years'))) ;
 
+-- name: insert-participant!
+INSERT INTO participant (ext_reference_id)
+  SELECT :external-user-id
+  WHERE NOT EXISTS (SELECT id FROM participant WHERE ext_reference_id = :external-user-id);
+
 -- name: insert-registration<!
 WITH pp AS (
     SELECT id FROM participant WHERE ext_reference_id = :external-user-id

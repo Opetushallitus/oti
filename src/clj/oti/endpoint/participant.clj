@@ -52,7 +52,7 @@
 (defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} lang]
   (api/add-person! api-client
                    {:sukunimi sukunimi
-                    :etunimet etunimet
+                    :etunimet (str/join " " etunimet)
                     :kutsumanimi (first etunimet)
                     :hetu hetu
                     :henkiloTyyppi "OPPIJA"
@@ -85,8 +85,8 @@
             participant-data (-> session :participant)
             external-user-id (or (:external-user-id participant-data)
                                  (store-person-to-service! api-client participant-data lang))]
-        (if (s/invalid? conformed)
-          {:error (s/explain-data ::os/registration parsed-data)}
+        (if (or (s/invalid? conformed) (nil? external-user-id))
+          (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)
           (try
             (dba/register! db parsed-data external-user-id)
             (registration-response :success "Ilmoittautumisesi on rekisteröity" lang session)
