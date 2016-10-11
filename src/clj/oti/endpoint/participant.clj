@@ -116,7 +116,7 @@
             (-> (redirect callback)
                 (assoc :session {:participant {:etunimet [(random-name)]
                                                :sukunimi (random-name)
-                                               :hetu (random-hetu)
+                                               :hetu hetu
                                                :external-user-id oidHenkilo}})))
           {:status 400 :body {:error "Missing callback uri"}}))
       (GET "/exam-sessions" []
