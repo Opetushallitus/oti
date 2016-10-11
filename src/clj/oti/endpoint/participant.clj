@@ -99,10 +99,10 @@
       (GET "/translations" [lang]
         (if (str/blank? lang)
           {:status 400 :body {:error "Missing lang parameter"}}
-          (response (localisation/by-lang localisation lang))))
+          (response (localisation/translations-by-lang localisation lang))))
       (GET "/translations/refresh" []
-        (if (localisation/refresh localisation)
-          (response {:message "ok"})
+        (if-let [new-translations (localisation/refresh-translations localisation)]
+          (response new-translations)
           {:status 500 :body {:error "Refreshing translations failed"}}))
       ;; FIXME: This is a dummy route
       (GET "/authenticate" [callback]

@@ -7,8 +7,8 @@
 
 (defprotocol LocalisationQuery
   "Localisation query protocol"
-  (by-lang [this lang] "Query translation by language")
-  (refresh [this] "Refresh all translations by fetching from the external localisation service"))
+  (translations-by-lang [this lang] "Query translation by language")
+  (refresh-translations [this] "Refresh all translations by fetching from the external localisation service"))
 
 (defn- parse-translations [response-body]
   (into {} (->> response-body
@@ -32,11 +32,11 @@
   (stop [this] (assoc this :translations (atom {})))
 
   LocalisationQuery
-  (by-lang [this lang]
+  (translations-by-lang [this lang]
     (->> @(:translations this)
          (map (fn [[k v]] [k ((keyword lang) v)]))
          (into {})))
-  (refresh [this]
+  (refresh-translations [this]
     (when-let [new-translations (fetch-translations (:service-base-uri config)
                                                     (:default-parameters config))]
       (reset! (:translations this) new-translations))))
