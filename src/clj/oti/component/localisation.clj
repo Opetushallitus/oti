@@ -3,7 +3,7 @@
             [org.httpkit.client :as http]
             [cheshire.core :refer [parse-string]]
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
-            [taoensso.timbre :refer [debug error]]))
+            [taoensso.timbre :as log]))
 
 (defprotocol LocalisationQuery
   "Localisation query protocol"
@@ -18,12 +18,15 @@
                                       (assoc ts (->kebab-case-keyword (:locale t)) (:value t))) {} translation)})))))
 
 (defn- fetch-translations [uri parameters]
-  (debug "Fetching translations from:" uri "with query parameters:" parameters)
+  (log/debug "Fetching translations from:" uri "with query parameters:" parameters)
   (let [{:keys [headers status error body]} @(http/get uri {:query-params parameters})]
-    (try
-      (parse-translations (parse-string body ->kebab-case-keyword))
-      (catch Exception e
-        (error "Could not parse response:" (.getMessage e))))))
+    (if (= status 200)
+      (try
+        (parse-translations (parse-string body ->kebab-case-keyword))
+        (catch Exception e
+          (log/error "Could not parse response:" (.getMessage e))))
+      (do (log/error "Error loading translations, HTTP status:" status)
+          (throw (Exception. "Could not load translations"))))))
 
 (defrecord Localisation [config]
   component/Lifecycle
