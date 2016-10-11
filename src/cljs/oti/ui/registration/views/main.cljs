@@ -1,9 +1,9 @@
-(ns oti.ui.registration.main-view
+(ns oti.ui.registration.views.main
   (:require [oti.ui.registration.handlers]
             [oti.ui.registration.subs]
-            [oti.ui.registration.authentication-view :as av]
-            [oti.ui.registration.registration-view :as rv]
-            [oti.ui.registration.registration-result-view :as rrv]
+            [oti.ui.registration.views.authentication :as av]
+            [oti.ui.registration.views.registration :as rv]
+            [oti.ui.registration.views.registration-result :as rrv]
             [oti.ui.exam-sessions.utils :as utils]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]

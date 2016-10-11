@@ -1,4 +1,4 @@
-(ns oti.ui.registration.registration-view
+(ns oti.ui.registration.views.registration
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [oti.spec :as spec]

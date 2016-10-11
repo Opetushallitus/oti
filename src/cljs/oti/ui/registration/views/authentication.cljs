@@ -1,4 +1,4 @@
-(ns oti.ui.registration.authentication-view
+(ns oti.ui.registration.views.authentication
   (:require [oti.ui.i18n :refer [t]]
             [oti.routing :as routing]))
 
