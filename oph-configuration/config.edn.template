@@ -15,4 +15,6 @@
                      :oti-login-success-uri "{{oti_authentication_oti_login_success_url}}"}
   :cas {:virkailija-lb-uri "{{oti_cas_virkailija_lb_uri}}"
         :user {:username "{{oti_cas_username}}"
-               :password "{{oti_cas_password}}"}}}}
+               :password "{{oti_cas_password}}"}}
+  :localisation {:service-base-uri "{{oti_localisation_service_base_uri}}"
+                 :default-parameters {:category "{{oti_localisation_default_category}}"}}}}
