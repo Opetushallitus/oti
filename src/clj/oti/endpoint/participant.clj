@@ -88,7 +88,7 @@
         (if (or (s/invalid? conformed) (nil? external-user-id))
           (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)
           (try
-            (dba/register! db parsed-data external-user-id)
+            (dba/register! db conformed external-user-id)
             (registration-response :success "Ilmoittautumisesi on rekisteröity" lang session)
             (catch Throwable t
               (error "Error inserting registration")
@@ -112,10 +112,11 @@
       (GET "/authenticate" [callback]
         (if-not (str/blank? callback)
           (let [hetu (random-hetu)
-                {:keys [oidHenkilo etunimet sukunimi]} (api/get-person-by-hetu api-client hetu)]
+                {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)]
             (-> (redirect callback)
                 (assoc :session {:participant {:etunimet (if etunimet [etunimet] [(random-name) (random-name)])
                                                :sukunimi (or sukunimi (random-name))
+                                               :kutsumanimi kutsumanimi
                                                :hetu hetu
                                                :external-user-id oidHenkilo}})))
           {:status 400 :body {:error "Missing callback uri"}}))

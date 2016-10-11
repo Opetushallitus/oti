@@ -87,9 +87,9 @@
   (or (q/insert-exam-session<! exam-session {:connection tx})
       (throw (Exception. "Could not create new exam session."))))
 
-(defn store-registration! [tx {::spec/keys [session-id language-code sections]} external-user-id]
+(defn store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id]
   (let [conn {:connection tx}]
-    (q/insert-participant! {:external-user-id external-user-id} conn)
+    (q/insert-participant! {:external-user-id external-user-id :email email} conn)
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
         (if-let [reg-id (:id (q/insert-registration<! {:session-id session-id
