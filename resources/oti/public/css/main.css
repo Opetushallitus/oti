@@ -1,4 +1,8 @@
 @charset "UTF-8";
+html,
+body {
+  height: 100%;
+}
 .clearfix,
 .exam-session-form,
 .registration .section,
@@ -679,7 +683,7 @@ input[type="button"]:not(:first-child) {
   padding-top: 10px;
 }
 #header {
-  margin-top: 20px;
+  padding-top: 20px;
   max-width: 940px !important;
   margin-left: auto;
   margin-right: auto;
