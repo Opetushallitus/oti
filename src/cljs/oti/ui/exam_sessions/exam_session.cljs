@@ -76,7 +76,8 @@
              [pikaday/date-selector {:date-atom pikaday-date
                                      :pikaday-attrs {:format "D.M.YYYY"
                                                      :i18n i18n/pikaday-i18n
-                                                     :minDate tomorrow}
+                                                     :minDate tomorrow
+                                                     :firstDay 1}
                                      :input-attrs {:type "text"
                                                    :id "pikaday-input"}}]
              [:i.icon-calendar.date-picker-icon]]
