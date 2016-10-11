@@ -122,7 +122,8 @@
   (valid-full-payments-for-user [db external-user-id])
   (register! [db registration-data external-user-id])
   (registrations-for-session [db exam-session])
-  (section-and-module-names [db]))
+  (section-and-module-names [db])
+  (participant-email [db external-user-id]))
 
 (extend-type HikariCP
   DbAccess
@@ -172,4 +173,8 @@
          (reduce (fn [names {:keys [section_id section_name module_id module_name]}]
                    (meta-merge names {:sections {section_id section_name}
                                       :modules {module_id module_name}}))
-                 {}))))
+                 {})))
+  (participant-email [{:keys [spec]} external-user-id]
+    (->> (q/select-participant-email {:external-user-id external-user-id} {:connection spec})
+         first
+         :email)))

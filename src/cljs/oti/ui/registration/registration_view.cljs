@@ -78,7 +78,8 @@
         registration-options (re-frame/subscribe [:registration-options])
         form-data (reagent/atom #::spec{:language-code @lang
                                         :session-id session-id
-                                        :preferred-name (first (:etunimet participant-data))})]
+                                        :preferred-name (or (:kutsumanimi participant-data) (first (:etunimet participant-data)))
+                                        :email (:email participant-data)})]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
         [:div.registration
@@ -94,17 +95,21 @@
                [:div.row
                 [:label
                  [:span.label (t "Kutsumanimi:")]
-                 [:select {:value (::spec/preferred-name @form-data)
-                           :on-change (partial set-val form-data ::spec/preferred-name)}
-                  (doall
-                    (for [name (:etunimet participant-data)]
-                      [:option {:value name :key name} name]))]]])
+                 (if (:kutsumanimi participant-data)
+                   [:span.value (:kutsumanimi participant-data)]
+                   [:select {:value (::spec/preferred-name @form-data)
+                             :on-change (partial set-val form-data ::spec/preferred-name)}
+                    (doall
+                      (for [name (:etunimet participant-data)]
+                        [:option {:value name :key name} name]))])]])
              [:div.row
               [:label
                [:span.label (t "Sähköpostiosoite:")]
-               [:input {:type "email" :name "email" :value (::spec/email @form-data)
-                        :on-change (partial set-val form-data ::spec/email)
-                        :class (when (::spec/email invalids) "invalid")}]]]]
+               (if (:email participant-data)
+                 [:span.value (:email participant-data)]
+                 [:input {:type "email" :name "email" :value (::spec/email @form-data)
+                          :on-change (partial set-val form-data ::spec/email)
+                          :class (when (::spec/email invalids) "invalid")}])]]]
             [:div.section.exam-sections
              [:h3 "Koeosiot, joihin osallistun"]
              (doall

@@ -112,11 +112,13 @@
       (GET "/authenticate" [callback]
         (if-not (str/blank? callback)
           (let [hetu (random-hetu)
-                {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)]
+                {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
+                existing-email (when oidHenkilo (dba/participant-email db oidHenkilo))]
             (-> (redirect callback)
-                (assoc :session {:participant {:etunimet (if etunimet [etunimet] [(random-name) (random-name)])
+                (assoc :session {:participant {:etunimet (if etunimet (str/split etunimet #" ") [(random-name) (random-name)])
                                                :sukunimi (or sukunimi (random-name))
                                                :kutsumanimi kutsumanimi
+                                               :email existing-email
                                                :hetu hetu
                                                :external-user-id oidHenkilo}})))
           {:status 400 :body {:error "Missing callback uri"}}))
