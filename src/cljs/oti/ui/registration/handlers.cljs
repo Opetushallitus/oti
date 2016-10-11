@@ -12,7 +12,8 @@
                   :params          {:lang (name lang)}
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :translations]
-                  :on-failure      [:bad-response]}}))
+                  :on-failure      [:bad-response]}
+     :loader true}))
 
 (re-frame/reg-event-fx
   :load-participant-data

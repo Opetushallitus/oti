@@ -4,6 +4,7 @@
             [oti.ui.exam-sessions.exam-session :refer [new-exam-session edit-exam-session]]
             [oti.ui.exam-registrations.registration-list :as registration-list]
             [oti.ui.routes :refer [virkailija-routes]]
+            [oti.ui.views.common :refer [loader]]
             [oti.routing :as routing]))
 
 (defmulti panels identity)
@@ -38,9 +39,12 @@
   (let [active-panel (re-frame/subscribe [:active-panel])
         active-panel-data (re-frame/subscribe [:active-panel-data])
         user (re-frame/subscribe [:user])
-        flash-message (re-frame/subscribe [:flash-message])]
+        flash-message (re-frame/subscribe [:flash-message])
+        loading? (re-frame/subscribe [:loading?])]
     (fn []
       [:div
+       (when loading?
+         (loader))
        [:div#header
         [:img {:src (routing/img "opetushallitus.gif")}]
         [:p "Opetushallinnon tutkintorekisteri"]
