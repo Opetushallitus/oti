@@ -2,4 +2,4 @@
   (:require [oti.ui.i18n :refer [t]]))
 
 (defn loader []
-  [:div.loader (t "loading")])
+  [:div.loader "Ladataan"])

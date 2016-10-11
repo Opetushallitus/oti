@@ -69,7 +69,7 @@
         (assoc :session (meta-merge session {:participant {:registration-status status
                                                            :registration-message text}})))))
 
-(defn- register [{:keys [db api-client]} {session :session params :params}]
+(defn- register [{:keys [db api-client localisation]} {session :session params :params}]
   (if-let [transit-data (:registration-data params)]
     (with-open [is (io/input-stream (.getBytes transit-data "UTF-8"))]
       (let [parsed-data (-> is (transit/reader :json) (transit/read))
@@ -89,7 +89,7 @@
               (registration-response :failure "Ilmoittautumisessa tapahtui odottamaton virhe" lang session))))))
     (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)))
 
-(defn participant-endpoint [{:keys [db payments api-client localisatation] :as config}]
+(defn participant-endpoint [{:keys [db payments api-client localisation] :as config}]
   (routes
     (GET "/oti/abort" []
       (-> (resp/redirect "/oti/ilmoittaudu")

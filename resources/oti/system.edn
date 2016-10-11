@@ -21,8 +21,7 @@
   :auth [:authentication :cas :ldap]
   :virkailija [:db :api-client]
   :participant [:db :payments :api-client :localisation]
-  :api-client [:cas]}
-  :participant [:db :payments :localisation]
+  :api-client [:cas]
   :localisation []}
  :config
  {:app
