@@ -2,25 +2,18 @@
   (:require [compojure.core :refer :all]
             [ring.util.response :refer [resource-response content-type redirect response]]
             [clojure.spec :as s]
-            [oti.boundary.db-access :as dba]
-            [oti.spec :as os]
             [clojure.string :as str]
+            [oti.boundary.db-access :as dba]
+            [oti.component.localisation :as localisation]
+            [oti.spec :as os]
             [oti.routing :as routing]
             [oti.util.coercion :as c]
             [ring.util.response :as resp]
             [cognitect.transit :as transit]
             [clojure.java.io :as io]
-            [taoensso.timbre :refer [error]]
+            [taoensso.timbre :refer [error info]]
             [meta-merge.core :refer [meta-merge]]
-            [oti.boundary.api-client-access :as api]))
-
-(def translations
-  {"Ilmoittautuminen" {:fi "Ilmoittautuminen" :sv "Anmälning"}
-   "switch-language" {:fi "Pä svenska" :sv "Suomeksi"}
-   "registration-title" {:fi "Opetushallinnon tutkintoon ilmoittautuminen"
-                         :sv "Anmälning till examen i undervisningsförvaltning"}
-   "fi" {:fi "Suomi" :sv "Finska"}
-   "sv" {:fi "Ruotsi" :sv "Svenska"}})
+            [oti.boundary.api-client-access :as api])) 
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -96,18 +89,21 @@
               (registration-response :failure "Ilmoittautumisessa tapahtui odottamaton virhe" lang session))))))
     (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)))
 
-(defn participant-endpoint [{:keys [db payments api-client] :as config}]
+(defn participant-endpoint [{:keys [db payments api-client localisatation] :as config}]
   (routes
     (GET "/oti/abort" []
       (-> (resp/redirect "/oti/ilmoittaudu")
           (assoc :session {})))
     (context routing/participant-api-root []
+      ;; TODO: Maybe relocate translation endpoints to a localisation endpoint?
       (GET "/translations" [lang]
         (if (str/blank? lang)
           {:status 400 :body {:error "Missing lang parameter"}}
-          (response (->> translations
-                         (map (fn [[k v]] [k ((keyword lang) v)]))
-                         (into {})))))
+          (response (localisation/translations-by-lang localisation lang))))
+      (GET "/translations/refresh" []
+        (if-let [new-translations (localisation/refresh-translations localisation)]
+          (response new-translations)
+          {:status 500 :body {:error "Refreshing translations failed"}}))
       ;; FIXME: This is a dummy route
       (GET "/authenticate" [callback]
         (if-not (str/blank? callback)

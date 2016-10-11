@@ -10,4 +10,6 @@
   :authentication {:opintopolku-login-uri "https://itest-virkailija.oph.ware.fi/cas/login?service="
                    :opintopolku-logout-uri  "https://itest-virkailija.oph.ware.fi/cas/logout?service="
                    :oti-login-success-uri "http://localhost:3000/oti/auth/cas"}
-  :cas {:virkailija-lb-uri "https://itest-virkailija.oph.ware.fi"}}}
+  :cas {:virkailija-lb-uri "https://itest-virkailija.oph.ware.fi"}
+  :localisation {:service-base-uri "https://itest-virkailija.oph.ware.fi/lokalisointi/cxf/rest/v1/localisation"
+                 :default-parameters {:category "oti"}}}}

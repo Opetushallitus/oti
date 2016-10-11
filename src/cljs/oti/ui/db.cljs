@@ -5,4 +5,5 @@
    :language nil
    :translations {}
    :exam-sessions []
-   :flash-message {}})
+   :flash-message {}
+   :loading false})

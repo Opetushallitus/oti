@@ -5,6 +5,7 @@
             [oti.ui.registration.views.registration :as rv]
             [oti.ui.registration.views.registration-result :as rrv]
             [oti.ui.exam-sessions.utils :as utils]
+            [oti.ui.views.common :refer [loader]]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]
             [oti.ui.i18n :refer [t]]))
@@ -27,9 +28,12 @@
   (re-frame/dispatch [:load-participant-data])
   (let [flash-message (re-frame/subscribe [:flash-message])
         current-language (re-frame/subscribe [:language])
-        participant-data (re-frame/subscribe [:participant-data])]
+        participant-data (re-frame/subscribe [:participant-data])
+        loading? (re-frame/subscribe [:loading?])]
     (fn []
       [:div
+       (when @loading?
+         (loader))
        [:div#header
         [:img {:src (routing/img "opetushallitus.gif")}]
         [:p (t "registration-title")]

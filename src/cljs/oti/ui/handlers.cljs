@@ -1,6 +1,6 @@
 (ns oti.ui.handlers
   (:require [day8.re-frame.http-fx]
-            [re-frame.core :as re-frame]
+            [re-frame.core :as re-frame :refer [trim-v]]
             [oti.ui.db :as db]
             [ajax.core :as ajax]
             [oti.ui.routes :as routes]
@@ -13,7 +13,8 @@
 
 (re-frame/reg-event-db
  :set-active-panel
- (fn [db [_ active-panel params]]
+ [trim-v]
+ (fn [db [active-panel params]]
    (let [id (when (sequential? params) (first params))]
      (assoc db :active-panel active-panel :active-panel-data id))))
 
@@ -26,26 +27,31 @@
                   :on-success      [:store-response-to-db :user]
                   :on-failure      [:bad-response]}}))
 
-(re-frame/reg-event-db
+(re-frame/reg-event-fx
   :store-response-to-db
+  [trim-v]
   (fn
-    [db [_ key response]]
-    (assoc db key response)))
+    [{:keys [db]} [key response]]
+    {:db (assoc db key response)
+     :loader false}))
 
 (re-frame/reg-event-db
   :bad-response
+  [trim-v]
   (fn
-    [db [_ response]]
+    [db [response]]
     (assoc db :error response)))
 
 (re-frame/reg-event-db
   :redirect
-  (fn [_ [_ target]]
+  [trim-v]
+  (fn [_ [target]]
     (routes/redirect target)))
 
 (re-frame/reg-event-db
   :show-flash
-  (fn [db [_ type text]]
+  [trim-v]
+  (fn [db [type text]]
     (js/setTimeout #(re-frame/dispatch [:hide-flash]) 3000)
     (assoc db :flash-message {:type type :text text})))
 
@@ -53,3 +59,8 @@
   :hide-flash
   (fn [db _]
     (assoc db :flash-message {})))
+
+(re-frame/reg-fx
+  :loader
+  (fn [state]
+    (swap! re-frame.db/app-db assoc :loading? state)))

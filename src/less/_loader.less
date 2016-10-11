@@ -1,0 +1,42 @@
+@keyframes loader {
+  0% {color: @default-font-color;}
+  50% {color: @oph-green;}
+  100% {color: @default-font-color;}
+}
+
+@keyframes loader-opacity {
+  from {opacity: 0}
+  to {opacity: 1}
+}
+
+.loader {
+  opacity: 0;
+  position: absolute;
+  z-index: 9000;
+  background-color: #fff;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-animation-name: loader, loader-opacity;
+  -moz-animation-name: loader, loader-opacity;
+  -o-animation-name: loader, loader-opacity;
+  animation-name: loader, loader-opacity;
+  -webkit-animation-fill-mode: both, forwards;
+  -moz-animation-fill-mode: both, forwards;
+  -o-animation-fill-mode: both, forwards;
+  animation-fill-mode: both, forwards;
+  -webkit-animation-duration: 2s, 2s;
+  -moz-animation-duration: 2s, 2s;
+  -o-animation-duration: 2s, 2s;
+  animation-duration: 2s, 2s;
+  -webkit-animation-delay: 0s, 2s;
+  -moz-animation-delay: 0s, 2s;
+  -o-animation-delay: 0s, 2s;
+  animation-delay: 0s, 2s;
+  -webkit-animation-iteration-count: infinite, 1;
+  -moz-animation-iteration-count: infinite, 1;
+  -o-animation-iteration-count: infinite, 1;
+  animation-iteration-count: infinite, 1;
+}
