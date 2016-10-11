@@ -11,8 +11,8 @@
          :password "{{ldap_manager_password}}"
          :ssl false}
   :authentication {:opintopolku-login-uri "{{oti_authentication_opintopolku_login_url}}"
-                     :opintopolku-logout-uri  "{{oti_authentication_opintopolku_logout_url}}"
-                     :oti-login-success-uri "{{oti_authentication_oti_login_success_url}}"}
+                   :opintopolku-logout-uri  "{{oti_authentication_opintopolku_logout_url}}"
+                   :oti-login-success-uri "{{oti_authentication_oti_login_success_url}}"}
   :cas {:virkailija-lb-uri "{{oti_cas_virkailija_lb_uri}}"
         :user {:username "{{oti_cas_username}}"
                :password "{{oti_cas_password}}"}}
