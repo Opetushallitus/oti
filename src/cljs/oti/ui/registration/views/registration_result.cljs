@@ -1,4 +1,4 @@
-(ns oti.ui.registration.registration-result-view
+(ns oti.ui.registration.views.registration-result
   (:require [oti.ui.i18n :refer [t]]))
 
 (defn result-panel [participant-data]

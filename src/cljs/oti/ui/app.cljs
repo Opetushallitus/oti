@@ -6,7 +6,7 @@
             [oti.ui.subs]
             [oti.ui.routes :as routes]
             [oti.ui.views.virkailija-main :as virkailija]
-            [oti.ui.registration.main-view :as registration]
+            [oti.ui.registration.views.main :as registration]
             [oti.ui.config :as config]
             [clojure.string :as str]))
 

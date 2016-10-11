@@ -4,7 +4,8 @@
   :db   duct.component.hikaricp/hikaricp
   :ragtime duct.component.ragtime/ragtime
   :ldap oti.component.ldap/ldap
-  :cas oti.component.cas/cas-config}
+  :cas oti.component.cas/cas-config
+  :api-client oti.component.api-client/api-client}
  :endpoints
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint
@@ -17,8 +18,9 @@
   :ragtime [:db]
   :status []
   :auth [:authentication :cas :ldap]
-  :virkailija [:db]
-  :participant [:db :payments]}
+  :virkailija [:db :api-client]
+  :participant [:db :payments :api-client]
+  :api-client [:cas]}
  :config
  {:app
   {:middleware
@@ -47,4 +49,5 @@
   :ragtime
   {:resource-path "oti/migrations"}
   :payments {:amounts {:full 212
-                       :retry 87}}}}
+                       :retry 87}}
+  :api-client {:authentication-service-path "/authentication-service"}}}

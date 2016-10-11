@@ -1,4 +1,4 @@
-(ns oti.ui.registration.registration-view
+(ns oti.ui.registration.views.registration
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [oti.spec :as spec]
@@ -22,7 +22,8 @@
                  (nil? (some #(= (::spec/id %) (::spec/session-id @form-data)) exam-sessions))))
     (swap! form-data assoc ::spec/session-id (-> exam-sessions first ::spec/id)))
   [:div
-   [:label {:for "exam-session-select"} (t "Tapahtuma:")]
+   [:label {:for "exam-session-select"}
+    [:span.label (t "Tapahtuma:")]]
    (when lang
      [:select#exam-session-select
       {:value (or (::spec/session-id @form-data) "")
@@ -66,8 +67,8 @@
   [:a.button {:href "/oti/abort"} (t "Keskeytä ilmoittautuminen")])
 
 (defn participant-div [participant-data]
-  (let [{:keys [first-name last-name hetu]} participant-data]
-    [:div.name (str first-name " " last-name ", " hetu)]))
+  (let [{:keys [etunimet sukunimi hetu]} participant-data]
+    [:div.name (str (str/join " " etunimet) " " sukunimi ", " hetu)]))
 
 (defn registration-panel [participant-data session-id]
   (re-frame/dispatch [:load-available-sessions])
@@ -76,7 +77,9 @@
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
         form-data (reagent/atom #::spec{:language-code @lang
-                                        :session-id session-id})]
+                                        :session-id session-id
+                                        :preferred-name (or (:kutsumanimi participant-data) (first (:etunimet participant-data)))
+                                        :email (:email participant-data)})]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
         [:div.registration
@@ -86,12 +89,27 @@
             [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
             [:div.section.participant
+             [:h3 "Henkilötiedot"]
              (participant-div participant-data)
-             [:div.email
-              [:label (t "Sähköpostiosoite:")
-               [:input {:type "email" :name "email" :value (::spec/email @form-data)
-                        :on-change (partial set-val form-data ::spec/email)
-                        :class (when (::spec/email invalids) "invalid")}]]]]
+             (when (> (count (:etunimet participant-data)) 1)
+               [:div.row
+                [:label
+                 [:span.label (t "Kutsumanimi:")]
+                 (if (:kutsumanimi participant-data)
+                   [:span.value (:kutsumanimi participant-data)]
+                   [:select {:value (::spec/preferred-name @form-data)
+                             :on-change (partial set-val form-data ::spec/preferred-name)}
+                    (doall
+                      (for [name (:etunimet participant-data)]
+                        [:option {:value name :key name} name]))])]])
+             [:div.row
+              [:label
+               [:span.label (t "Sähköpostiosoite:")]
+               (if (:email participant-data)
+                 [:span.value (:email participant-data)]
+                 [:input {:type "email" :name "email" :value (::spec/email @form-data)
+                          :on-change (partial set-val form-data ::spec/email)
+                          :class (when (::spec/email invalids) "invalid")}])]]]
             [:div.section.exam-sections
              [:h3 "Koeosiot, joihin osallistun"]
              (doall
@@ -113,7 +131,7 @@
                        [:div.modules
                         (doall
                           (for [module modules]
-                            [:label {:key (:id module)}'
+                            [:label {:key (:id module)}
                                 [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
                                          :on-click (module-selection form-data id (:id module) ::spec/retry-modules)}]
                              [:span (@lang (:name module))]]))])]

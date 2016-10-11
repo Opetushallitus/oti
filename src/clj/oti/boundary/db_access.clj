@@ -87,13 +87,14 @@
   (or (q/insert-exam-session<! exam-session {:connection tx})
       (throw (Exception. "Could not create new exam session."))))
 
-(defn store-registration! [tx {::spec/keys [session-id language-code sections]} external-user-id]
+(defn store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id]
   (let [conn {:connection tx}]
+    (q/insert-participant! {:external-user-id external-user-id :email email} conn)
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
         (if-let [reg-id (:id (q/insert-registration<! {:session-id session-id
-                                                     :external-user-id external-user-id
-                                                     :language-code (name language-code)} conn))]
+                                                       :external-user-id external-user-id
+                                                       :language-code (name language-code)} conn))]
           (doseq [[section-id opts] registarable-sections]
             (let [params {:section-id section-id
                           :external-user-id external-user-id
@@ -121,7 +122,8 @@
   (valid-full-payments-for-user [db external-user-id])
   (register! [db registration-data external-user-id])
   (registrations-for-session [db exam-session])
-  (section-and-module-names [db]))
+  (section-and-module-names [db])
+  (participant-email [db external-user-id]))
 
 (extend-type HikariCP
   DbAccess
@@ -171,4 +173,8 @@
          (reduce (fn [names {:keys [section_id section_name module_id module_name]}]
                    (meta-merge names {:sections {section_id section_name}
                                       :modules {module_id module_name}}))
-                 {}))))
+                 {})))
+  (participant-email [{:keys [spec]} external-user-id]
+    (->> (q/select-participant-email {:external-user-id external-user-id} {:connection spec})
+         first
+         :email)))

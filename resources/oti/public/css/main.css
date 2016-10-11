@@ -186,19 +186,20 @@ table {
 .registration .section {
   margin-bottom: 1em;
 }
-.registration .participant .email {
+.registration .participant .row {
   margin-top: .5em;
 }
-.registration .participant .email input {
-  margin-left: .5em;
-  width: 200px;
+.registration .participant .row input,
+.registration .participant .row select {
+  width: 60%;
+  max-width: 500px;
 }
 .registration .exam-sections .row {
   margin: 5px 0 5px 30px;
 }
 .registration .exam-sections .row input {
   margin-right: 10px;
-  vertical-align: top;
+  vertical-align: middle;
 }
 .registration .exam-sections .row .modules {
   margin: 5px 0 5px 20px;
@@ -218,15 +219,20 @@ table {
   text-transform: uppercase;
   font-weight: bold !important;
 }
+.registration span.label {
+  display: inline-block;
+  width: 150px;
+}
 .exam-session-selection {
   font-weight: bold;
-}
-.exam-session-selection label {
-  margin-right: .5em;
 }
 .exam-session-selection select {
   width: 60%;
   max-width: 500px;
+}
+.exam-session-selection span.label {
+  display: inline-block;
+  width: 150px;
 }
 /*!
  * Pikaday
