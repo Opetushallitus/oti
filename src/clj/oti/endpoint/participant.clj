@@ -49,11 +49,11 @@
         check-digit (get check-digits (mod full 31))]
     (str d m y "-" serial check-digit)))
 
-(defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} lang]
+(defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} preferred-name lang]
   (api/add-person! api-client
                    {:sukunimi sukunimi
                     :etunimet (str/join " " etunimet)
-                    :kutsumanimi (first etunimet)
+                    :kutsumanimi preferred-name
                     :hetu hetu
                     :henkiloTyyppi "OPPIJA"
                     :asiointiKieli {:kieliKoodi (name lang)}}))
@@ -84,7 +84,7 @@
             lang (::os/language-code conformed)
             participant-data (-> session :participant)
             external-user-id (or (:external-user-id participant-data)
-                                 (store-person-to-service! api-client participant-data lang))]
+                                 (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))]
         (if (or (s/invalid? conformed) (nil? external-user-id))
           (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)
           (try
@@ -112,10 +112,10 @@
       (GET "/authenticate" [callback]
         (if-not (str/blank? callback)
           (let [hetu (random-hetu)
-                {:keys [oidHenkilo]} (api/get-person-by-hetu api-client hetu)]
+                {:keys [oidHenkilo etunimet sukunimi]} (api/get-person-by-hetu api-client hetu)]
             (-> (redirect callback)
-                (assoc :session {:participant {:etunimet [(random-name)]
-                                               :sukunimi (random-name)
+                (assoc :session {:participant {:etunimet (if etunimet [etunimet] [(random-name) (random-name)])
+                                               :sukunimi (or sukunimi (random-name))
                                                :hetu hetu
                                                :external-user-id oidHenkilo}})))
           {:status 400 :body {:error "Missing callback uri"}}))

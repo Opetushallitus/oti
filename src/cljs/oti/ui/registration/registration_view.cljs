@@ -22,7 +22,8 @@
                  (nil? (some #(= (::spec/id %) (::spec/session-id @form-data)) exam-sessions))))
     (swap! form-data assoc ::spec/session-id (-> exam-sessions first ::spec/id)))
   [:div
-   [:label {:for "exam-session-select"} (t "Tapahtuma:")]
+   [:label {:for "exam-session-select"}
+    [:span.label (t "Tapahtuma:")]]
    (when lang
      [:select#exam-session-select
       {:value (or (::spec/session-id @form-data) "")
@@ -76,7 +77,8 @@
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
         form-data (reagent/atom #::spec{:language-code @lang
-                                        :session-id session-id})]
+                                        :session-id session-id
+                                        :preferred-name (first (:etunimet participant-data))})]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
         [:div.registration
@@ -86,9 +88,20 @@
             [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
             [:div.section.participant
+             [:h3 "Henkilötiedot"]
              (participant-div participant-data)
-             [:div.email
-              [:label (t "Sähköpostiosoite:")
+             (when (> (count (:etunimet participant-data)) 1)
+               [:div.row
+                [:label
+                 [:span.label (t "Kutsumanimi:")]
+                 [:select {:value (::spec/preferred-name @form-data)
+                           :on-change (partial set-val form-data ::spec/preferred-name)}
+                  (doall
+                    (for [name (:etunimet participant-data)]
+                      [:option {:value name :key name} name]))]]])
+             [:div.row
+              [:label
+               [:span.label (t "Sähköpostiosoite:")]
                [:input {:type "email" :name "email" :value (::spec/email @form-data)
                         :on-change (partial set-val form-data ::spec/email)
                         :class (when (::spec/email invalids) "invalid")}]]]]
@@ -113,7 +126,7 @@
                        [:div.modules
                         (doall
                           (for [module modules]
-                            [:label {:key (:id module)}'
+                            [:label {:key (:id module)}
                                 [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
                                          :on-click (module-selection form-data id (:id module) ::spec/retry-modules)}]
                              [:span (@lang (:name module))]]))])]

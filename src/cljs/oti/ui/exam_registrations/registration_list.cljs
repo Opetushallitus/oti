@@ -14,7 +14,8 @@
     (fn [exam-sessions pre-selected-session-id]
       [:div [:h2 "Ilmoittautumiset"]
        [:div.exam-session-selection
-        [:label {:for "exam-session-select"} "Tapahtuma:"]
+        [:label {:for "exam-session-select"}
+         [:span.label "Tapahtuma:"]]
         [:select#exam-session-select
          {:value @session-id
           :on-change (fn [e]
