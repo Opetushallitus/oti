@@ -29,7 +29,7 @@
 
 (re-frame/reg-event-fx
   :store-response-to-db
-  [trim-v debug]
+  [trim-v]
   (fn
     [{:keys [db]} [key response]]
     {:db (assoc db key response)
