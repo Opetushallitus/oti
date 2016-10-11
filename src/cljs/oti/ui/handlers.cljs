@@ -1,6 +1,6 @@
 (ns oti.ui.handlers
   (:require [day8.re-frame.http-fx]
-            [re-frame.core :as re-frame :refer [trim-v]]
+            [re-frame.core :as re-frame :refer [trim-v debug]]
             [oti.ui.db :as db]
             [ajax.core :as ajax]
             [oti.ui.routes :as routes]
@@ -29,7 +29,7 @@
 
 (re-frame/reg-event-fx
   :store-response-to-db
-  [trim-v]
+  [trim-v debug]
   (fn
     [{:keys [db]} [key response]]
     {:db (assoc db key response)

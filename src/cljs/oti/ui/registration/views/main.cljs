@@ -31,28 +31,28 @@
         participant-data (re-frame/subscribe [:participant-data])
         loading? (re-frame/subscribe [:loading?])]
     (fn []
-      [:div
-       (when @loading?
-         (loader))
-       [:div#header
-        [:img {:src (routing/img "opetushallitus.gif")}]
-        [:p (t "registration-title")]
-        [:a {:href "#" :on-click (fn [e]
-                                   (.preventDefault e)
-                                   (re-frame/dispatch [:set-language (if (= @current-language :fi) :sv :fi)]))}
-         (t "switch-language")]]
-       [navigation-panel]
-       [:div#content-area
-        [:main.container
-         (cond
-           (empty? @participant-data) [av/authentication-panel]
-           (:registration-status @participant-data) [rrv/result-panel @participant-data]
-           (seq @participant-data) [rv/registration-panel @participant-data (parse-session-id)])]]
-       (when (seq @flash-message)
-         (let [{:keys [type text]} @flash-message]
-           [:div.flash-message
-            [:span.icon {:class (if (= :success type) "success" "error")}
-             (if (= :success type)
-               "\u2713"
-               "\u26A0")]
-            [:span.text text]]))])))
+      (if (or (nil? @loading?) @loading?)
+        (loader)
+        [:div
+         [:div#header
+          [:img {:src (routing/img "opetushallitus.gif")}]
+          [:p (t "registration-title")]
+          [:a {:href "#" :on-click (fn [e]
+                                     (.preventDefault e)
+                                     (re-frame/dispatch [:set-language (if (= @current-language :fi) :sv :fi)]))}
+           (t "switch-language")]]
+         [navigation-panel]
+         [:div#content-area
+          [:main.container
+           (cond
+             (empty? @participant-data) [av/authentication-panel]
+             (:registration-status @participant-data) [rrv/result-panel @participant-data]
+             (seq @participant-data) [rv/registration-panel @participant-data (parse-session-id)])]]
+         (when (seq @flash-message)
+           (let [{:keys [type text]} @flash-message]
+             [:div.flash-message
+              [:span.icon {:class (if (= :success type) "success" "error")}
+               (if (= :success type)
+                 "\u2713"
+                 "\u26A0")]
+              [:span.text text]]))]))))

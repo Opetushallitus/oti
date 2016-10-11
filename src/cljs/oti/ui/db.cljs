@@ -6,4 +6,4 @@
    :translations {}
    :exam-sessions []
    :flash-message {}
-   :loading false})
+   :loading true})

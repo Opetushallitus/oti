@@ -487,16 +487,8 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     color: #1b1b1b;
   }
 }
-@keyframes loader-opacity {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 .loader {
-  opacity: 0;
+  opacity: 1;
   position: absolute;
   z-index: 9000;
   background-color: #fff;
@@ -505,10 +497,10 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   display: flex;
   align-items: center;
   justify-content: center;
-  -webkit-animation-name: loader, loader-opacity;
-  -moz-animation-name: loader, loader-opacity;
-  -o-animation-name: loader, loader-opacity;
-  animation-name: loader, loader-opacity;
+  -webkit-animation-name: loader;
+  -moz-animation-name: loader;
+  -o-animation-name: loader;
+  animation-name: loader;
   -webkit-animation-fill-mode: both, forwards;
   -moz-animation-fill-mode: both, forwards;
   -o-animation-fill-mode: both, forwards;
@@ -517,10 +509,10 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   -moz-animation-duration: 2s, 2s;
   -o-animation-duration: 2s, 2s;
   animation-duration: 2s, 2s;
-  -webkit-animation-delay: 0s, 2s;
-  -moz-animation-delay: 0s, 2s;
-  -o-animation-delay: 0s, 2s;
-  animation-delay: 0s, 2s;
+  -webkit-animation-delay: 0s, 0s;
+  -moz-animation-delay: 0s, 0s;
+  -o-animation-delay: 0s, 0s;
+  animation-delay: 0s, 0s;
   -webkit-animation-iteration-count: infinite, 1;
   -moz-animation-iteration-count: infinite, 1;
   -o-animation-iteration-count: infinite, 1;
