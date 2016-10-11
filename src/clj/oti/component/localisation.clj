@@ -2,7 +2,6 @@
   (:require [com.stuartsierra.component :as component]
             [org.httpkit.client :as http]
             [cheshire.core :refer [parse-string]]
-            [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [taoensso.timbre :as log]))
 
 (defprotocol LocalisationQuery
@@ -15,14 +14,14 @@
                 (group-by :key)
                 (map (fn [[key translation]]
                        {key (reduce (fn [ts t]
-                                      (assoc ts (->kebab-case-keyword (:locale t)) (:value t))) {} translation)})))))
+                                      (assoc ts (keyword (:locale t)) (:value t))) {} translation)})))))
 
 (defn- fetch-translations [uri parameters]
   (log/debug "Fetching translations from:" uri "with query parameters:" parameters)
-  (let [{:keys [headers status error body]} @(http/get uri {:query-params parameters})]
+  (let [{:keys [status body]} @(http/get uri {:query-params parameters})]
     (if (= status 200)
       (try
-        (parse-translations (parse-string body ->kebab-case-keyword))
+        (parse-translations (parse-string body true))
         (catch Exception e
           (log/error "Could not parse response:" (.getMessage e))))
       (do (log/error "Error loading translations, HTTP status:" status)
