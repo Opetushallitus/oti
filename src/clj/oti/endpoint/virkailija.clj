@@ -6,7 +6,8 @@
             [oti.boundary.db-access :as dba]
             [oti.spec :as os]
             [oti.util.coercion :as c]
-            [oti.boundary.api-client-access :as api]))
+            [oti.routing :as routing]
+            [oti.service.user-data :as user-data]))
 
 (defn- as-int [x]
   (try (Integer/parseInt x)
@@ -15,10 +16,7 @@
 (defn- fetch-registrations [{:keys [db api-client]} session-id]
   (if-let [regs (seq (dba/registrations-for-session db session-id))]
     (let [oids (map :external-user-id regs)
-          user-data-by-oid (->> (api/get-persons api-client oids)
-                                (reduce (fn [users {:keys [oidHenkilo] :as user}]
-                                          (assoc users oidHenkilo user))
-                                        {}))]
+          user-data-by-oid (user-data/api-user-data-by-oid api-client oids)]
       (map (fn [{:keys [external-user-id] :as registration}]
              (-> (get user-data-by-oid external-user-id)
                  (select-keys [:etunimet :sukunimi])
@@ -27,11 +25,11 @@
     []))
 
 (defn virkailija-endpoint [{:keys [db] :as config}]
-  (-> (context "/oti/api/virkailija" []
+  (-> (context routing/virkailija-api-root []
         (GET "/user-info" {session :session}
           {:status 200
            :body (select-keys (:identity session) [:username])})
-        (context "/exam-sessions" []
+                                                                 (context "/exam-sessions" []
           (POST "/" {params :params}
             (let [conformed (s/conform ::os/exam-session params)]
               (if (or (s/invalid? conformed) (not (seq (dba/add-exam-session! db conformed))))
@@ -63,5 +61,9 @@
               (let [regs (fetch-registrations config id)
                     names (dba/section-and-module-names db)]
                 (response {:registrations regs
-                           :translations names}))))))
+                           :translations names})))))
+        (GET "/participant-search" [q filter]
+          (println q)
+          (println filter)
+          (response {})))
       (wrap-routes auth/wrap-authorization)))
