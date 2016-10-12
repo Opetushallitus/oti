@@ -66,7 +66,7 @@
                            :translations names})))))
         (GET "/participant-search" [q filter]
           (if-not (and (str/blank? q) (str/blank? filter))
-            (let [results (search/search-participants config q)]
+            (let [results (search/search-participants config (str/trim q))]
               (response results))
             {:status 400 :body {:errors "Query or filter must be provided"}})))
       (wrap-routes auth/wrap-authorization)))
