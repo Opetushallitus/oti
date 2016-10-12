@@ -47,8 +47,7 @@
         [:div
          [:div#header
           [:img {:src (routing/img "opetushallitus.gif")}]
-          [:p "Opetushallinnon tutkintorekisteri"]
-          [:a {} "På svenska"]]
+          [:p "Opetushallinnon tutkintorekisteri"]]
          [navigation-panel @active-panel @user]
          [:div#content-area
           [:main.container
