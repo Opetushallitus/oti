@@ -6,4 +6,5 @@
    :translations {}
    :exam-sessions []
    :flash-message {}
-   :loading true})
+   :loading true
+   :participant-search-query {:query "" :filter :all}})

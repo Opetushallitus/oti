@@ -1,4 +1,7 @@
 (ns oti.filters)
 
 (def participant-filters
-  [:all :incomplete :complete :diploma-delivered])
+  [{:id :all :text "Kaikki"}
+   {:id :incomplete :text "Kesken"}
+   {:id :complete :text "Suoritettu"}
+   {:id :diploma-delivered :text "Todistus lähetetty"}])

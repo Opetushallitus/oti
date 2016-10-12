@@ -1,6 +1,4 @@
-(ns oti.ui.participants.subs)
-
-(ns oti.ui.exam-registrations.subs
+(ns oti.ui.participants.subs
   (:require [re-frame.core :as re-frame]))
 
 (def interesting-keys [:participant-search-query :participant-search-results])
