@@ -7,7 +7,8 @@
 
 (defn authentication-panel []
   [:div
-   [:h1 (t "Tunnistautuminen")]
-   [:div "Tunnistaudu pankkitunnuksillasi tai mobiilivarmenteella."]
+   [:h1 (t "authentication" "Tunnistautuminen")]
+   [:div (t "authenticate-bank-mobile"
+            "Tunnistaudu pankkitunnuksillasi tai mobiilivarmenteella.")]
    [:div.buttons
-    [:a.button.button-primary {:href (routing/p-a-route "/authenticate?callback=" (cb-uri))} "Tunnistaudu"]]])
+    [:a.button.button-primary {:href (routing/p-a-route "/authenticate?callback=" (cb-uri))} (t "authenticate" "Tunnistaudu")]]])

@@ -6,12 +6,13 @@
   (fn [db _]
     (:translations db)))
 
-(defn t [key]
+(defn t [key & [default]]
+  (println key " " default)
   (let [translations (re-frame/subscribe [:translations])]
     (if-not (empty? @translations)
       (let [k (if (keyword? key) (name key) key)]
         (get @translations k k))
-      "")))
+      (or default ""))))
 
 (def pikaday-i18n
   {:previous-month "Edellinen kuukausi"

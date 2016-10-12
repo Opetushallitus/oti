@@ -15,7 +15,7 @@
    [:ul#main-nav
     [:li.divider]
     [:li.active
-     [:span (t "Ilmoittautuminen")]]
+     [:span (t "enrollment" "Ilmoittautuminen")]]
     [:li.divider]]])
 
 (defn parse-session-id []
