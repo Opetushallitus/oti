@@ -7,7 +7,9 @@
             [oti.spec :as os]
             [oti.util.coercion :as c]
             [oti.routing :as routing]
-            [oti.service.user-data :as user-data]))
+            [oti.service.user-data :as user-data]
+            [oti.service.search :as search]
+            [clojure.string :as str]))
 
 (defn- as-int [x]
   (try (Integer/parseInt x)
@@ -63,7 +65,8 @@
                 (response {:registrations regs
                            :translations names})))))
         (GET "/participant-search" [q filter]
-          (println q)
-          (println filter)
-          (response {})))
+          (if-not (and (str/blank? q) (str/blank? filter))
+            (let [results (search/search-participants config q)]
+              (response results))
+            {:status 400 :body {:errors "Query or filter must be provided"}})))
       (wrap-routes auth/wrap-authorization)))

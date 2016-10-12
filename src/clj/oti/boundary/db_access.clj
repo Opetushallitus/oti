@@ -123,7 +123,8 @@
   (register! [db registration-data external-user-id])
   (registrations-for-session [db exam-session])
   (section-and-module-names [db])
-  (participant-email [db external-user-id]))
+  (participant-email [db external-user-id])
+  (all-participants [db]))
 
 (extend-type HikariCP
   DbAccess
@@ -177,4 +178,6 @@
   (participant-email [{:keys [spec]} external-user-id]
     (->> (q/select-participant-email {:external-user-id external-user-id} {:connection spec})
          first
-         :email)))
+         :email))
+  (all-participants [{:keys [spec]}]
+    (q/select-all-participants {} {:connection spec})))

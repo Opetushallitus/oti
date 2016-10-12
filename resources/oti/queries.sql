@@ -165,6 +165,9 @@ INSERT INTO participant (ext_reference_id, email)
 -- name: select-participant-email
 SELECT email FROM participant WHERE ext_reference_id = :external-user-id;
 
+-- name: select-all-participants
+SELECT id, ext_reference_id, email FROM participant;
+
 -- name: insert-registration<!
 WITH pp AS (
     SELECT id FROM participant WHERE ext_reference_id = :external-user-id
