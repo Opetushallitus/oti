@@ -8,7 +8,7 @@
   [re-frame/trim-v]
   (fn [_ [query-string filter-option]]
     {:http-xhrio {:method          :get
-                  :uri             (routing/v-a-route "/participants")
+                  :uri             (routing/v-a-route "/participant-search")
                   :params          {:q      query-string
                                     :filter filter-option}
                   :response-format (ajax/transit-response-format)

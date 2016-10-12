@@ -3,7 +3,8 @@
 (defn search-panel []
   (fn []
     [:div.search
-     [:form.search-form
+     [:form.search-form {:on-submit (fn [e]
+                                      (.preventDefault e))}
       [:div.search-fields
        [:div.half
         [:label
