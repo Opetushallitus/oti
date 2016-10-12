@@ -159,7 +159,7 @@
          (partition-by :id)
          (map (fn [registration-rows]
                 (let [sections (->> (partition-by :section_id registration-rows)
-                                    (map (fn [s-rows] [(:section_id (first s-rows)) (map :module_id s-rows)]))
+                                    (map (fn [s-rows] [(:section_id (first s-rows)) (remove nil? (map :module_id s-rows))]))
                                     (into {}))
                       {:keys [id created language_code, participant_id ext_reference_id]} (first registration-rows)]
                   {:id id
