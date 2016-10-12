@@ -31,7 +31,7 @@
         (GET "/user-info" {session :session}
           {:status 200
            :body (select-keys (:identity session) [:username])})
-                                                                 (context "/exam-sessions" []
+        (context "/exam-sessions" []
           (POST "/" {params :params}
             (let [conformed (s/conform ::os/exam-session params)]
               (if (or (s/invalid? conformed) (not (seq (dba/add-exam-session! db conformed))))
@@ -65,8 +65,8 @@
                 (response {:registrations regs
                            :translations names})))))
         (GET "/participant-search" [q filter]
-          (if-not (and (str/blank? q) (str/blank? filter))
-            (let [results (search/search-participants config (str/trim q))]
-              (response results))
-            {:status 400 :body {:errors "Query or filter must be provided"}})))
+          (let [filter-kw (if (str/blank? filter) :all (keyword filter))
+                query (when q (str/trim q))
+                results (search/search-participants config query filter-kw)]
+            (response results))))
       (wrap-routes auth/wrap-authorization)))

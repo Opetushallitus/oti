@@ -163,10 +163,29 @@ INSERT INTO participant (ext_reference_id, email)
   WHERE NOT EXISTS (SELECT id FROM participant WHERE ext_reference_id = :external-user-id);
 
 -- name: select-participant
-SELECT id, email FROM participant WHERE ext_reference_id = :external-user-id;
+SELECT p.id, ext_reference_id, email, ss.section_id AS scored_section_id, ss.created AS section_score_ts,
+  ss.accepted AS section_accepted, ms.module_id AS scored_module_id, ms.created AS module_score_ts,
+  ms.accepted AS module_accepted, aes.section_id accredited_section_id, aes.accreditation_date AS accredited_section_date,
+  aem.module_id AS accredited_module_id, aem.accreditation_date AS accredited_module_date
+FROM participant p
+LEFT JOIN section_score ss ON ss.participant_id = p.id
+LEFT JOIN module_score ms ON ms.section_score_id = ss.id
+LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id
+LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id
+WHERE ext_reference_id = :external-user-id
+ORDER BY id;
 
 -- name: select-all-participants
-SELECT id, ext_reference_id, email FROM participant;
+SELECT p.id, ext_reference_id, email, ss.section_id AS scored_section_id, ss.created AS section_score_ts,
+  ss.accepted AS section_accepted, ms.module_id AS scored_module_id, ms.created AS module_score_ts,
+  ms.accepted AS module_accepted, aes.section_id accredited_section_id, aes.accreditation_date AS accredited_section_date,
+  aem.module_id AS accredited_module_id, aem.accreditation_date AS accredited_module_date
+FROM participant p
+  LEFT JOIN section_score ss ON ss.participant_id = p.id
+  LEFT JOIN module_score ms ON ms.section_score_id = ss.id
+  LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id
+  LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id
+ORDER BY id;
 
 -- name: insert-registration<!
 WITH pp AS (
@@ -213,8 +232,9 @@ ORDER BY r.id, recs.section_id, recm.module_id;
 
 -- name: select-section-and-module-names
 SELECT st.section_id, st.name AS section_name, mt.module_id, mt.name AS module_name
-FROM section_translation st
+FROM section s
+  LEFT JOIN section_translation st ON st.section_id = s.id
   LEFT JOIN module m ON st.section_id = m.section_id
   LEFT JOIN module_translation mt ON mt.module_id = m.id AND mt.language_code = 'fi'
-WHERE st.language_code = 'fi'
+WHERE st.language_code = 'fi' AND s.exam_id = 1
 ORDER BY section_id, module_id;
