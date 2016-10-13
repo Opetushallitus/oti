@@ -40,13 +40,10 @@
          (filter #(or (= filter-kw :all) (= (:filter %) filter-kw))))))
 
 (defn- query-matches? [query user-data]
-  (or
-    (str/blank? query)
-    (when user-data
-      (let [{:keys [etunimet sukunimi]} user-data
-            lc-query (str/lower-case query)]
-        (or (str/includes? (str/lower-case etunimet) lc-query)
-            (str/includes? (str/lower-case sukunimi) lc-query))))))
+  (when user-data
+    (let [{:keys [etunimet sukunimi]} user-data]
+      (or (str/includes? (str/lower-case sukunimi) query)
+          (str/includes? (str/lower-case etunimet) query)))))
 
 (defn- hetu-query [{:keys [db api-client]} hetu filter-kw]
   (when-let [user-data (api/get-person-by-hetu api-client hetu)]
@@ -61,12 +58,13 @@
     (or (hetu-query config query filter-kw) [])
     (let [filtered-participants (process-db-participants db (dba/all-participants db) filter-kw)
           oids (map :external-user-id filtered-participants)
-          users-by-oid (user-data/api-user-data-by-oid api-client oids)]
-      (->> filtered-participants
-           (filter (fn [{:keys [external-user-id]}]
-                     (->> (get users-by-oid external-user-id)
-                          (query-matches? query))))
-           (map (fn [{:keys [external-user-id] :as db-data}]
-                  (let [user-data (get users-by-oid external-user-id)]
-                    (-> (dissoc user-data :oidHenkilo)
-                        (merge db-data)))))))))
+          users-by-oid (user-data/api-user-data-by-oid api-client oids)
+          lc-query (when-not (str/blank? query) (str/lower-case query))]
+      (cond->> filtered-participants
+               lc-query (filter (fn [{:keys [external-user-id]}]
+                                  (->> (get users-by-oid external-user-id)
+                                       (query-matches? lc-query))))
+               :always (map (fn [{:keys [external-user-id] :as db-data}]
+                              (let [user-data (get users-by-oid external-user-id)]
+                                (-> (dissoc user-data :oidHenkilo)
+                                    (merge db-data)))))))))
