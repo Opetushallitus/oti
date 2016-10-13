@@ -26,6 +26,19 @@
            regs))
     []))
 
+(defn- group-by-section [participant-rows]
+  (->> (partition-by :section_id participant-rows)
+       (map
+         (fn [section-rows]
+           (let [modules ()])))))
+
+(defn- participant-data [{:keys [db api-client]} id]
+  (if-let [db-data (seq (dba/participant-by-id db id))]
+    (let [external-user-id (:ext_reference_id (first db-data))
+          api-data (-> (user-data/api-user-data-by-oid api-client [external-user-id])
+                       (get external-user-id))])
+    {}))
+
 (defn virkailija-endpoint [{:keys [db] :as config}]
   (-> (context routing/virkailija-api-root []
         (GET "/user-info" {session :session}
@@ -67,5 +80,8 @@
           (let [filter-kw (if (str/blank? filter) :all (keyword filter))
                 query (when q (str/trim q))
                 results (search/search-participants config query filter-kw)]
-            (response results))))
+            (response results)))
+        (context "/participant/:id{[0-9]+}" [id :<< as-int]
+          (GET "/" []
+            )))
       (wrap-routes auth/wrap-authorization)))

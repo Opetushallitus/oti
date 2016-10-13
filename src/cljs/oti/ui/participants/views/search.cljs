@@ -3,7 +3,8 @@
             [oti.ui.participants.handlers]
             [oti.ui.participants.subs]
             [oti.filters :as filters]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [oti.routing :as routing]))
 
 (defn- section-status [{:keys [scored-sections accredited-sections]} section-id]
   (let [{:keys [accepted ts]} (get scored-sections section-id)
@@ -57,12 +58,11 @@
                   [:th {:key name} (str "Osa " name)]))
               [:th "Tutkinnon tila"]]]
             [:tbody
-             (println @search-results)
              (doall
                (for [{:keys [id etunimet sukunimi hetu] filter-kw :filter :as result} @search-results]
                  [:tr {:key id}
                   [:td (when (= filter-kw :complete) [:input {:type "checkbox"}])]
-                  [:td (str etunimet " " sukunimi)]
+                  [:td [:a {:href (routing/v-route "/henkilot/" id)} (str etunimet " " sukunimi)]]
                   [:td hetu]
                   (doall
                     (for [[id _] (:sections @sm-names)]

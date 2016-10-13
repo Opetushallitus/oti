@@ -15,6 +15,16 @@
                   :on-success      [:store-response-to-db :participant-search-results]
                   :on-failure      [:bad-response]}}))
 
+(re-frame/reg-event-fx
+  :load-participant-details
+  [re-frame/trim-v]
+  (fn [_ [id]]
+    {:http-xhrio {:method          :get
+                  :uri             (routing/v-a-route "/participant/" id)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:store-response-to-db :participant-details]
+                  :on-failure      [:bad-response]}}))
+
 (re-frame/reg-event-db
   :set-participant-search-query
   (fn
