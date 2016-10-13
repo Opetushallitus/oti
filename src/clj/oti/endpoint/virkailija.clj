@@ -60,10 +60,9 @@
                 (response {:success true})
                 (not-found {})))
             (GET "/registrations" []
-              (let [regs (fetch-registrations config id)
-                    names (dba/section-and-module-names db)]
-                (response {:registrations regs
-                           :translations names})))))
+              (response (fetch-registrations config id)))))
+        (GET "/sections-and-modules" []
+          (response (dba/section-and-module-names db)))
         (GET "/participant-search" [q filter]
           (let [filter-kw (if (str/blank? filter) :all (keyword filter))
                 query (when q (str/trim q))

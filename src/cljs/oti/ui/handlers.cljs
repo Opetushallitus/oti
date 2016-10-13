@@ -64,3 +64,12 @@
   :loader
   (fn [state]
     (swap! re-frame.db/app-db assoc :loading? state)))
+
+(re-frame/reg-event-fx
+  :load-section-and-module-names
+  (fn [_ _]
+    {:http-xhrio {:method          :get
+                  :uri             (routing/v-a-route "/sections-and-modules")
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:store-response-to-db :section-and-module-names]
+                  :on-failure      [:bad-response]}}))
