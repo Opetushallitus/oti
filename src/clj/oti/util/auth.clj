@@ -1,5 +1,6 @@
 (ns oti.util.auth
-  (:require [ring.util.response :as resp]))
+  (:require [ring.util.response :as resp])
+  (:import [java.net URLEncoder]))
 
 (defonce cas-tickets (atom #{}))
 
@@ -17,5 +18,5 @@
   (fn [request]
     (cond
       (logged-in? request) (handler request)
-      redirect? (resp/redirect "/oti/auth/cas")
+      redirect? (resp/redirect (str "/oti/auth/cas?path=" (URLEncoder/encode (:uri request))))
       :else {:status 401 :body "Unauthorized" :headers {"Content-Type" "text/plain; charset=utf-8"}})))

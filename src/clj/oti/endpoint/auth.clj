@@ -7,33 +7,38 @@
             [ring.util.response :as resp]
             [taoensso.timbre :refer [info error]]
             [clojure.string :as str]
-            [oti.util.auth :as auth]))
+            [oti.util.auth :as auth])
+  (:import [java.net URLEncoder]))
 
-(defn- redirect-to-cas-login-page [{:keys [opintopolku-login-uri oti-login-success-uri]}]
-  (resp/redirect (str opintopolku-login-uri oti-login-success-uri)))
+(defn- redirect-to-cas-login-page [opintopolku-login-uri login-callback]
+  (resp/redirect (str opintopolku-login-uri (URLEncoder/encode login-callback "UTF-8"))))
 
-(defn- cas-login [cas-config {:keys [oti-login-success-uri] :as auth-config} ldap ticket]
+(defn- cas-login [cas-config login-callback ldap ticket path]
   (info "validating ticket" ticket)
-  (if-let [username (cas/username-from-valid-service-ticket cas-config oti-login-success-uri ticket)]
+  (println login-callback)
+  (if-let [username (cas/username-from-valid-service-ticket cas-config login-callback ticket)]
     (if (la/user-has-access? ldap username)
       (do
         (auth/login ticket)
         (info "username" username "logged in")
-        (-> (resp/redirect "/oti/virkailija")
+        (-> (resp/redirect (or path "/oti/virkailija"))
             (assoc :session {:identity {:username username :ticket ticket}})))
       (do
         (info "username" username "tried to log in but does not have the correct role in LDAP")
         {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))
-    (redirect-to-cas-login-page auth-config)))
+    (do
+      (error "CAS did not validate our service ticket" ticket)
+      {:status 500 :body "Pääsyoikeuksien tarkistus epäonnistui" :headers {"Content-Type" "text/plain; charset=utf-8"}})))
 
-(defn- login [cas-config auth-config ldap ticket]
-  (try
-    (if ticket
-      (cas-login cas-config auth-config ldap ticket)
-      (redirect-to-cas-login-page auth-config))
-    (catch Exception e
-      (error "Error in login ticket handling" e)
-      (redirect-to-cas-login-page auth-config))))
+(defn- login [cas-config {:keys [oti-login-success-uri opintopolku-login-uri]} ldap ticket path]
+  (let [login-callback (str oti-login-success-uri (when path (str "?path=" path)))]
+    (try
+      (if ticket
+        (cas-login cas-config login-callback ldap ticket path)
+        (redirect-to-cas-login-page opintopolku-login-uri login-callback))
+      (catch Exception e
+        (error "Error in login ticket handling" e)
+        (redirect-to-cas-login-page opintopolku-login-uri login-callback)))))
 
 (defn- logout [{:keys [opintopolku-logout-uri oti-login-success-uri]} session]
   (info "username" (-> session :identity :username) "logged out")
@@ -52,8 +57,8 @@
 
 (defn auth-endpoint [{:keys [ldap authentication cas]}]
   (context "/oti/auth" []
-    (GET "/cas" [ticket]
-      (login cas authentication ldap ticket))
+    (GET "/cas" [ticket path]
+      (login cas authentication ldap ticket path))
     (POST "/cas" [logoutRequest]
       (cas-initiated-logout logoutRequest))
     (GET "/logout" {session :session}
