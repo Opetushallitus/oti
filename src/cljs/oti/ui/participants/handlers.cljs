@@ -20,3 +20,10 @@
   (fn
     [db [_ key value]]
     (assoc-in db [:participant-search-query key] value)))
+
+(re-frame/reg-event-db
+  :reset-search
+  (fn
+    [db _]
+    (assoc db  :participant-search-query {:query "" :filter :all}
+               :participant-search-results nil)))

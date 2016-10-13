@@ -538,6 +538,15 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   float: left;
   width: 50%;
 }
+.search .results {
+  margin-top: 2em;
+}
+.search .results .no-results {
+  text-align: center;
+}
+.search .results table {
+  width: 100%;
+}
 .left {
   float: left;
 }
