@@ -5,9 +5,20 @@
             [oti.filters :as filters]
             [clojure.string :as str]))
 
+(defn- section-status [{:keys [scored-sections accredited-sections]} section-id]
+  (let [{:keys [accepted ts]} (get scored-sections section-id)
+        acc (get accredited-sections section-id)]
+    (cond
+      accepted ts
+      (and ts (not accepted)) "Ei hyväksytty"
+      (and acc (:ts acc)) "Korvattu"
+      acc "Korv. vahvistettava"
+      :else "Puuttuu")))
+
 (defn search-panel []
   (let [search-query (re-frame/subscribe [:participant-search-query])
-        search-results (re-frame/subscribe [:participant-search-results])]
+        search-results (re-frame/subscribe [:participant-search-results])
+        sm-names (re-frame/subscribe [:section-and-module-names])]
     (fn []
       [:div.search
        [:form.search-form {:on-submit (fn [e]
@@ -41,19 +52,21 @@
               [:th [:input {:type "checkbox"}]]
               [:th "Nimi"]
               [:th "Henkilötunnus"]
-              [:th "Koe A"]
-              [:th "Koe B"]
+              (doall
+                (for [[_ name] (:sections @sm-names)]
+                  [:th {:key name} (str "Osa " name)]))
               [:th "Tutkinnon tila"]]]
             [:tbody
              (println @search-results)
              (doall
-               (for [{:keys [id etunimet sukunimi hetu] filter-kw :filter} @search-results]
+               (for [{:keys [id etunimet sukunimi hetu] filter-kw :filter :as result} @search-results]
                  [:tr {:key id}
                   [:td (when (= filter-kw :complete) [:input {:type "checkbox"}])]
                   [:td (str etunimet " " sukunimi)]
                   [:td hetu]
-                  [:td]
-                  [:td]
+                  (doall
+                    (for [[id _] (:sections @sm-names)]
+                      [:td {:key id} (section-status result id)]))
                   [:td (filter-kw filters/participant-filters)]]))]]
            (when (sequential? @search-results)
              [:div.no-results "Ei hakutuloksia"]))]]])))

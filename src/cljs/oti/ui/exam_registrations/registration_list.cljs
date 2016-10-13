@@ -38,7 +38,7 @@
                [:th "Nimi"]
                (doall
                  (for [[_ name] (:sections @sm-names)]
-                   [:th {:key name} (str "Koe " name)]))
+                   [:th {:key name} (str "Osa " name)]))
                [:th "Kokeen kieli"]]]
              [:tbody
               (doall
