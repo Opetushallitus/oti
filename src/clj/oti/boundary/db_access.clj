@@ -123,7 +123,8 @@
   (register! [db registration-data external-user-id])
   (registrations-for-session [db exam-session])
   (section-and-module-names [db])
-  (participant [db external-user-id])
+  (participant-by-ext-id [db external-user-id])
+  (participant-by-id [db id])
   (all-participants [db]))
 
 (extend-type HikariCP
@@ -175,8 +176,9 @@
                    (meta-merge names {:sections {section_id section_name}
                                       :modules {module_id module_name}}))
                  {})))
-  (participant [{:keys [spec]} external-user-id]
-    (->> (q/select-participant {:external-user-id external-user-id} {:connection spec})
-         first))
+  (participant-by-ext-id [{:keys [spec]} external-user-id]
+    (q/select-participant {:external-user-id external-user-id} {:connection spec}))
+  (participant-by-id [{:keys [spec]} id]
+    (q/select-participant-by-id {:id id} {:connection spec}))
   (all-participants [{:keys [spec]}]
     (q/select-all-participants {} {:connection spec})))

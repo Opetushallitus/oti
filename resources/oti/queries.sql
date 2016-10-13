@@ -187,6 +187,27 @@ FROM participant p
   LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id
 ORDER BY id;
 
+-- name: select-participant-by-id
+SELECT p.id, p.ext_reference_id, email, s.id AS section_id, m.id AS module_id, ss.created AS section_score_ts,
+  ss.accepted AS section_accepted, ms.created AS module_score_ts,
+  ms.accepted AS module_accepted, aes.section_id section_accreditation, aes.accreditation_date AS section_accreditation_date,
+  aem.module_id AS module_accreditation, aem.accreditation_date AS module_accreditation_date,
+  es.id, es.session_date, es.start_time, es.end_time, recs.id AS section_registration, recm.id AS module_registration
+FROM participant p
+  LEFT JOIN section s ON s.exam_id = 1
+  LEFT JOIN module m ON m.section_id = s.id
+  LEFT JOIN section_score ss ON ss.participant_id = p.id AND ss.section_id = s.id
+  LEFT JOIN module_score ms ON ms.section_score_id = ss.id AND ms.module_id = m.id
+  LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id AND aes.section_id = s.id
+  LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id AND aem.module_id = m.id
+  LEFT JOIN registration_exam_content_section recs ON recs.section_id = s.id AND recs.participant_id = p.id
+  LEFT JOIN registration_exam_content_module recm ON recm.module_id = m.id AND recm.participant_id = p.id
+  LEFT JOIN registration r ON (recs.registration_id = r.id OR recm.registration_id = r.id)
+  LEFT JOIN exam_session es ON es.id = r.exam_session_id
+  LEFT JOIN payment pm ON r.id = pm.registration_id
+WHERE p.id = :id
+ORDER BY section_id, module_id, es.session_date;
+
 -- name: insert-registration<!
 WITH pp AS (
     SELECT id FROM participant WHERE ext_reference_id = :external-user-id

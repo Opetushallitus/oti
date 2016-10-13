@@ -47,8 +47,8 @@
 
 (defn- hetu-query [{:keys [db api-client]} hetu filter-kw]
   (when-let [user-data (api/get-person-by-hetu api-client hetu)]
-    (when-let [db-data (dba/participant db (:oidHenkilo user-data))]
-      (when-let [processed-db-data (first (process-db-participants db [db-data] filter-kw))]
+    (when-let [db-data (dba/participant-by-ext-id db (:oidHenkilo user-data))]
+      (when-let [processed-db-data (first (process-db-participants db db-data filter-kw))]
         (-> (select-keys user-data [:etunimet :sukunimi :kutsumanimi :hetu])
             (merge processed-db-data)
             (vector))))))
