@@ -26,6 +26,23 @@
            regs))
     []))
 
+(defn- make-kw [prefix suffix]
+  (keyword (str prefix "_" suffix)))
+
+(defn- sec-or-mod-props [kw-prefix row]
+  (let [id (make-kw kw-prefix "id")
+        score-ts (make-kw kw-prefix "score_ts")
+        accepted (make-kw kw-prefix "accepted")
+        accreditation (make-kw kw-prefix "accreditation")
+        accreditation-date (make-kw kw-prefix "accreditation_date")
+        registration (make-kw kw-prefix "registration")]
+    {:id (id row)
+     :score-ts (score-ts row)
+     :accepted (accepted row)
+     :accreditation-requested? (accreditation row)
+     :accreditation-date (accreditation-date row)
+     :registered-to? (registration row)}))
+
 (defn- group-by-section [participant-rows]
   (->> (partition-by :section_id participant-rows)
        (map
