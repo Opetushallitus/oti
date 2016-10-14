@@ -547,6 +547,37 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .search .results table {
   width: 100%;
 }
+.participant-details span {
+  display: inline-block;
+}
+.participant-details .person .label {
+  width: 200px;
+}
+.participant-details .person .row {
+  margin-bottom: 1em;
+}
+.participant-details .section {
+  margin-top: 2em;
+}
+.participant-details table {
+  font-size: 0.9rem;
+  width: 100%;
+}
+.participant-details table .date {
+  width: 165px;
+}
+.participant-details table .location {
+  width: 200px;
+}
+.participant-details table .section-result {
+  width: 90px;
+}
+.participant-details table th {
+  vertical-align: bottom;
+}
+.participant-details table .module-name {
+  font-size: 0.7rem;
+}
 .left {
   float: left;
 }
