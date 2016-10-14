@@ -6,7 +6,8 @@
             [oti.ui.exam-registrations.handlers]
             [oti.ui.exam-registrations.subs]
             [oti.exam-rules :as rules]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [oti.routing :as routing]))
 
 (defn- panel [exam-sessions pre-selected-session-id]
   (let [session-id (r/atom pre-selected-session-id)
@@ -42,9 +43,9 @@
                [:th "Kokeen kieli"]]]
              [:tbody
               (doall
-                (for [{:keys [sections id etunimet sukunimi lang]} registrations]
+                (for [{:keys [sections id etunimet sukunimi lang participant-id]} registrations]
                   [:tr {:key id}
-                   [:td (str etunimet " " sukunimi)]
+                   [:td [:a {:href (routing/v-route "/henkilot/" participant-id)} (str etunimet " " sukunimi)]]
                    (doall
                      (for [[id _] (:sections @sm-names)]
                        [:td {:key id}
