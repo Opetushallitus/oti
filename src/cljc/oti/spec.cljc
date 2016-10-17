@@ -110,3 +110,92 @@
 
 (def hetu-regexp #"[\d]{6}[+\-A-Za-z][\d]{3}[\dA-Za-z]")
 (s/def ::hetu (s/and string? #(re-matches hetu-regexp %)))
+
+(defn- valid-reference-number? [x]
+  (let [factors [7 3 1]
+        ref-str (str x)
+        check-num (-> (last ref-str) str Integer/parseInt)
+        ref (drop-last ref-str)]
+    (-> (->> (reverse ref)
+           (partition 3 3 [])
+           (map (fn [three]
+                  (->> (map #(Integer/parseInt (str %)) three)
+                       (map * factors))))
+           (flatten)
+           (reduce +)
+           str
+           last
+           str
+           Integer/parseInt
+           (- 10))
+        (mod 10)
+        (= check-num))))
+
+;; payment
+
+(s/def ::timestamp inst?)
+(s/def ::amount (s/and number? pos?))
+(s/def ::reference-number (s/and pos-int? #(valid-reference-number? %)))
+(s/def ::order-number (s/and ::non-blank-string #(< (count %) 33)))
+(s/def ::app-name ::non-blank-string)
+(s/def ::msg-buyer ::non-blank-string)
+(s/def ::msg-seller ::non-blank-string)
+(s/def ::msg-form ::non-blank-string)
+(s/def ::payment-id (s/and ::non-blank-string #(< (count %) 26)))
+
+(s/def ::payment-params (s/keys :req [::timestamp
+                                      ::language-code
+                                      ::amount
+                                      ::reference-number
+                                      ::order-number
+                                      ::app-name
+                                      ::msg-buyer
+                                      ::msg-seller
+                                      ::msg-form
+                                      ::payment-id]))
+
+(def amount-regexp #"\d{0,3},\d{2}")
+
+(s/def ::RCVID ::non-blank-string)
+(s/def ::APPID ::non-blank-string)
+(s/def ::TIMESTMP ::non-blank-string)
+(s/def ::SO string?)
+(s/def ::SOLIST ::non-blank-string)
+(s/def ::TYPE ::non-blank-string)
+(s/def ::AU ::non-blank-string)
+(s/def ::LG ::non-blank-string)
+(s/def ::RETURL ::non-blank-string)
+(s/def ::CANURL ::non-blank-string)
+(s/def ::ERRURL ::non-blank-string)
+(s/def ::AP ::non-blank-string)
+(s/def ::MAC ::non-blank-string)
+(s/def ::APPNAME ::non-blank-string)
+(s/def ::AM (s/and string? #(re-matches amount-regexp %)))
+(s/def ::REF ::reference-number)
+(s/def ::ORDNR ::order-number)
+(s/def ::MSGBUYER ::msg-buyer)
+(s/def ::MSGSELLER ::msg-seller)
+(s/def ::MSGFORM ::msg-form)
+(s/def ::PAYM_CALL_ID ::payment-id)
+
+(s/def ::payment-form-params (s/keys :req [::RCVID
+                                           ::APPID
+                                           ::TIMESTMP
+                                           ::SO
+                                           ::SOLIST
+                                           ::TYPE
+                                           ::AU
+                                           ::LG
+                                           ::RETURL
+                                           ::CANURL
+                                           ::ERRURL
+                                           ::AP
+                                           ::MAC
+                                           ::APPNAME
+                                           ::AM
+                                           ::REF
+                                           ::ORDNR
+                                           ::MSGBUYER
+                                           ::MSGSELLER
+                                           ::MSGFORM
+                                           ::PAYM_CALL_ID]))
