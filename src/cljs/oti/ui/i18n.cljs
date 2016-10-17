@@ -7,7 +7,6 @@
     (:translations db)))
 
 (defn t [key & [default]]
-  (println key " " default)
   (let [translations (re-frame/subscribe [:translations])]
     (if-not (empty? @translations)
       (let [k (if (keyword? key) (name key) key)]
