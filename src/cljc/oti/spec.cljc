@@ -107,3 +107,6 @@
                                     ::language-code
                                     ::preferred-name
                                     ::sections]))
+
+(def hetu-regexp #"[\d]{6}[+\-A-Za-z][\d]{3}[\dA-Za-z]")
+(s/def ::hetu (s/and string? #(re-matches hetu-regexp %)))

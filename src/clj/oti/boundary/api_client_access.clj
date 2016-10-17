@@ -2,7 +2,8 @@
   (:require [oti.component.cas :as cas-api]
             [cheshire.core :as json]
             [taoensso.timbre :refer [error]]
-            [oti.component.api-client])
+            [oti.component.api-client]
+            [taoensso.timbre :refer [info]])
   (:import [oti.component.api_client ApiClient]))
 
 (defprotocol ApiClientAccess
@@ -31,6 +32,7 @@
 (extend-protocol ApiClientAccess
   ApiClient
   (get-persons [{:keys [authentication-service-path cas] :as client} ids]
+    (info "Requesting user details for" (count ids) "user ids")
     (->> (request-map client "/resources/henkilo/henkilotByHenkiloOidList")
          (merge (json-post ids))
          (cas-api/request cas authentication-service-path)

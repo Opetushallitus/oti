@@ -32,7 +32,8 @@
 
 (defn init-mode [mode]
   (if (= "virkailija" mode)
-    (re-frame/dispatch [:load-user])
+    (do (re-frame/dispatch [:load-user])
+        (re-frame/dispatch [:load-section-and-module-names]))
     (re-frame/dispatch [:set-language (resolve-lang)])))
 
 (defn ^:export start [mode]

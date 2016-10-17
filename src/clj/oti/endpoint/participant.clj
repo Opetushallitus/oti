@@ -109,7 +109,7 @@
         (if-not (str/blank? callback)
           (let [hetu (random-hetu)
                 {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
-                existing-email (when oidHenkilo (dba/participant-email db oidHenkilo))]
+                existing-email (when oidHenkilo (:email (first (dba/participant-by-ext-id db oidHenkilo))))]
             (-> (redirect callback)
                 (assoc :session {:participant {:etunimet (if etunimet (str/split etunimet #" ") [(random-name) (random-name)])
                                                :sukunimi (or sukunimi (random-name))

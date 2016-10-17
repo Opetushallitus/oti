@@ -3,6 +3,8 @@
             [oti.ui.exam-sessions.session-list :refer [exam-sessions-panel]]
             [oti.ui.exam-sessions.exam-session :refer [new-exam-session edit-exam-session]]
             [oti.ui.exam-registrations.registration-list :as registration-list]
+            [oti.ui.participants.views.search :as search]
+            [oti.ui.participants.views.details :as details]
             [oti.ui.routes :refer [virkailija-routes]]
             [oti.ui.views.common :refer [loader]]
             [oti.routing :as routing]))
@@ -12,6 +14,8 @@
 (defmethod panels :registrations-panel [] registration-list/reg-list-panel)
 (defmethod panels :new-exam-session-panel [] new-exam-session)
 (defmethod panels :edit-exam-session-panel [] edit-exam-session)
+(defmethod panels :participant-search-panel [] search/search-panel)
+(defmethod panels :participant-details-panel [] details/participant-details-panel)
 (defmethod panels :default [] :div)
 
 (defn show-panel [panel-name data]
@@ -29,10 +33,11 @@
                                      [:a {:href url} text])]]))
                 [:ul#main-nav]
                 (filter :text virkailija-routes))
-        (concat [[:li.user
+        (concat [[:li.divider]
+                 [:li.user
                   [:span (:username user)]
                   [:br]
-                  [:a.logout {:href (routing/auth-route "/logoout")} "Kirjaudu ulos"]]])
+                  [:a.logout {:href (routing/auth-route "/logout")} "Kirjaudu ulos"]]])
         (vec))])
 
 (defn main-panel []

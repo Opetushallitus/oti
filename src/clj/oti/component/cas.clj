@@ -12,8 +12,12 @@
   (stop [this] this))
 
 (defprotocol CasAccess
-  (request [cas service-path request-options])
-  (username-from-valid-service-ticket [cas service-uri ticket]))
+  (request [cas service-path request-options]
+    "Do a HTTP request to a service requiring CAS authentication")
+  (username-from-valid-service-ticket [cas service-uri ticket]
+    "Validate user's CAS ticket. Note that service-uri must be equal to the URI that was provided as the service
+     parameter when redirecting user to the CAS login service, including any query parameters. The service-uri
+     MUST NOT be URL-encoded, as the implementation will encode it when making the request."))
 
 (defn cas-config [options]
   (map->Cas options))
