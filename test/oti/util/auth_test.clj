@@ -14,8 +14,8 @@
 
 (deftest wrap-authorization-with-redirect-works
   (let [wrapped-handler (wrap-authorization (fn [_] :handled) :redirect)]
-    (is (= {:status 302, :headers {"Location" "/oti/auth/cas"}, :body ""}
-           (wrapped-handler {})))))
+    (is (= {:status 302, :headers {"Location" "/oti/auth/cas?path=%2Foti%2Fvirkailija%2Fhenkilot"}, :body ""}
+           (wrapped-handler {:uri "/oti/virkailija/henkilot"})))))
 
 (deftest login-logout-works
   (let [ticket "barfoo"]

@@ -28,6 +28,8 @@
         {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))
     (do
       (error "CAS did not validate our service ticket" ticket)
+      ; This might be because the user provided an invalid ticket, but also because of some other error, so we don't
+      ; want to cause an infinite redirect loop by redirecting the user back to the CAS from here.
       {:status 500 :body "Pääsyoikeuksien tarkistus epäonnistui" :headers {"Content-Type" "text/plain; charset=utf-8"}})))
 
 (defn- login [cas-config {:keys [oti-login-success-uri opintopolku-login-uri]} ldap ticket path]

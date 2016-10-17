@@ -33,24 +33,27 @@
    :opintopolku-logout-uri  "logout-uri?service="
    :oti-login-success-uri "/auth/cas"})
 
+(def path
+  "/oti/virkailija/henkilot")
+
 (deftest login-works-with-correct-user
   (is (= {:status 302
-          :headers {"Location" "/oti/virkailija"}
+          :headers {"Location" "/oti/virkailija/henkilot"}
           :body ""
           :session {:identity {:username "virkailija", :ticket "niceticket"}}}
-         (#'oti.endpoint.auth/login cas-stub authentication ldap-stub valid-ticket))))
+         (#'oti.endpoint.auth/login cas-stub authentication ldap-stub valid-ticket path))))
 
 (deftest login-is-denied-for-invalid-ticket
-  (is (= {:status 302, :headers {"Location" "login-uri?service=/auth/cas"}, :body ""}
-        (#'oti.endpoint.auth/login cas-stub authentication ldap-stub "invalid"))))
+  (is (= {:status 500, :body "Pääsyoikeuksien tarkistus epäonnistui", :headers {"Content-Type" "text/plain; charset=utf-8"}}
+        (#'oti.endpoint.auth/login cas-stub authentication ldap-stub "invalid" path))))
 
 (deftest login-is-denied-for-user-without-correct-role
   (is (= 403
-         (:status (#'oti.endpoint.auth/login cas-stub authentication ldap-stub ticket-for-wrong-user)))))
+         (:status (#'oti.endpoint.auth/login cas-stub authentication ldap-stub ticket-for-wrong-user path)))))
 
 (deftest logout-works
   (let [request {:session {:identity {:ticket valid-ticket :username valid-user}}}]
-    (#'oti.endpoint.auth/login cas-stub authentication ldap-stub valid-ticket)
+    (#'oti.endpoint.auth/login cas-stub authentication ldap-stub valid-ticket path)
     (is (auth-util/logged-in? request))
     (is (= {:status 302, :headers {"Location" "logout-uri?service=/auth/cas"}, :body "", :session {:identity nil}}
            (#'oti.endpoint.auth/logout authentication (:session request))))
