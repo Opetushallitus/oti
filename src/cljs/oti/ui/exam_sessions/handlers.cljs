@@ -3,11 +3,17 @@
             [ajax.core :as ajax]
             [oti.routing :as routing]))
 
-(re-frame/reg-event-db
+(re-frame/reg-event-fx
   :exam-session-saved
   (fn [_ _]
-    (re-frame/dispatch [:redirect routing/virkailija-root])
-    (re-frame/dispatch [:show-flash :success "Tallennettu"])))
+    {:redirect routing/virkailija-root
+     :show-flash [:success "Tallennettu"]}))
+
+(re-frame/reg-event-fx
+  :exam-session-deleted
+  (fn [_ _]
+    {:redirect routing/virkailija-root
+     :show-flash [:success "Poistettu"]}))
 
 (re-frame/reg-event-fx
   :add-exam-session
@@ -71,9 +77,3 @@
                   :response-format (ajax/transit-response-format)
                   :on-success      [:exam-session-deleted]
                   :on-failure      [:bad-response]}}))
-
-(re-frame/reg-event-db
-  :exam-session-deleted
-  (fn [_ _]
-    (re-frame/dispatch [:redirect routing/virkailija-root])
-    (re-frame/dispatch [:show-flash :success "Poistettu"])))

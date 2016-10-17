@@ -42,23 +42,16 @@
     [db [response]]
     (assoc db :error response)))
 
-(re-frame/reg-event-db
+(re-frame/reg-fx
   :redirect
-  [trim-v]
-  (fn [_ [target]]
+  (fn [target]
     (routes/redirect target)))
 
-(re-frame/reg-event-db
+(re-frame/reg-fx
   :show-flash
-  [trim-v]
-  (fn [db [type text]]
-    (js/setTimeout #(re-frame/dispatch [:hide-flash]) 3000)
-    (assoc db :flash-message {:type type :text text})))
-
-(re-frame/reg-event-db
-  :hide-flash
-  (fn [db _]
-    (assoc db :flash-message {})))
+  (fn [[type text]]
+    (swap! re-frame.db/app-db assoc :flash-message {:type type :text text})
+    (js/setTimeout #(swap! re-frame.db/app-db assoc :flash-message {}) 3000)))
 
 (re-frame/reg-fx
   :loader
