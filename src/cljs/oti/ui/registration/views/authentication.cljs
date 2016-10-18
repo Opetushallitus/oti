@@ -1,13 +1,14 @@
 (ns oti.ui.registration.views.authentication
   (:require [oti.ui.i18n :refer [t]]
             [oti.routing :as routing]
-            [re-frame.core :as rf]))
+            [re-frame.core :as rf]
+            [clojure.string :as str]))
 
 (defn cb-uri [lang]
   (let [uri (-> js/window .-location .-href js/encodeURI)]
     (if (= lang :fi)
-      (clojure.string/replace uri "anmala" "ilmoittaudu")
-      (clojure.string/replace uri "ilmoittaudu" "anmala"))))
+      (str/replace uri "anmala" "ilmoittaudu")
+      (str/replace uri "ilmoittaudu" "anmala"))))
 
 (defn authentication-panel []
   (let [lang (rf/subscribe [:language])]
