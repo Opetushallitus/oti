@@ -4,10 +4,10 @@
             [re-frame.core :as rf]))
 
 (defn cb-uri [lang]
-  (let [uri (-> js/window .-location .-href js/encodeURI)
-        base-vec (vec (butlast (clojure.string/split uri #"/")))
-        translated-tail (t "register")]
-    (clojure.string/join "/" (conj base-vec translated-tail))))
+  (let [uri (-> js/window .-location .-href js/encodeURI)]
+    (if (= lang :fi)
+      (clojure.string/replace uri "anmala" "ilmoittaudu")
+      (clojure.string/replace uri "ilmoittaudu" "anmala"))))
 
 (defn authentication-panel []
   (let [lang (rf/subscribe [:language])]
