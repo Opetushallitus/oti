@@ -8,7 +8,6 @@
             [meta-merge.core :refer [meta-merge]])
   (:import [duct.component.hikaricp HikariCP]))
 
-
 (require-sql ["oti/queries.sql" :as q])
 
 (defn- translation-by-key-fn [key]
