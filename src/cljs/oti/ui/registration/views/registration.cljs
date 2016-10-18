@@ -63,8 +63,9 @@
     #{}
     (::spec/sections @form-data)))
 
-(defn abort-button []
-  [:a.button {:href "/oti/abort"} (t "abort-enrollment" "Keskeytä ilmoittautuminen")])
+(defn abort-button [lang]
+  [:a.button {:href (str "/oti/abort?lang=" (name lang))}
+   (t "abort-enrollment" "Keskeytä ilmoittautuminen")])
 
 (defn participant-div [participant-data]
   (let [{:keys [etunimet sukunimi hetu]} participant-data]
@@ -180,7 +181,7 @@
                                                           format-price))]]]
             [:div.section.buttons
              [:div.left
-              (abort-button)]
+              (abort-button @lang)]
              [:div.right
               [:button.button-primary {:disabled (not (s/valid? ::spec/registration @form-data))
                                        :type "submit"}
@@ -194,4 +195,4 @@
              (t "error-already-participating-or-completed"
                 "Olet jo ilmoittautunut kaikkiin tutkinnon osiin tai sinulle on kirjattu tutkintoon tarvittavat suoritukset.")]
             [:div.section.buttons
-             (abort-button)]])]))))
+             (abort-button @lang)]])]))))

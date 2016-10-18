@@ -47,22 +47,21 @@
         flash-message (re-frame/subscribe [:flash-message])
         loading? (re-frame/subscribe [:loading?])]
     (fn []
-      (if (or (nil? @loading?) @loading?)
-        (loader)
-        [:div
-         [:div#header
-          [:img {:src (routing/img "opetushallitus.gif")}]
-          [:p "Opetushallinnon tutkintorekisteri"]]
-         [navigation-panel @active-panel @user]
-         [:div#content-area
-          [:main.container
-           [show-panel @active-panel @active-panel-data]]]
-         (when (seq @flash-message)
-           (let [{:keys [type text]} @flash-message]
-             [:div.flash-container
-              [:div.flash-message
-               [:span.icon {:class (if (= :success type) "success" "error")}
-                (if (= :success type)
-                  "\u2713"
-                  "\u26A0")]
-               [:span.text text]]]))]))))
+      [:div
+       [loader @loading?]
+       [:div#header
+        [:img {:src (routing/img "opetushallitus.gif")}]
+        [:p "Opetushallinnon tutkintorekisteri"]]
+       [navigation-panel @active-panel @user]
+       [:div#content-area
+        [:main.container
+         [show-panel @active-panel @active-panel-data]]]
+       (when (seq @flash-message)
+         (let [{:keys [type text]} @flash-message]
+           [:div.flash-container
+            [:div.flash-message
+             [:span.icon {:class (if (= :success type) "success" "error")}
+              (if (= :success type)
+                "\u2713"
+                "\u26A0")]
+             [:span.text text]]]))])))
