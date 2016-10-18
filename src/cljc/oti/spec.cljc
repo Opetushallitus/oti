@@ -48,6 +48,10 @@
                                 (map js/parseInt))]
              (or (< s-h e-h) (and (= s-h e-h) (< s-m e-m))))))
 
+(defn date-time? [x]
+  #?(:clj (instance? java.time.LocalDateTime x)
+     :cljs (inst? x)))
+
 (s/def ::id pos-int?)
 
 ;; i18n
@@ -133,14 +137,12 @@
 
 ;; payment
 
-(s/def ::timestamp inst?)
+(s/def ::timestamp date-time?)
 (s/def ::amount (s/and number? pos?))
 (s/def ::reference-number (s/and pos-int? #(valid-reference-number? %)))
 (s/def ::order-number (s/and ::non-blank-string #(< (count %) 33)))
 (s/def ::app-name ::non-blank-string)
-(s/def ::msg-buyer ::non-blank-string)
-(s/def ::msg-seller ::non-blank-string)
-(s/def ::msg-form ::non-blank-string)
+(s/def ::msg ::non-blank-string)
 (s/def ::payment-id (s/and ::non-blank-string #(< (count %) 26)))
 
 (s/def ::payment-params (s/keys :req [::timestamp
@@ -149,9 +151,7 @@
                                       ::reference-number
                                       ::order-number
                                       ::app-name
-                                      ::msg-buyer
-                                      ::msg-seller
-                                      ::msg-form
+                                      ::msg
                                       ::payment-id]))
 
 (def amount-regexp #"\d{0,3},\d{2}")
@@ -173,9 +173,8 @@
 (s/def ::AM (s/and string? #(re-matches amount-regexp %)))
 (s/def ::REF ::reference-number)
 (s/def ::ORDNR ::order-number)
-(s/def ::MSGBUYER ::msg-buyer)
-(s/def ::MSGSELLER ::msg-seller)
-(s/def ::MSGFORM ::msg-form)
+(s/def ::MSGBUYER ::msg)
+(s/def ::MSGFORM ::msg)
 (s/def ::PAYM_CALL_ID ::payment-id)
 
 (s/def ::payment-form-params (s/keys :req [::RCVID
@@ -196,6 +195,10 @@
                                            ::REF
                                            ::ORDNR
                                            ::MSGBUYER
-                                           ::MSGSELLER
                                            ::MSGFORM
                                            ::PAYM_CALL_ID]))
+
+(s/def ::uri ::non-blank-string)
+
+(s/def ::payment-form-data (s/keys :req [::uri
+                                         ::payment-form-params]))
