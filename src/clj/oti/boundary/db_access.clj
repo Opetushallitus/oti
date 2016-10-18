@@ -126,7 +126,11 @@
   (section-and-module-names [db])
   (participant-by-ext-id [db external-user-id])
   (participant-by-id [db id])
-  (all-participants [db]))
+  (all-participants [db])
+  (set-registration-state! [db id new-state])
+  (insert-payment! [db params])
+  (update-payment! [db order-number new-state])
+  (next-order-number! [db]))
 
 (extend-type HikariCP
   DbAccess
@@ -182,4 +186,12 @@
   (participant-by-id [{:keys [spec]} id]
     (q/select-participant-by-id {:id id} {:connection spec}))
   (all-participants [{:keys [spec]}]
-    (q/select-all-participants {} {:connection spec})))
+    (q/select-all-participants {} {:connection spec}))
+  (set-registration-state! [{:keys [spec]} id new-state]
+    (q/update-registration-state! {:state new-state :id id} {:connection spec}))
+  (insert-payment! [{:keys [spec]} params]
+    (q/insert-payment! params {:connection spec}))
+  (update-payment! [{:keys [spec]} order-number new-state external-id]
+    (q/update-payment! {:order-number order-number :state new-state :external-id external-id} {:connection spec}))
+  (next-order-number! [{:keys [spec]}]
+    (q/select-next-order-number-suffix {} {:connection spec})))

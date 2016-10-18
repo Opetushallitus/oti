@@ -244,6 +244,9 @@ SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-
 INSERT INTO accredited_exam_module (module_id, participant_id)
 SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
 
+-- name: update-registration-state!
+UPDATE registration SET state = :state WHERE id = :id;
+
 -- name: select-registrations-for-exam-session
 SELECT
   r.id, r.created, r.language_code, p.id AS participant_id, p.ext_reference_id, recs.section_id, recm.module_id
@@ -263,3 +266,13 @@ FROM section s
   LEFT JOIN module_translation mt ON mt.module_id = m.id AND mt.language_code = 'fi'
 WHERE st.language_code = 'fi' AND s.exam_id = 1
 ORDER BY section_id, module_id;
+
+-- name: insert-payment!
+INSERT INTO payment (created, state, type, registration_id, amount, reference, order_number, paym_call_id) VALUES
+  (:created, 'UNPAID', :type, :registration-id, :amount, :reference, :order-number, :order-number);
+
+-- name: update-payment!
+UPDATE payment SET state = :state, ext_reference_id = :external-id WHERE order_number = :order-number;
+
+-- name: select-next-order-number-suffix
+SELECT nextval('payment_order_number_seq');

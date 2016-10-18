@@ -139,7 +139,7 @@
 
 (s/def ::timestamp date-time?)
 (s/def ::amount (s/and number? pos?))
-(s/def ::reference-number (s/and pos-int? #(valid-reference-number? %)))
+(s/def ::reference-number (s/and integer? #(valid-reference-number? %)))
 (s/def ::order-number (s/and ::non-blank-string #(< (count %) 33)))
 (s/def ::app-name ::non-blank-string)
 (s/def ::msg ::non-blank-string)
