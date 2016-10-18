@@ -77,23 +77,24 @@
         db-fn               (if update? q/update-exam-session-translation! q/insert-exam-session-translation!)]
     (db-fn translation {:connection tx})))
 
-(defn store-exam-session-translations [tx exam-session update?]
+(defn- store-exam-session-translations [tx exam-session update?]
   (let [langs (set (mapcat keys-of-mapval (translatable-keys-from-exam-session exam-session)))]
     (if (::spec/id exam-session)
       (mapv #(store-exam-session-translation % tx exam-session update?) langs)
       (throw (Exception. "Error occured inserting translations. Missing exam session id.")))))
 
-(defn insert-exam-session [tx exam-session]
+(defn- insert-exam-session [tx exam-session]
   (or (q/insert-exam-session<! exam-session {:connection tx})
       (throw (Exception. "Could not create new exam session."))))
 
-(defn store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id]
+(defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state]
   (let [conn {:connection tx}]
     (q/insert-participant! {:external-user-id external-user-id :email email} conn)
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
         (if-let [reg-id (:id (q/insert-registration<! {:session-id session-id
                                                        :external-user-id external-user-id
+                                                       :state state
                                                        :language-code (name language-code)} conn))]
           (doseq [[section-id opts] registarable-sections]
             (let [params {:section-id section-id
@@ -118,9 +119,9 @@
   (remove-exam-session! [db id])
   (published-exam-sessions-with-space-left [db])
   (exam-session [db id])
-  (modules-available-for-user [db external-user-id])
+  (sections-and-modules-available-for-user [db external-user-id])
   (valid-full-payments-for-user [db external-user-id])
-  (register! [db registration-data external-user-id])
+  (register! [db registration-data external-user-id state])
   (registrations-for-session [db exam-session])
   (section-and-module-names [db])
   (participant-by-ext-id [db external-user-id])
@@ -146,16 +147,16 @@
   (remove-exam-session! [{:keys [spec]} id]
     (q/delete-exam-session-translations! {:exam-session-id id} {:connection spec})
     (q/delete-exam-session! {:exam-session-id id} {:connection spec}))
-  (modules-available-for-user [{:keys [spec]} external-user-id]
+  (sections-and-modules-available-for-user [{:keys [spec]} external-user-id]
     (->> (q/select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
          group-sections-and-modules))
   (valid-full-payments-for-user [{:keys [spec]} external-user-id]
     (-> (q/select-valid-payment-count-for-user {:external-user-id external-user-id} {:connection spec})
         first
         :count))
-  (register! [{:keys [spec]} registration-data external-user-id]
+  (register! [{:keys [spec]} registration-data external-user-id state]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-      (store-registration! tx registration-data external-user-id)))
+      (store-registration! tx registration-data external-user-id state)))
   (registrations-for-session [{:keys [spec]} exam-session-id]
     (->> (q/select-registrations-for-exam-session {:exam-session-id exam-session-id} {:connection spec})
          (partition-by :id)

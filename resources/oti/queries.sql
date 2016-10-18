@@ -222,9 +222,8 @@ WITH pp AS (
     GROUP BY (es.id) HAVING (es.max_participants - COUNT(r.id)) > 0
 )
 INSERT INTO registration (state, exam_session_id, participant_id, language_code)
-  SELECT 'OK', session.id, pp.id, :language-code FROM pp, session
+  SELECT :state, session.id, pp.id, :language-code FROM pp, session
 RETURNING registration.id;
-
 
 -- name: insert-section-registration!
 INSERT INTO registration_exam_content_section (section_id, participant_id, registration_id)
