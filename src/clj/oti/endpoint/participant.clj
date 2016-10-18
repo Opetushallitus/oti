@@ -13,7 +13,7 @@
             [clojure.java.io :as io]
             [taoensso.timbre :refer [error info]]
             [meta-merge.core :refer [meta-merge]]
-            [oti.boundary.api-client-access :as api])) 
+            [oti.boundary.api-client-access :as api]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -91,9 +91,11 @@
 
 (defn participant-endpoint [{:keys [db payments api-client localisation] :as config}]
   (routes
-    (GET "/oti/abort" []
-      (-> (resp/redirect "/oti/ilmoittaudu")
-          (assoc :session {})))
+    (GET "/oti/abort" [lang]
+         (-> (resp/redirect (if (= lang "fi")
+                              "/oti/ilmoittaudu"
+                              "/oti/anmala"))
+             (assoc :session {})))
     (context routing/participant-api-root []
       ;; TODO: Maybe relocate translation endpoints to a localisation endpoint?
       (GET "/translations" [lang]
