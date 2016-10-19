@@ -7,7 +7,8 @@
 (defprotocol LocalisationQuery
   "Localisation query protocol"
   (translations-by-lang [this lang] "Query translation by language")
-  (refresh-translations [this] "Refresh all translations by fetching from the external localisation service"))
+  (refresh-translations [this] "Refresh all translations by fetching from the external localisation service")
+  (t [this lang key]))
 
 (defn- parse-translations [response-body]
   (into {} (->> response-body
@@ -38,7 +39,7 @@
   (translations-by-lang [{:keys [translations translations-by-lang]} lang]
     (let [t-key (keyword lang)]
       (if-let [t-map (t-key @translations-by-lang)]
-        (do (println "returning from atom") t-map)
+        t-map
         (->> @translations
              (map (fn [[k v]] [k (t-key v)]))
              (into {})
@@ -48,7 +49,9 @@
     (when-let [new-translations (fetch-translations (:service-base-uri config)
                                                     (:default-parameters config))]
       (reset! translations-by-lang {})
-      (reset! translations new-translations))))
+      (reset! translations new-translations)))
+  (t [this lang key]
+    (get (translations-by-lang this lang) key key)))
 
 (defn localisation [config]
   (->Localisation config))
