@@ -14,7 +14,7 @@
         prod-config-path (or (:config env) "./oph-configuration/config.edn")
         _ (info "Loading configuration from" prod-config-path)
         system (load-system [(io/resource "oti/system.edn") (io/file prod-config-path)] bindings)]
-    (timbre/set-config! logging-config)
+    (timbre/set-config! (logging-config))
     (info "Starting HTTP server on port" (-> system :http :port))
     (add-shutdown-hook ::stop-system (fn []
                                        (info "Shutting down system")

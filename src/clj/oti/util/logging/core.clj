@@ -34,7 +34,7 @@
           "./logs"
           (throw (IllegalStateException. "Could not create local logs directory")))))))
 
-(def logging-config
+(defn logging-config []
   {:level :info
    :appenders {:rolling-audit-log-appender (assoc (rolling-appender {:path (str (logs-path) "/auditlog_oti.log")})
                                                   :ns-whitelist ["fi.vm.sade.auditlog.*"]
