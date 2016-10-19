@@ -222,7 +222,7 @@ WITH pp AS (
     GROUP BY (es.id) HAVING (es.max_participants - COUNT(r.id)) > 0
 )
 INSERT INTO registration (state, exam_session_id, participant_id, language_code)
-  SELECT :state, session.id, pp.id, :language-code FROM pp, session
+  SELECT :state::registration_state, session.id, pp.id, :language-code FROM pp, session
 RETURNING registration.id;
 
 -- name: insert-section-registration!
@@ -245,7 +245,7 @@ INSERT INTO accredited_exam_module (module_id, participant_id)
 SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
 
 -- name: update-registration-state!
-UPDATE registration SET state = :state WHERE id = :id;
+UPDATE registration SET state = :state::registration_state WHERE id = :id;
 
 -- name: select-registrations-for-exam-session
 SELECT
@@ -269,10 +269,10 @@ ORDER BY section_id, module_id;
 
 -- name: insert-payment!
 INSERT INTO payment (created, state, type, registration_id, amount, reference, order_number, paym_call_id) VALUES
-  (:created, 'UNPAID', :type, :registration-id, :amount, :reference, :order-number, :order-number);
+  (:created, 'UNPAID'::payment_state, :type::payment_type, :registration-id, :amount, :reference, :order-number, :order-number);
 
 -- name: update-payment!
-UPDATE payment SET state = :state, ext_reference_id = :external-id WHERE order_number = :order-number;
+UPDATE payment SET state = :state::payment_state, ext_reference_id = :external-id WHERE order_number = :order-number;
 
 -- name: select-next-order-number-suffix
 SELECT nextval('payment_order_number_seq');
