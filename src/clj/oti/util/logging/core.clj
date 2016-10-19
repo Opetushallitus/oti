@@ -37,6 +37,8 @@
 (def logging-config
   {:level :info
    :appenders {:rolling-audit-log-appender (assoc (rolling-appender {:path (str (logs-path) "/auditlog_oti.log")})
-                                                     :ns-whitelist ["fi.vm.sade.auditlog.*"])
+                                                  :ns-whitelist ["fi.vm.sade.auditlog.*"]
+                                                  :output-fn (fn [{:keys [msg_]}]
+                                                               (str (force msg_))))
                :rolling-application-log-appender (assoc (rolling-appender {:path (str (logs-path) "/applicationlog_oti.log")})
                                                         :ns-blacklist ["fi.vm.sade.auditlog.*"])}})
