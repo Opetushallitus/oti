@@ -28,11 +28,11 @@
       (if (.isDirectory (io/file (str app-home "/logs")))
         (str app-home "/logs")
         (throw (IllegalStateException. "Could not determine logs directory")))
-      (if (.isDirectory (io/file "./logs"))
+      (if (.isDirectory (io/file "./logs")) ; In dev-mode use project-root/where-jar-is-run, make dir if necessary
         "./logs"
         (if (.mkdir (io/file "./logs"))
           "./logs"
-          (throw (IllegalStateException. "Could not create local logs directory"))))))) ; In development use project root
+          (throw (IllegalStateException. "Could not create local logs directory")))))))
 
 (def logging-config
   {:level :info
