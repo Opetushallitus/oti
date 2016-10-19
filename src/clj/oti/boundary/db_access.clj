@@ -130,7 +130,8 @@
   (all-participants [db])
   (set-registration-state! [db id new-state])
   (insert-payment! [db params])
-  (update-payment! [db order-number new-state])
+  (update-payment! [db order-number new-state external-id])
+  (confirm-registration-and-payment! [db order-number pay-id])
   (next-order-number! [db]))
 
 (extend-type HikariCP
@@ -197,6 +198,10 @@
     (q/insert-payment! params {:connection spec}))
   (update-payment! [{:keys [spec]} order-number new-state external-id]
     (q/update-payment! {:order-number order-number :state new-state :external-id external-id} {:connection spec}))
+  (confirm-registration-and-payment! [{:keys [spec]} order-number pay-id]
+    (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+      (q/update-payment! {:order-number order-number :state "OK" :external-id pay-id} {:connection tx})
+      (q/confirm-registration-by-payment-order! {:order-number order-number} {:connection tx})))
   (next-order-number! [{:keys [spec]}]
     (-> (q/select-next-order-number-suffix {} {:connection spec})
         first

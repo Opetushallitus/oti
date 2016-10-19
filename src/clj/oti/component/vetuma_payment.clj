@@ -47,6 +47,18 @@
     #:oti.spec{:uri                 vetuma-host
                :payment-form-params (assoc form-params ::os/MAC mac)}))
 
+(def response-keys [:RCVID :TIMESTMP :SO :LG :RETURL :CANURL :ERRURL :PAYID :REF :ORDNR :PAID :STATUS :TRID])
+
+(defn- response-mac-valid? [{:keys [secret]} form-data]
+  (when-let [candidate-mac (:MAC form-data)]
+    (let [plaintext (-> (->> response-keys
+                             (map #(% form-data))
+                             (remove nil?)
+                             (str/join "&"))
+                        (str "&" secret "&"))
+          calculated-mac (-> plaintext DigestUtils/sha256Hex str/upper-case)]
+      (= candidate-mac calculated-mac))))
+
 (defrecord VetumaPayment []
   component/Lifecycle
   (start [this] this)
@@ -54,7 +66,8 @@
   pmt/Payment
   (form-data-for-payment [payment-component params]
     (generate-form-data payment-component params))
-  (validate-response [payment-component form-data]))
+  (authentic-response? [payment-component form-data]
+    (response-mac-valid? payment-component form-data)))
 
 (defn vetuma-payment [config]
   (map->VetumaPayment config))

@@ -274,5 +274,11 @@ INSERT INTO payment (created, state, type, registration_id, amount, reference, o
 -- name: update-payment!
 UPDATE payment SET state = :state::payment_state, ext_reference_id = :external-id WHERE order_number = :order-number;
 
+-- name: confirm-registration-by-payment-order!
+UPDATE registration
+SET state = 'OK'::registration_state
+FROM payment p
+WHERE registration.id = p.registration_id  AND p.order_number = :order-number;
+
 -- name: select-next-order-number-suffix
 SELECT nextval('payment_order_number_seq');

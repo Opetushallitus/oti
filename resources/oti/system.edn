@@ -17,14 +17,14 @@
   :payment oti.endpoint.payment/payment-endpoint}
  :dependencies
  {:http [:app]
-  :app  [:status :frontend :auth :virkailija :participant]
+  :app  [:status :frontend :auth :virkailija :participant :payment]
   :ragtime [:db]
   :status []
   :auth [:authentication :cas :ldap]
   :virkailija [:db :api-client]
   :frontend [:authentication]
   :participant [:db :payments :api-client :localisation :vetuma-payment]
-  :payment [:vetuma-payment]
+  :payment [:vetuma-payment :db]
   :api-client [:cas]}
  :config
  {:app
