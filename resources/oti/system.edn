@@ -20,6 +20,7 @@
   :status []
   :auth [:authentication :cas :ldap]
   :virkailija [:db :api-client]
+  :frontend [:authentication]
   :participant [:db :payments :api-client :localisation]
   :api-client [:cas]
   :localisation []}

@@ -10,7 +10,7 @@
         (content-type "text/html; charset=utf-8")
         (header "Cache-Control" "no-store, must-revalidate"))))
 
-(defn frontend-endpoint [_]
+(defn frontend-endpoint [{:keys [authentication]}]
   (routes
     (GET "/" []
       (redirect "/oti/virkailija"))
@@ -19,7 +19,7 @@
         (redirect "/oti/virkailija"))
       (-> (GET "/virkailija*" []
             (index-response false))
-          (wrap-routes auth/wrap-authorization :redirect))
+          (wrap-routes auth/wrap-authorization :redirect-uri (:oti-login-success-uri authentication)))
       (GET "/ilmoittaudu*" []
         (index-response true))
       (GET "/anmala*" []

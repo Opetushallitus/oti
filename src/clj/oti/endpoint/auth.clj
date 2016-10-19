@@ -15,7 +15,6 @@
 
 (defn- cas-login [cas-config login-callback ldap ticket path]
   (info "validating ticket" ticket)
-  (println login-callback)
   (if-let [username (cas/username-from-valid-service-ticket cas-config login-callback ticket)]
     (if (la/user-has-access? ldap username)
       (do

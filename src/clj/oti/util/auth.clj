@@ -14,9 +14,9 @@
   (let [ticket (-> request :session :identity :ticket)]
     (contains? @cas-tickets ticket)))
 
-(defn wrap-authorization [handler & [redirect?]]
+(defn wrap-authorization [handler & {:keys [redirect-uri]}]
   (fn [request]
     (cond
       (logged-in? request) (handler request)
-      redirect? (resp/redirect (str "/oti/auth/cas?path=" (URLEncoder/encode (:uri request))))
+      redirect-uri (resp/redirect (str redirect-uri "?path=" (URLEncoder/encode (:uri request))))
       :else {:status 401 :body "Unauthorized" :headers {"Content-Type" "text/plain; charset=utf-8"}})))
