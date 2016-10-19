@@ -13,8 +13,8 @@
     (is (= 401 (:status (wrapped-handler {}))))))
 
 (deftest wrap-authorization-with-redirect-works
-  (let [wrapped-handler (wrap-authorization (fn [_] :handled) :redirect)]
-    (is (= {:status 302, :headers {"Location" "/oti/auth/cas?path=%2Foti%2Fvirkailija%2Fhenkilot"}, :body ""}
+  (let [wrapped-handler (wrap-authorization (fn [_] :handled) :redirect-uri "https://oti.local/oti/auth/cas")]
+    (is (= {:status 302, :headers {"Location" "https://oti.local/oti/auth/cas?path=%2Foti%2Fvirkailija%2Fhenkilot"}, :body ""}
            (wrapped-handler {:uri "/oti/virkailija/henkilot"})))))
 
 (deftest login-logout-works
