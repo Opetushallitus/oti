@@ -19,7 +19,7 @@
                  [com.cognitect/transit-clj "0.8.288"]
                  [com.cognitect/transit-cljs "0.8.239"]
                  [ring-middleware-format "0.7.0"]
-                 [duct/hikaricp-component "0.1.0"]
+                 [duct/hikaricp-component "0.1.0" :exclusions [org.slf4j/slf4j-nop]]
                  [org.postgresql/postgresql "9.4.1211"]
                  [ragtime "0.6.3"]
                  [duct/ragtime-component "0.1.4"]

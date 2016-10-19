@@ -8,7 +8,8 @@
             [duct.generate :as gen]
             [duct.util.repl :refer [setup test cljs-repl migrate rollback]]
             [duct.util.system :refer [load-system]]
-            [reloaded.repl :refer [system init start stop go reset]]))
+            [reloaded.repl :refer [system init start stop go reset]]
+            [taoensso.timbre :as timbre]))
 
 (defn new-system []
   (load-system (keep io/resource ["oti/system.edn" "dev.edn" "local.edn"])))
@@ -17,5 +18,8 @@
   (load "local"))
 
 (gen/set-ns-prefix 'oti)
+
+(timbre/merge-config!
+  {:ns-blacklist ["com.zaxxer.hikari.*"]})
 
 (reloaded.repl/set-init! new-system)
