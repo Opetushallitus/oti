@@ -4,9 +4,6 @@
             [oti.boundary.db-access :as dba]
             [oti.component.localisation :as localisation]
             [oti.spec :as os]
-            [ring.util.response :as resp]
-            [cognitect.transit :as transit]
-            [clojure.java.io :as io]
             [taoensso.timbre :refer [error info]]
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
@@ -21,11 +18,11 @@
                     :henkiloTyyppi "OPPIJA"
                     :asiointiKieli {:kieliKoodi (name lang)}}))
 
-(defn- registration-response [status text lang session]
-  (let [url (if (= lang :sv) "/oti/anmala" "/oti/ilmoittaudu")]
-    (-> (resp/redirect url :see-other)
-        (assoc :session (meta-merge session {:participant {:registration-status status
-                                                           :registration-message text}})))))
+(defn- registration-response [status-code text session & [payment-data]]
+  (let [body (cond-> {:registration-message text
+                      :registration-status (if (= 200 status-code) :success :error)}
+                     payment-data (assoc ::os/payment-form-data payment-data))]
+    {:status status-code :body body :session (meta-merge session {:participant body})}))
 
 (defn- valid-module-registration? [{:keys [modules]} reg-modules reg-type]
   (every?
@@ -54,30 +51,30 @@
     {:full (if paid? 0 (-> payments :amounts :full))
      :retry (-> payments :amounts :retry)}))
 
-(defn register [{:keys [db api-client] :as config} {session :session params :params}]
-  (if-let [transit-data (:registration-data params)]
-    (with-open [is (io/input-stream (.getBytes transit-data "UTF-8"))]
-      (let [parsed-data (-> is (transit/reader :json) (transit/read))
-            conformed (s/conform ::os/registration parsed-data)
-            lang (::os/language-code conformed)
-            participant-data (-> session :participant)
-            external-user-id (or (:external-user-id participant-data)
-                                 (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))
-            valid?  (and (not (s/invalid? conformed))
-                         external-user-id
-                         (valid-registration? config external-user-id conformed))
-            price-type (rules/price-type-for-registration conformed)
-            amount (price-type (payment-amounts config external-user-id))
-            reg-state (if (zero? amount) "OK" "INCOMPLETE")]
-        (if valid?
-          (try
-            (dba/register! db conformed external-user-id reg-state)
-            (when (pos? amount)
-              )
-            (registration-response :success "Ilmoittautumisesi on rekisteröity" lang session)
-            (catch Throwable t
-              (error "Error inserting registration")
-              (error t)
-              (registration-response :failure "Ilmoittautumisessa tapahtui odottamaton virhe" lang session)))
-          (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session))))
-    (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)))
+(defn register [{:keys [db api-client] :as config} {session :session registration-data :params}]
+  (let [conformed (s/conform ::os/registration registration-data)
+        lang (::os/language-code conformed)
+        participant-data (-> session :participant)
+        external-user-id (or (:external-user-id participant-data)
+                             (:oidHenkilo (api/get-person-by-hetu api-client (:hetu participant-data)))
+                             (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))
+        valid?  (and (not (s/invalid? conformed))
+                     external-user-id
+                     (valid-registration? config external-user-id conformed))
+        price-type (rules/price-type-for-registration conformed)
+        amount (price-type (payment-amounts config external-user-id))
+        reg-state (if (zero? amount) "OK" "INCOMPLETE")]
+    (if valid?
+      (try
+        (dba/register! db conformed external-user-id reg-state)
+        (when (pos? amount)
+          )
+        (registration-response 200 "Ilmoittautumisesi on rekisteröity" session)
+        (catch Throwable t
+          (error "Error inserting registration")
+          (error t)
+          (registration-response 500 "Ilmoittautumisessa tapahtui odottamaton virhe" session)))
+      (do
+        (error "Invalid registration data. Valid selection:" (valid-registration? config external-user-id conformed)
+               "| Spec errors:" (s/explain-data ::os/registration registration-data))
+        (registration-response 400 "Ilmoittautumistiedot olivat virheelliset" session)))))

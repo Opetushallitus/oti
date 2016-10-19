@@ -1,5 +1,5 @@
 (ns oti.ui.registration.handlers
-  (:require [re-frame.core :as re-frame]
+  (:require [re-frame.core :as re-frame :refer [trim-v debug]]
             [ajax.core :as ajax]
             [oti.routing :as routing]))
 
@@ -41,3 +41,31 @@
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :registration-options]
                   :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
+  :store-registration
+  (fn [_ [_ data]]
+    {:http-xhrio {:method          :post
+                  :uri             (routing/p-a-route "/authenticated/register")
+                  :params          data
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:registration-saved]
+                  :on-failure      [:registration-error]}}))
+
+(re-frame/reg-event-db
+  :registration-saved
+  [trim-v debug]
+  (fn [db [response]]
+    (if-let [payment-form-data (:oti.spec/payment-form-data response)]
+      (update db :participant-data assoc :oti.spec/payment-form-data payment-form-data)
+      (update db :participant-data merge {:registration-status :success
+                                          :registration-message (:registration-message response)}))))
+
+(re-frame/reg-event-db
+  :registration-error
+  [trim-v debug]
+  (fn
+    [db [{:keys [response]}]]
+    (update db :participant-data merge {:registration-status :error
+                                        :registration-message (:registration-message response)})))

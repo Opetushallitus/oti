@@ -85,8 +85,9 @@
       (let [invalids (invalid-keys form-data ::spec/registration)]
         [:div.registration
          (if (pos? (count (:sections @registration-options)))
-           [:form.registration {:method "post" :action (routing/p-a-route "/authenticated/register") :accept-charset "UTF-8"}
-            [:input {:type "hidden" :name "registration-data" :value (serialize-form-data form-data)}]
+           [:form.registration {:on-submit (fn [e]
+                                             (.preventDefault e)
+                                             (re-frame/dispatch [:store-registration @form-data]))}
             [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
             [:div.section.participant
