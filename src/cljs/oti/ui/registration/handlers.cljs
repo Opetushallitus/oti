@@ -1,7 +1,9 @@
 (ns oti.ui.registration.handlers
   (:require [re-frame.core :as re-frame :refer [trim-v debug]]
             [ajax.core :as ajax]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [oti.spec :as os]
+            [cognitect.transit :as transit]))
 
 (re-frame/reg-event-fx
   :set-language
@@ -54,14 +56,14 @@
                   :on-success      [:registration-saved]
                   :on-failure      [:registration-error]}}))
 
-(re-frame/reg-event-db
+(re-frame/reg-event-fx
   :registration-saved
   [trim-v debug]
-  (fn [db [response]]
+  (fn [{:keys [db]} [response]]
     (if-let [payment-form-data (:oti.spec/payment-form-data response)]
-      (update db :participant-data assoc :oti.spec/payment-form-data payment-form-data)
-      (update db :participant-data merge {:registration-status :success
-                                          :registration-message (:registration-message response)}))))
+      {:submit-payment-form payment-form-data}
+      {:db (update db :participant-data merge {:registration-status :success
+                                               :registration-message (:registration-message response)})})))
 
 (re-frame/reg-event-db
   :registration-error
@@ -71,3 +73,20 @@
     (update db :participant-data merge {:registration-status :error
                                         :registration-message (or (:registration-message response)
                                                                   "Ilmoittautumisessa tapahtui odottamaton virhe")})))
+
+(re-frame/reg-fx
+  :submit-payment-form
+  (fn [{::os/keys [uri payment-form-params]}]
+    (let [form (doto (.createElement js/document "form")
+                 (.setAttribute "method" "post")
+                 (.setAttribute "action" uri))]
+      (doseq [[key val] payment-form-params]
+        (->> (doto (.createElement js/document "input")
+               (.setAttribute "type" "hidden")
+               (.setAttribute "name" (name key))
+               (.setAttribute "value" (str (if (transit/bigdec? val)
+                                             (.-rep val)
+                                             val))))
+             (.appendChild form)))
+      (-> js/document .-body (.appendChild form))
+      (.submit form))))

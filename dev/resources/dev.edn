@@ -14,10 +14,10 @@
   :localisation {:service-base-uri "https://itest-virkailija.oph.ware.fi/lokalisointi/cxf/rest/v1/localisation"
                  :default-parameters {:category "oti"}}
   :vetuma-payment {:vetuma-host "https://testitunnistus.suomi.fi/VETUMAPayment/"
-                   :app-id "oti"
-                   :success-uri "http://localhost:3000/oti/vetuma/success"
-                   :cancel-uri "http://localhost:3000/oti/vetuma/cancel"
-                   :error-uri "http://localhost:3000/oti/vetuma/error"
+                   :app-id "oph-oti"
+                   :success-uri "https://oti.local/oti/vetuma/success"
+                   :cancel-uri "https://oti.local/oti/vetuma/cancel"
+                   :error-uri "https://oti.local/oti/vetuma/error"
                    :secret "TESTIASIAKAS11-873C992B8C4C01EC8355500CAA709B37EA43BC2E591ABF29FEE5EAFE4DCBFA35"
                    :ap "TESTIASIAKAS1"
                    :rcvid "TESTIASIAKAS11"}}}

@@ -57,8 +57,8 @@
           :amount amount
           :reference-number (bigdec ref-number)
           :order-number order-number
-          :app-name (loc/t localisation lang "registration-title")
-          :msg (loc/t localisation lang "participation-cost")
+          :app-name (loc/t localisation lang "vetuma-app-name")
+          :msg (loc/t localisation lang "payment-name")
           :payment-id order-number}))
 
 (defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params} type]

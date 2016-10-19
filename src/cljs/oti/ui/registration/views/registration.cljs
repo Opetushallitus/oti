@@ -7,8 +7,7 @@
             [oti.exam-rules :as rules]
             [clojure.string :as str]
             [cljs.spec :as s]
-            [oti.routing :as routing]
-            [cognitect.transit :as transit]))
+            [oti.routing :as routing]))
 
 (defn set-val [form-data key event]
   (let [val (-> event .-target .-value)
@@ -49,10 +48,6 @@
                         (set (conj s id))
                         (disj s id)))]
       (swap! form-data update-in [::spec/sections section-id key] update-fn module-id))))
-
-(defn serialize-form-data [form-data]
-  (let [w (transit/writer :json)]
-    (transit/write w @form-data)))
 
 (defn attending-ids [form-data]
   (reduce
