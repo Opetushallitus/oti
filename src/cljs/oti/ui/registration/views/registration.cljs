@@ -87,7 +87,7 @@
          (if (pos? (count (:sections @registration-options)))
            [:form.registration {:on-submit (fn [e]
                                              (.preventDefault e)
-                                             (re-frame/dispatch [:store-registration @form-data]))}
+                                             (re-frame/dispatch [:store-registration @form-data @lang]))}
             [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
             [:div.section.participant

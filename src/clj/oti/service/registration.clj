@@ -2,12 +2,14 @@
   (:require [clojure.spec :as s]
             [clojure.string :as str]
             [oti.boundary.db-access :as dba]
-            [oti.component.localisation :as localisation]
+            [oti.component.localisation :as loc]
             [oti.spec :as os]
             [taoensso.timbre :refer [error info]]
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
-            [oti.exam-rules :as rules]))
+            [oti.exam-rules :as rules]
+            [oti.boundary.payment :as payment-util])
+  (:import [java.time LocalDateTime]))
 
 (defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} preferred-name lang]
   (api/add-person! api-client
@@ -46,12 +48,34 @@
                   (valid-module-registration? sect accredit-modules :accredit))))
             sections)))
 
+(defn- payment-params [{:keys [db localisation]} external-user-id amount lang]
+  (let [ref-number (-> (str/split external-user-id #"\.") last)
+        order-suffix (dba/next-order-number! db)
+        order-number (str "OTI" ref-number order-suffix)]
+    #::os{:timestamp (LocalDateTime/now)
+          :language-code lang
+          :amount amount
+          :reference-number (bigdec ref-number)
+          :order-number order-number
+          :app-name (loc/t localisation lang "registration-title")
+          :msg (loc/t localisation lang "participation-cost")
+          :payment-id order-number}))
+
+(defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params} type]
+  (when params
+    {:created timestamp,
+     :type (if (= type :full) "FULL" "PARTIAL")
+     :amount amount
+     :reference reference-number
+     :order-number order-number
+     :payment-id payment-id}))
+
 (defn payment-amounts [{:keys [payments db]} external-user-id]
   (let [paid? (and external-user-id (pos? (dba/valid-full-payments-for-user db external-user-id)))]
     {:full (if paid? 0 (-> payments :amounts :full))
      :retry (-> payments :amounts :retry)}))
 
-(defn register [{:keys [db api-client] :as config} {session :session registration-data :params}]
+(defn register [{:keys [db api-client vetuma-payment] :as config} {session :session {:keys [registration-data ui-lang]} :params}]
   (let [conformed (s/conform ::os/registration registration-data)
         lang (::os/language-code conformed)
         participant-data (-> session :participant)
@@ -66,10 +90,11 @@
         reg-state (if (zero? amount) "OK" "INCOMPLETE")]
     (if valid?
       (try
-        (dba/register! db conformed external-user-id reg-state)
-        (when (pos? amount)
-          )
-        (registration-response 200 "Ilmoittautumisesi on rekisteröity" session)
+        (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
+              db-pmt (payment-params->db-payment pmt price-type)
+              payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))]
+          (dba/register! db conformed external-user-id reg-state db-pmt)
+          (registration-response 200 "Ilmoittautumisesi on rekisteröity" session payment-form-data))
         (catch Throwable t
           (error "Error inserting registration")
           (error t)

@@ -269,7 +269,7 @@ ORDER BY section_id, module_id;
 
 -- name: insert-payment!
 INSERT INTO payment (created, state, type, registration_id, amount, reference, order_number, paym_call_id) VALUES
-  (:created, 'UNPAID'::payment_state, :type::payment_type, :registration-id, :amount, :reference, :order-number, :order-number);
+  (:created, 'UNPAID'::payment_state, :type::payment_type, :registration-id, :amount, :reference, :order-number, :payment-id);
 
 -- name: update-payment!
 UPDATE payment SET state = :state::payment_state, ext_reference_id = :external-id WHERE order_number = :order-number;

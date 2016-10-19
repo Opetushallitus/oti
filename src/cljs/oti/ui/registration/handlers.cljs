@@ -44,10 +44,11 @@
 
 (re-frame/reg-event-fx
   :store-registration
-  (fn [_ [_ data]]
+  (fn [_ [_ data ui-lang]]
     {:http-xhrio {:method          :post
                   :uri             (routing/p-a-route "/authenticated/register")
-                  :params          data
+                  :params          {:registration-data data
+                                    :ui-lang (name ui-lang)}
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:registration-saved]
@@ -68,4 +69,5 @@
   (fn
     [db [{:keys [response]}]]
     (update db :participant-data merge {:registration-status :error
-                                        :registration-message (:registration-message response)})))
+                                        :registration-message (or (:registration-message response)
+                                                                  "Ilmoittautumisessa tapahtui odottamaton virhe")})))

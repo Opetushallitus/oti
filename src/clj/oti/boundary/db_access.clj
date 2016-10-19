@@ -89,27 +89,29 @@
 (defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state]
   (let [conn {:connection tx}]
     (q/insert-participant! {:external-user-id external-user-id :email email} conn)
+    (doseq [[section-id _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
+      (q/insert-section-accreditation! {:section-id section-id :external-user-id external-user-id} conn))
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
         (if-let [reg-id (:id (q/insert-registration<! {:session-id session-id
                                                        :external-user-id external-user-id
                                                        :state state
                                                        :language-code (name language-code)} conn))]
-          (doseq [[section-id opts] registarable-sections]
-            (let [params {:section-id section-id
-                          :external-user-id external-user-id
-                          :registration-id reg-id}]
-              (q/insert-section-registration! params conn)
-              (let [all-modules (->> (q/select-modules-for-section params conn) (map :id) set)
-                    register-modules (or (seq (::spec/retry-modules opts))
-                                         (cs/difference all-modules (::spec/accredit-modules opts)))]
-                (doseq [module-id register-modules]
-                  (q/insert-module-registration! (assoc params :module-id module-id) conn))
-                (doseq [module-id (::spec/accredit-modules opts)]
-                  (q/insert-module-accreditation! (assoc params :module-id module-id) conn)))))
-          (throw (Exception. "No registeration id received.")))))
-    (doseq [[section-id _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
-      (q/insert-section-accreditation! {:section-id section-id :external-user-id external-user-id} conn))))
+          (do
+            (doseq [[section-id opts] registarable-sections]
+              (let [params {:section-id       section-id
+                            :external-user-id external-user-id
+                            :registration-id  reg-id}]
+                (q/insert-section-registration! params conn)
+                (let [all-modules (->> (q/select-modules-for-section params conn) (map :id) set)
+                      register-modules (or (seq (::spec/retry-modules opts))
+                                           (cs/difference all-modules (::spec/accredit-modules opts)))]
+                  (doseq [module-id register-modules]
+                    (q/insert-module-registration! (assoc params :module-id module-id) conn))
+                  (doseq [module-id (::spec/accredit-modules opts)]
+                    (q/insert-module-accreditation! (assoc params :module-id module-id) conn)))))
+            reg-id)
+          (throw (Exception. "No registeration id received.")))))))
 
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
@@ -120,7 +122,7 @@
   (exam-session [db id])
   (sections-and-modules-available-for-user [db external-user-id])
   (valid-full-payments-for-user [db external-user-id])
-  (register! [db registration-data external-user-id state])
+  (register! [db registration-data external-user-id state payment-data])
   (registrations-for-session [db exam-session])
   (section-and-module-names [db])
   (participant-by-ext-id [db external-user-id])
@@ -157,9 +159,12 @@
     (-> (q/select-valid-payment-count-for-user {:external-user-id external-user-id} {:connection spec})
         first
         :count))
-  (register! [{:keys [spec]} registration-data external-user-id state]
+  (register! [{:keys [spec]} registration-data external-user-id state payment-data]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-      (store-registration! tx registration-data external-user-id state)))
+      (let [reg-id (store-registration! tx registration-data external-user-id state)]
+        (when payment-data
+          (-> (assoc payment-data :registration-id reg-id)
+              (q/insert-payment! {:connection tx}))))))
   (registrations-for-session [{:keys [spec]} exam-session-id]
     (->> (q/select-registrations-for-exam-session {:exam-session-id exam-session-id} {:connection spec})
          (partition-by :id)
@@ -193,4 +198,6 @@
   (update-payment! [{:keys [spec]} order-number new-state external-id]
     (q/update-payment! {:order-number order-number :state new-state :external-id external-id} {:connection spec}))
   (next-order-number! [{:keys [spec]}]
-    (q/select-next-order-number-suffix {} {:connection spec})))
+    (-> (q/select-next-order-number-suffix {} {:connection spec})
+        first
+        :nextval)))
