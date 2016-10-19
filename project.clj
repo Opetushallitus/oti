@@ -2,6 +2,8 @@
   :description "Opetushallinnon tutkintoon ilmoittautuminen"
   :url "http://www.oph.fi/koulutus_ja_tutkinnot/opetushallinnon_tutkinto"
   :min-lein-version "2.0.0"
+  :repositories [["oph-sade-releases" "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local"]
+                 ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
   :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
                  [org.clojure/tools.reader "1.0.0-beta3"]
                  [org.clojure/core.async "0.2.391"]
@@ -25,7 +27,6 @@
                  [http-kit "2.2.0"]
                  [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
-                 [com.taoensso/timbre "4.7.4"]
                  [org.clojars.mpenttila/yesql "0.6.1"]
                  [ring-logger "0.7.6"]
                  [org.clojure/core.cache "0.6.5"]
@@ -40,12 +41,20 @@
                  [secretary "1.2.3"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
                  [cljsjs/moment "2.10.6-4"]
-                 [cljs-pikaday "0.1.3"]]
+                 [cljs-pikaday "0.1.3"]
+
+                 ;; Logging
+                 [com.taoensso/timbre "4.7.4"]
+                 [com.fzakaria/slf4j-timbre "0.3.2"]
+
+                 [fi.vm.sade/auditlogger "5.0.0-SNAPSHOT"]]
+
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
             [lein-figwheel "0.5.7"]
             [test2junit "1.2.2"]
             [lein-less "1.7.5"]]
+
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
   :source-paths ["src/clj" "src/cljc"]

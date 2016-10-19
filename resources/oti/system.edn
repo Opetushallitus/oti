@@ -32,7 +32,7 @@
      :ring-defaults  ring.middleware.defaults/wrap-defaults
      :session        oti.util.session/wrap-session
      :restful-format ring.middleware.format/wrap-restful-format
-     :ring-logger    oti.util.logging/wrap-with-logger
+     :ring-logger    oti.util.logging.core/wrap-with-logger
      }
     :applied
     [:not-found :restful-format :ring-defaults :ring-logger :hide-errors :session]
