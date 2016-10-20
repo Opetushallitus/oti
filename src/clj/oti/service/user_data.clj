@@ -51,7 +51,8 @@
            (let [modules (->> (partition-by :module_id session-rows)
                               (map #(sec-or-mod-props "module" %))
                               (remove :accreditation-requested?))
-                 {:keys [session_date start_time end_time city street_address other_location_info exam_session_id]} (first session-rows)]
+                 {:keys [session_date start_time end_time city street_address
+                         other_location_info exam_session_id registration_state]} (first session-rows)]
              (when session_date
                (-> (select-keys (sec-or-mod-props "section" session-rows) [:score-ts :accepted])
                    (merge
@@ -62,14 +63,15 @@
                       :session-id exam_session_id
                       :street-address street_address
                       :city city
-                      :other-location-info other_location_info}))))))
+                      :other-location-info other_location_info
+                      :registration-state registration_state}))))))
        (remove nil?)))
 
 (defn- group-by-section [participant-rows]
   (->> (partition-by :section_id participant-rows)
        (map
          (fn [section-rows]
-           (let [accreditated-modules (->> (partition-by :module_id section-rows)
+           (let [accredited-modules (->> (partition-by :module_id section-rows)
                                            (map #(sec-or-mod-props "module" %))
                                            (filter :accreditation-requested?))
                  sessions (group-by-session section-rows)
@@ -82,8 +84,18 @@
              (-> (sec-or-mod-props "section" section-rows)
                  (select-keys [:id :name :accreditation-requested? :accreditation-date])
                  (assoc :sessions sessions
-                        :accredited-modules accreditated-modules
+                        :accredited-modules accredited-modules
                         :module-titles module-titles)))))))
+
+(defn- payments [participant-rows]
+  (->> (partition-by :payment_id participant-rows)
+       (map
+         (fn [payment-rows]
+           (let [{:keys [payment_id amount payment_state payment_created]} (first payment-rows)]
+             {:id payment_id
+              :amount amount
+              :state payment_state
+              :created payment_created})))))
 
 (defn participant-data [{:keys [db api-client]} id]
   (when-let [db-data (seq (dba/participant-by-id db id))]
@@ -93,4 +105,5 @@
       (merge
         api-data
         (select-keys (first db-data) [:id :email])
-        {:sections (group-by-section db-data)}))))
+        {:sections (group-by-section db-data)
+         :payments (payments db-data)}))))

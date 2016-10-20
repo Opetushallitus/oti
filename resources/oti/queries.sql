@@ -196,7 +196,7 @@ SELECT p.id, p.ext_reference_id, email, s.id AS section_id, st.name AS section_n
   aem.module_id AS module_accreditation, aem.accreditation_date AS module_accreditation_date,
   es.id AS exam_session_id, es.session_date, es.start_time, es.end_time, recs.id AS section_registration,
   recm.id AS module_registration, pm.created AS payment_created, est.city, est.street_address, est.other_location_info,
-  r.state AS registration_state, pm.amount, pm.state AS payment_state
+  r.state AS registration_state, pm.id AS payment_id, pm.amount, pm.state AS payment_state
 FROM participant p
   LEFT JOIN section s ON s.exam_id = 1
   LEFT JOIN section_translation st ON s.id = st.section_id AND st.language_code = 'fi'
