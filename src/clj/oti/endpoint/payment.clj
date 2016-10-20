@@ -1,10 +1,11 @@
 (ns oti.endpoint.payment
   (:require [compojure.core :refer :all]
-            [oti.boundary.payment :as payment-util]
+            [oti.boundary.payment :as payment-api]
             [oti.boundary.db-access :as dba]
             [taoensso.timbre :refer [error]]
             [ring.util.response :as resp]
-            [oti.component.localisation :refer [t]]))
+            [oti.component.localisation :refer [t]]
+            [oti.service.payment :as payment-service]))
 
 (defn- registration-response [status text {:keys [participant] :as session} & [lang]]
   (let [body (cond-> {:registration-message text
@@ -15,14 +16,11 @@
     (-> (resp/redirect url :see-other)
         (assoc :session (assoc session :participant new-participant)))))
 
-(defn- confirm-payment [{:keys [vetuma-payment db localisation]} {:keys [params session]}]
-  (let [{order-number :ORDNR pay-id :PAYID lang :LG} params]
-    (if (and (payment-util/authentic-response? vetuma-payment params) order-number pay-id)
-      (do (dba/confirm-registration-and-payment! db order-number pay-id)
-          (registration-response :success (t localisation lang "registration-complete") session lang))
-      (do
-        (error "Could not verify payment response message:" params)
-        (registration-response :error (t localisation (or lang :fi) "registration-payment-error") session)))))
+(defn- confirm-payment [{:keys [localisation] :as config} {:keys [params session]}]
+  (let [{lang :LG} params]
+    (if (payment-service/confirm-payment! config params)
+      (registration-response :success (t localisation lang "registration-complete") session lang)
+      (registration-response :error (t localisation (or lang :fi) "registration-payment-error") session))))
 
 (defn payment-endpoint [{:keys [localisation] :as config}]
   (context "/oti/vetuma" []

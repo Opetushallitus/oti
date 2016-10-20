@@ -272,7 +272,9 @@ INSERT INTO payment (created, state, type, registration_id, amount, reference, o
   (:created, 'UNPAID'::payment_state, :type::payment_type, :registration-id, :amount, :reference, :order-number, :payment-id);
 
 -- name: update-payment!
-UPDATE payment SET state = :state::payment_state, ext_reference_id = :external-id WHERE order_number = :order-number;
+UPDATE payment
+SET state = :state::payment_state, ext_reference_id = :pay-id, ext_archiving_id = :archive-id, payment_method = :payment-method
+WHERE order_number = :order-number;
 
 -- name: confirm-registration-by-payment-order!
 UPDATE registration
