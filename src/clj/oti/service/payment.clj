@@ -20,3 +20,6 @@
 
 (defn cancel-payment! [config form-data]
   (process-response! config form-data dba/cancel-registration-and-payment!))
+
+(defn poll-status-for-incomplete-payments []
+  )
