@@ -113,6 +113,11 @@
             reg-id)
           (throw (Exception. "No registeration id received.")))))))
 
+(defn- update-payment-and-registration-state! [spec params payment-state registration-state]
+  (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+    (q/update-payment! (assoc params :state payment-state) {:connection tx})
+    (q/update-registration-state-by-payment-order! (assoc params :state registration-state) {:connection tx})))
+
 (defprotocol DbAccess
   (upcoming-exam-sessions [db])
   (add-exam-session! [db exam-session])
@@ -132,6 +137,7 @@
   (insert-payment! [db params])
   (update-payment! [db order-number new-state external-id])
   (confirm-registration-and-payment! [db params])
+  (cancel-registration-and-payment! [db params])
   (next-order-number! [db]))
 
 (extend-type HikariCP
@@ -199,9 +205,9 @@
   (update-payment! [{:keys [spec]} order-number new-state external-id]
     (q/update-payment! {:order-number order-number :state new-state :external-id external-id} {:connection spec}))
   (confirm-registration-and-payment! [{:keys [spec]} params]
-    (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-      (q/update-payment! (assoc params :state "OK") {:connection tx})
-      (q/confirm-registration-by-payment-order! params {:connection tx})))
+    (update-payment-and-registration-state! spec params "OK" "OK"))
+  (cancel-registration-and-payment! [{:keys [spec]} params]
+    (update-payment-and-registration-state! spec params "ERROR" "ERROR"))
   (next-order-number! [{:keys [spec]}]
     (-> (q/select-next-order-number-suffix {} {:connection spec})
         first

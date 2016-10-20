@@ -276,9 +276,9 @@ UPDATE payment
 SET state = :state::payment_state, ext_reference_id = :pay-id, ext_archiving_id = :archive-id, payment_method = :payment-method
 WHERE order_number = :order-number;
 
--- name: confirm-registration-by-payment-order!
+-- name: update-registration-state-by-payment-order!
 UPDATE registration
-SET state = 'OK'::registration_state
+SET state = :state::registration_state
 FROM payment p
 WHERE registration.id = p.registration_id  AND p.order_number = :order-number;
 

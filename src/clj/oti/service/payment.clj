@@ -3,22 +3,20 @@
             [oti.boundary.payment :as payment-util]
             [taoensso.timbre :refer [error]]))
 
-(defn confirm-payment! [{:keys [vetuma-payment db]} form-data]
+(defn- process-response! [{:keys [vetuma-payment db]} form-data db-fn]
   (let [db-params {:order-number (:ORDNR form-data)
                    :pay-id (:PAYID form-data)
                    :archive-id (:PAID form-data)
                    :payment-method (:SO form-data)}]
     (if (and (payment-util/authentic-response? vetuma-payment form-data) (:order-number db-params))
-      (do (dba/confirm-registration-and-payment! db db-params)
+      (do (db-fn db db-params)
           true)
       (do
         (error "Could not verify payment response message:" form-data)
         false))))
 
-(defn cancel-payment [{:keys [vetuma-payment db]} form-data]
-  (let [{order-number :ORDNR} form-data]
-    (if (and (payment-util/authentic-response? vetuma-payment form-data) order-number)
-      true
-      (do
-        (error "Could not verify payment response message:" form-data)
-        false))))
+(defn confirm-payment! [config form-data]
+  (process-response! config form-data dba/confirm-registration-and-payment!))
+
+(defn cancel-payment! [config form-data]
+  (process-response! config form-data dba/cancel-registration-and-payment!))

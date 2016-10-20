@@ -22,11 +22,18 @@
       (registration-response :success (t localisation lang "registration-complete") session lang)
       (registration-response :error (t localisation (or lang :fi) "registration-payment-error") session))))
 
+(defn- cancel-payment [{:keys [localisation] :as config} {:keys [params session]} cancellation?]
+  (let [{lang :LG} params
+        t-key (if cancellation? "registration-payment-cancel" "registration-payment-error")]
+    (if (payment-service/cancel-payment! config params)
+      (registration-response :error (t localisation lang t-key) session lang)
+      (registration-response :error (t localisation (or lang :fi) "registration-payment-error") session))))
+
 (defn payment-endpoint [{:keys [localisation] :as config}]
   (context "/oti/vetuma" []
     (POST "/success" request
       (confirm-payment config request))
-    (POST "/error" {session :session}
-      (registration-response :error (t localisation :fi "registration-payment-error") session))
-    (POST "/cancel" {session :session}
-      (registration-response :error (t localisation :fi "registration-payment-cancel") session))))
+    (POST "/error" request
+      (cancel-payment config request false))
+    (POST "/cancel" request
+      (cancel-payment config request :cancellation?))))
