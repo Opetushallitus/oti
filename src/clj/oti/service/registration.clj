@@ -8,7 +8,8 @@
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
             [oti.exam-rules :as rules]
-            [oti.boundary.payment :as payment-util])
+            [oti.boundary.payment :as payment-util]
+            [oti.component.localisation :refer [t]])
   (:import [java.time LocalDateTime]))
 
 (defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} preferred-name lang]
@@ -75,7 +76,8 @@
     {:full (if paid? 0 (-> payments :amounts :full))
      :retry (-> payments :amounts :retry)}))
 
-(defn register [{:keys [db api-client vetuma-payment] :as config} {session :session {:keys [registration-data ui-lang]} :params}]
+(defn register [{:keys [db api-client vetuma-payment localisation] :as config}
+                {session :session {:keys [registration-data ui-lang]} :params}]
   (let [conformed (s/conform ::os/registration registration-data)
         lang (::os/language-code conformed)
         participant-data (-> session :participant)
@@ -92,14 +94,15 @@
       (try
         (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
               db-pmt (payment-params->db-payment pmt price-type)
-              payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))]
+              payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
+              msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")]
           (dba/register! db conformed external-user-id reg-state db-pmt)
-          (registration-response 200 "Ilmoittautumisesi on rekisteröity" session payment-form-data))
+          (registration-response 200 (t localisation ui-lang msg-key) session payment-form-data))
         (catch Throwable t
           (error "Error inserting registration")
           (error t)
-          (registration-response 500 "Ilmoittautumisessa tapahtui odottamaton virhe" session)))
+          (registration-response 500 (t localisation ui-lang "registration-unknown-error") session)))
       (do
         (error "Invalid registration data. Valid selection:" (valid-registration? config external-user-id conformed)
                "| Spec errors:" (s/explain-data ::os/registration registration-data))
-        (registration-response 400 "Ilmoittautumistiedot olivat virheelliset" session)))))
+        (registration-response 400 (t localisation (or ui-lang :fi) "registration-invalid-data") session)))))

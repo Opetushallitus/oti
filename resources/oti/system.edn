@@ -24,7 +24,7 @@
   :virkailija [:db :api-client]
   :frontend [:authentication]
   :participant [:db :payments :api-client :localisation :vetuma-payment]
-  :payment [:vetuma-payment :db]
+  :payment [:vetuma-payment :db :localisation]
   :api-client [:cas]}
  :config
  {:app
