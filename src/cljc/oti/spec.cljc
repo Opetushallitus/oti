@@ -202,3 +202,21 @@
 
 (s/def ::payment-form-data (s/keys :req [::uri
                                          ::payment-form-params]))
+
+(s/def ::payment-query-params (s/keys :req [::RCVID
+                                            ::APPID
+                                            ::TIMESTMP
+                                            ::SO
+                                            ::SOLIST
+                                            ::TYPE
+                                            ::AU
+                                            ::LG
+                                            ::RETURL
+                                            ::CANURL
+                                            ::ERRURL
+                                            ::AP
+                                            ::MAC
+                                            ::PAYM_CALL_ID]))
+
+(s/def ::payment-query-data (s/keys :req [::uri
+                                          ::payment-query-params]))

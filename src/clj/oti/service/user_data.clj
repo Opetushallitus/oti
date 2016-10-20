@@ -92,10 +92,12 @@
        (map
          (fn [payment-rows]
            (let [{:keys [payment_id amount payment_state payment_created]} (first payment-rows)]
-             {:id payment_id
-              :amount amount
-              :state payment_state
-              :created payment_created})))))
+             (when payment_id
+               {:id payment_id
+                :amount amount
+                :state payment_state
+                :created payment_created}))))
+       (remove nil?)))
 
 (defn participant-data [{:keys [db api-client]} id]
   (when-let [db-data (seq (dba/participant-by-id db id))]

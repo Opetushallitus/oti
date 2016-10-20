@@ -133,12 +133,11 @@
   (participant-by-ext-id [db external-user-id])
   (participant-by-id [db id])
   (all-participants [db])
-  (set-registration-state! [db id new-state])
-  (insert-payment! [db params])
-  (update-payment! [db order-number new-state external-id])
   (confirm-registration-and-payment! [db params])
   (cancel-registration-and-payment! [db params])
-  (next-order-number! [db]))
+  (cancel-registration-and-unknown-payment! [db order-number])
+  (next-order-number! [db])
+  (unpaid-payments [db]))
 
 (extend-type HikariCP
   DbAccess
@@ -198,17 +197,19 @@
     (q/select-participant-by-id {:id id} {:connection spec}))
   (all-participants [{:keys [spec]}]
     (q/select-all-participants {} {:connection spec}))
-  (set-registration-state! [{:keys [spec]} id new-state]
-    (q/update-registration-state! {:state new-state :id id} {:connection spec}))
-  (insert-payment! [{:keys [spec]} params]
-    (q/insert-payment! params {:connection spec}))
-  (update-payment! [{:keys [spec]} order-number new-state external-id]
-    (q/update-payment! {:order-number order-number :state new-state :external-id external-id} {:connection spec}))
   (confirm-registration-and-payment! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params "OK" "OK"))
   (cancel-registration-and-payment! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params "ERROR" "ERROR"))
+  (cancel-registration-and-unknown-payment! [{:keys [spec]} order-number]
+    (let [params {:order-number order-number
+                  :state "ERROR"}]
+      (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+        (q/update-payment-state! params {:connection tx})
+        (q/update-registration-state-by-payment-order! params {:connection tx}))))
   (next-order-number! [{:keys [spec]}]
     (-> (q/select-next-order-number-suffix {} {:connection spec})
         first
-        :nextval)))
+        :nextval))
+  (unpaid-payments [{:keys [spec]}]
+    (q/select-unpaid-payments {} {:connection spec})))

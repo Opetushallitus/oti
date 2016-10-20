@@ -278,6 +278,11 @@ UPDATE payment
 SET state = :state::payment_state, ext_reference_id = :pay-id, ext_archiving_id = :archive-id, payment_method = :payment-method
 WHERE order_number = :order-number;
 
+-- name: update-payment-state!
+UPDATE payment
+SET state = :state::payment_state
+WHERE order_number = :order-number;
+
 -- name: update-registration-state-by-payment-order!
 UPDATE registration
 SET state = :state::registration_state
@@ -286,3 +291,6 @@ WHERE registration.id = p.registration_id  AND p.order_number = :order-number;
 
 -- name: select-next-order-number-suffix
 SELECT nextval('payment_order_number_seq');
+
+-- name: select-unpaid-payments
+SELECT id, paym_call_id, order_number, created FROM payment WHERE state = 'UNPAID'::payment_state;
