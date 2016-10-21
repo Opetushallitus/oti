@@ -21,11 +21,16 @@
                     :henkiloTyyppi "OPPIJA"
                     :asiointiKieli {:kieliKoodi (name lang)}}))
 
-(defn- registration-response [status-code text session & [payment-data]]
-  (let [body (cond-> {:registration-message text
-                      :registration-status (if (= 200 status-code) :success :error)}
-                     payment-data (assoc ::os/payment-form-data payment-data))]
-    {:status status-code :body body :session (meta-merge session {:participant body})}))
+(defn- registration-response
+  ([status-code status text session]
+    (registration-response status-code status text session nil nil))
+  ([status-code status text session registration-id payment-data]
+   (let [session-data {:registration-message text
+                       :registration-status status
+                       :registration-id registration-id}
+         body (cond-> session-data
+                      payment-data (assoc ::os/payment-form-data payment-data))]
+     {:status status-code :body body :session (meta-merge session {:participant session-data})})))
 
 (defn- valid-module-registration? [{:keys [modules]} reg-modules reg-type]
   (every?
@@ -71,19 +76,30 @@
      :order-number order-number
      :payment-id payment-id}))
 
+(defn- db-payment->payment-params [localisation {:keys [created amount reference order_number paym_call_id]} ui-lang]
+  #::os{:timestamp (.toLocalDateTime created)
+        :language-code (keyword ui-lang)
+        :amount amount
+        :reference-number reference
+        :order-number order_number
+        :app-name (loc/t localisation ui-lang "vetuma-app-name")
+        :msg (loc/t localisation ui-lang "payment-name")
+        :payment-id paym_call_id})
+
 (defn payment-amounts [{:keys [payments db]} external-user-id]
   (let [paid? (and external-user-id (pos? (dba/valid-full-payments-for-user db external-user-id)))]
     {:full (if paid? 0 (-> payments :amounts :full))
      :retry (-> payments :amounts :retry)}))
 
-(defn register [{:keys [db api-client vetuma-payment localisation] :as config}
-                {session :session {:keys [registration-data ui-lang]} :params}]
+(defn register! [{:keys [db api-client vetuma-payment localisation] :as config}
+                 {old-session :session {:keys [registration-data ui-lang]} :params}]
   (let [conformed (s/conform ::os/registration registration-data)
         lang (::os/language-code conformed)
-        participant-data (-> session :participant)
+        participant-data (-> old-session :participant)
         external-user-id (or (:external-user-id participant-data)
                              (:oidHenkilo (api/get-person-by-hetu api-client (:hetu participant-data)))
                              (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))
+        session (assoc-in old-session [:participant :external-user-id] external-user-id)
         valid?  (and (not (s/invalid? conformed))
                      external-user-id
                      (valid-registration? config external-user-id conformed))
@@ -95,14 +111,30 @@
         (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
               db-pmt (payment-params->db-payment pmt price-type)
               payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
-              msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")]
-          (dba/register! db conformed external-user-id reg-state db-pmt)
-          (registration-response 200 (t localisation ui-lang msg-key) session payment-form-data))
+              msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
+              status (if (pos? amount) :pending :success)
+              registration-id (dba/register! db conformed external-user-id reg-state db-pmt)]
+          (registration-response 200 status (t localisation ui-lang msg-key) session registration-id payment-form-data))
         (catch Throwable t
           (error "Error inserting registration")
           (error t)
-          (registration-response 500 (t localisation ui-lang "registration-unknown-error") session)))
+          (registration-response 500 :error (t localisation ui-lang "registration-unknown-error") session)))
       (do
         (error "Invalid registration data. Valid selection:" (valid-registration? config external-user-id conformed)
                "| Spec errors:" (s/explain-data ::os/registration registration-data))
-        (registration-response 400 (t localisation (or ui-lang :fi) "registration-invalid-data") session)))))
+        (registration-response 400 :error (t localisation (or ui-lang :fi) "registration-invalid-data") session)))))
+
+(defn payment-data-for-retry [{:keys [db localisation vetuma-payment]}
+                              {{:keys [registration-id registration-status]} :participant :as session}
+                              ui-lang]
+  (if (= :pending registration-status)
+    (if-let [db-pmt (dba/unpaid-payment-by-registration db registration-id)]
+      (->> (db-payment->payment-params localisation db-pmt ui-lang)
+           (payment-util/form-data-for-payment vetuma-payment)
+           (registration-response 200 :pending (t localisation ui-lang "registration-payment-pending") session registration-id))
+      (do
+        (error "Tried to retry payment for registration" registration-id "but matching payment was not found")
+        (registration-response 404 :error (t localisation ui-lang "registration-payment-expired") session)))
+    (do
+      (error "Tried to retry payment for registration" registration-id "but it's status is not pending")
+      (registration-response 400 :error (t localisation ui-lang "registration-unknown-error") session))))

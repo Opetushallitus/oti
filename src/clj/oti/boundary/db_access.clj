@@ -137,7 +137,9 @@
   (cancel-registration-and-payment! [db params])
   (cancel-registration-and-unknown-payment! [db order-number])
   (next-order-number! [db])
-  (unpaid-payments [db]))
+  (unpaid-payments [db])
+  (unpaid-payments-by-participant [db external-user-id])
+  (unpaid-payment-by-registration [db registration-id]))
 
 (extend-type HikariCP
   DbAccess
@@ -170,7 +172,8 @@
       (let [reg-id (store-registration! tx registration-data external-user-id state)]
         (when payment-data
           (-> (assoc payment-data :registration-id reg-id)
-              (q/insert-payment! {:connection tx}))))))
+              (q/insert-payment! {:connection tx})))
+        reg-id)))
   (registrations-for-session [{:keys [spec]} exam-session-id]
     (->> (q/select-registrations-for-exam-session {:exam-session-id exam-session-id} {:connection spec})
          (partition-by :id)
@@ -212,4 +215,9 @@
         first
         :nextval))
   (unpaid-payments [{:keys [spec]}]
-    (q/select-unpaid-payments {} {:connection spec})))
+    (q/select-unpaid-payments {} {:connection spec}))
+  (unpaid-payments-by-participant [{:keys [spec]} external-user-id]
+    (q/select-unpaid-payments-by-participant {:external-user-id external-user-id} {:connection spec}))
+  (unpaid-payment-by-registration [{:keys [spec]} registration-id]
+    (-> (q/select-unpaid-payment-by-registration-id {:registration-id registration-id} {:connection spec})
+        first)))

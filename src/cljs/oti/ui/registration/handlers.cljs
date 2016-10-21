@@ -23,6 +23,7 @@
     {:http-xhrio {:method          :get
                   :uri             (routing/p-a-route "/authenticated/participant-data")
                   :response-format (ajax/transit-response-format)
+                  :params          {:lang "fi"}
                   :on-success      [:store-response-to-db :participant-data]
                   :on-failure      [:bad-response]}}))
 
@@ -57,8 +58,18 @@
                   :on-failure      [:registration-error]}}))
 
 (re-frame/reg-event-fx
+  :retry-payment
+  (fn [_ [_ lang]]
+    {:http-xhrio {:method          :get
+                  :uri             (routing/p-a-route "/authenticated/payment-form-data")
+                  :params          {:lang (name lang)}
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:registration-saved]
+                  :on-failure      [:registration-error]}}))
+
+(re-frame/reg-event-fx
   :registration-saved
-  [trim-v debug]
+  [trim-v]
   (fn [{:keys [db]} [response]]
     (if-let [payment-form-data (:oti.spec/payment-form-data response)]
       {:submit-payment-form payment-form-data}
@@ -67,7 +78,7 @@
 
 (re-frame/reg-event-db
   :registration-error
-  [trim-v debug]
+  [trim-v]
   (fn
     [db [{:keys [response]}]]
     (update db :participant-data merge {:registration-status :error
