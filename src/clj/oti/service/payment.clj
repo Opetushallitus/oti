@@ -7,11 +7,15 @@
   (:import [java.time LocalDateTime]
            [java.net URLEncoder URLDecoder]))
 
+(defn- blank->nil [s]
+  (when-not (str/blank? s)
+    s))
+
 (defn- process-response! [{:keys [vetuma-payment db]} form-data db-fn]
   (let [db-params {:order-number (:ORDNR form-data)
-                   :pay-id (:PAYID form-data)
-                   :archive-id (:PAID form-data)
-                   :payment-method (:SO form-data)}]
+                   :pay-id (blank->nil (:PAYID form-data))
+                   :archive-id (blank->nil (:PAID form-data))
+                   :payment-method (blank->nil (:SO form-data))}]
     (if (and (payment-util/authentic-response? vetuma-payment form-data) (:order-number db-params))
       (do (db-fn db db-params)
           true)
@@ -59,7 +63,8 @@
           (confirm-payment! config payment-data)
 
           (= PAYM_STATUS "CANCELLED_OR_REJECTED")
-          (cancel-payment! config payment-data)
+          (do (dba/cancel-registration-and-unknown-payment! db order_number)
+              :cancelled)
 
           delete?
           (do (dba/cancel-registration-and-unknown-payment! db order_number)
