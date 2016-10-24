@@ -7,8 +7,7 @@
             [oti.exam-rules :as rules]
             [clojure.string :as str]
             [cljs.spec :as s]
-            [oti.routing :as routing]
-            [cognitect.transit :as transit]))
+            [oti.routing :as routing]))
 
 (defn set-val [form-data key event]
   (let [val (-> event .-target .-value)
@@ -50,10 +49,6 @@
                         (disj s id)))]
       (swap! form-data update-in [::spec/sections section-id key] update-fn module-id))))
 
-(defn serialize-form-data [form-data]
-  (let [w (transit/writer :json)]
-    (transit/write w @form-data)))
-
 (defn attending-ids [form-data]
   (reduce
     (fn [ids [id section-opts]]
@@ -85,8 +80,9 @@
       (let [invalids (invalid-keys form-data ::spec/registration)]
         [:div.registration
          (if (pos? (count (:sections @registration-options)))
-           [:form.registration {:method "post" :action (routing/p-a-route "/authenticated/register") :accept-charset "UTF-8"}
-            [:input {:type "hidden" :name "registration-data" :value (serialize-form-data form-data)}]
+           [:form.registration {:on-submit (fn [e]
+                                             (.preventDefault e)
+                                             (re-frame/dispatch [:store-registration @form-data @lang]))}
             [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
             [:div.section.participant

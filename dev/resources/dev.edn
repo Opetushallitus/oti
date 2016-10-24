@@ -12,4 +12,10 @@
                    :oti-login-success-uri "http://localhost:3000/oti/auth/cas"}
   :cas {:virkailija-lb-uri "https://itest-virkailija.oph.ware.fi"}
   :localisation {:service-base-uri "https://itest-virkailija.oph.ware.fi/lokalisointi/cxf/rest/v1/localisation"
-                 :default-parameters {:category "oti"}}}}
+                 :default-parameters {:category "oti"}}
+  :vetuma-payment {:vetuma-host "https://testitunnistus.suomi.fi/VETUMAPayment/"
+                   :app-id "oph-oti"
+                   :oti-vetuma-uri "https://oti.local/oti/vetuma"
+                   :secret "TESTIASIAKAS11-873C992B8C4C01EC8355500CAA709B37EA43BC2E591ABF29FEE5EAFE4DCBFA35"
+                   :ap "TESTIASIAKAS1"
+                   :rcvid "TESTIASIAKAS11"}}}

@@ -16,3 +16,4 @@ figwheel_server.log
 /oph-configuration/config.edn
 .cljs_rhino_repl/
 logs/
+.DS_Store

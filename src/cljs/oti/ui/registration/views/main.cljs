@@ -25,7 +25,6 @@
          (utils/parse-int))))
 
 (defn main-panel []
-  (re-frame/dispatch [:load-participant-data])
   (let [flash-message (re-frame/subscribe [:flash-message])
         current-language (re-frame/subscribe [:language])
         participant-data (re-frame/subscribe [:participant-data])

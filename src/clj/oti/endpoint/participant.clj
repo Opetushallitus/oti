@@ -1,19 +1,16 @@
 (ns oti.endpoint.participant
   (:require [compojure.core :refer :all]
             [ring.util.response :refer [resource-response content-type redirect response]]
-            [clojure.spec :as s]
             [clojure.string :as str]
             [oti.boundary.db-access :as dba]
-            [oti.component.localisation :as localisation]
-            [oti.spec :as os]
+            [oti.component.localisation :as loc]
             [oti.routing :as routing]
             [oti.util.coercion :as c]
-            [ring.util.response :as resp]
-            [cognitect.transit :as transit]
-            [clojure.java.io :as io]
             [taoensso.timbre :refer [error info]]
             [meta-merge.core :refer [meta-merge]]
-            [oti.boundary.api-client-access :as api]))
+            [oti.boundary.api-client-access :as api]
+            [oti.service.registration :as registration]
+            [oti.service.payment :as payment]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -42,14 +39,6 @@
         check-digit (get check-digits (mod full 31))]
     (str d m y "-" serial check-digit)))
 
-(defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} preferred-name lang]
-  (api/add-person! api-client
-                   {:sukunimi sukunimi
-                    :etunimet (str/join " " etunimet)
-                    :kutsumanimi preferred-name
-                    :hetu hetu
-                    :henkiloTyyppi "OPPIJA"
-                    :asiointiKieli {:kieliKoodi (name lang)}}))
 
 (defn- random-name []
   (->> (repeatedly #(rand-nth "aefhijklmnoprstuvy"))
@@ -63,36 +52,34 @@
       (handler request)
       {:status 401 :body {:error "Identification required"}})))
 
-(defn- registration-response [status text lang session]
-  (let [url (if (= lang :sv) "/oti/anmala" "/oti/ilmoittaudu")]
-    (-> (redirect url :see-other)
-        (assoc :session (meta-merge session {:participant {:registration-status status
-                                                           :registration-message text}})))))
+(defn- update-participant-session [session reg-status msg-key]
+  (let [data (cond-> {:registration-status reg-status
+                      :registration-message msg-key})]
+    (meta-merge session {:participant data})))
 
-(defn- register [{:keys [db api-client localisation]} {session :session params :params}]
-  (if-let [transit-data (:registration-data params)]
-    (with-open [is (io/input-stream (.getBytes transit-data "UTF-8"))]
-      (let [parsed-data (-> is (transit/reader :json) (transit/read))
-            conformed (s/conform ::os/registration parsed-data)
-            lang (::os/language-code conformed)
-            participant-data (-> session :participant)
-            external-user-id (or (:external-user-id participant-data)
-                                 (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))]
-        (if (or (s/invalid? conformed) (nil? external-user-id))
-          (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)
-          (try
-            (dba/register! db conformed external-user-id)
-            (registration-response :success "Ilmoittautumisesi on rekisteröity" lang session)
-            (catch Throwable t
-              (error "Error inserting registration")
-              (error t)
-              (registration-response :failure "Ilmoittautumisessa tapahtui odottamaton virhe" lang session))))))
-    (registration-response :failure "Ilmoittautumistiedot olivat virheelliset" :fi session)))
+(defn- session-participant [{:keys [db] :as config} {:keys [participant] :as session}]
+  (let [{:keys [registration-status registration-id external-user-id]} participant]
+    (if (and (= :pending registration-status) external-user-id registration-id)
+      ; Delete pending payments / regs older than 25 minutes
+      (if-let [pmt (-> (payment/process-unpaid-payments-of-participant! config external-user-id 25)
+                       (get registration-id))]
+        (condp = pmt
+          :confirmed (update-participant-session session :success "registration-complete")
+          :cancelled (update-participant-session session :error "registration-payment-cancel")
+          :expired (update-participant-session session :error "registration-payment-cancel")
+          :unpaid session)
+        ; If the payment was not found, check the status from the registration
+        (condp = (dba/registration-state-by-id db registration-id)
+          "OK" (update-participant-session session :success "registration-complete")
+          "ERROR" (update-participant-session session :error "registration-payment-cancel")
+          (update-participant-session session :error "registration-payment-error")))
+      ; Other or missing registration status, just return the session as is
+      session)))
 
-(defn participant-endpoint [{:keys [db payments api-client localisation] :as config}]
+(defn participant-endpoint [{:keys [db api-client localisation] :as config}]
   (routes
     (GET "/oti/abort" [lang]
-         (-> (resp/redirect (if (= lang "fi")
+         (-> (redirect (if (= lang "fi")
                               "/oti/ilmoittaudu"
                               "/oti/anmala"))
              (assoc :session {})))
@@ -101,9 +88,9 @@
       (GET "/translations" [lang]
         (if (str/blank? lang)
           {:status 400 :body {:error "Missing lang parameter"}}
-          (response (localisation/translations-by-lang localisation lang))))
+          (response (loc/translations-by-lang localisation lang))))
       (GET "/translations/refresh" []
-        (if-let [new-translations (localisation/refresh-translations localisation)]
+        (if-let [new-translations (loc/refresh-translations localisation)]
           (response new-translations)
           {:status 500 :body {:error "Refreshing translations failed"}}))
       ;; FIXME: This is a dummy route
@@ -111,12 +98,15 @@
         (if-not (str/blank? callback)
           (let [hetu (random-hetu)
                 {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
-                existing-email (when oidHenkilo (:email (first (dba/participant-by-ext-id db oidHenkilo))))]
+                {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))]
+            (when id
+              ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
+              (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
             (-> (redirect callback)
                 (assoc :session {:participant {:etunimet (if etunimet (str/split etunimet #" ") [(random-name) (random-name)])
                                                :sukunimi (or sukunimi (random-name))
                                                :kutsumanimi kutsumanimi
-                                               :email existing-email
+                                               :email email
                                                :hetu hetu
                                                :external-user-id oidHenkilo}})))
           {:status 400 :body {:error "Missing callback uri"}}))
@@ -126,15 +116,15 @@
           (response sessions)))
       (-> (context "/authenticated" {session :session}
             (GET "/participant-data" []
-              (response (:participant session)))
+              (let [updated-session (session-participant config session)]
+                {:status 200 :body (:participant updated-session) :session updated-session}))
             (GET "/registration-options" []
-              (let [user-id (-> session :participant :external-user-id) ; user-id is nil at this stage if the user is new
-                    paid? (and user-id (pos? (dba/valid-full-payments-for-user db user-id)))
-                    payments {:full (if paid? 0 (-> payments :amounts :full))
-                              :retry (-> payments :amounts :retry)}]
-                (->> {:sections (dba/modules-available-for-user db user-id)
-                      :payments payments}
+              (let [user-id (-> session :participant :external-user-id)] ; user-id is nil at this stage if the user is new
+                (->> {:sections (dba/sections-and-modules-available-for-user db user-id)
+                      :payments (registration/payment-amounts config user-id)}
                      (response))))
+            (GET "/payment-form-data" {session :session {:keys [lang]} :params}
+              (registration/payment-data-for-retry config session lang))
             (POST "/register" request
-              (register config request)))
+              (registration/register! config request)))
           (wrap-routes wrap-authentication)))))

@@ -34,7 +34,8 @@
   (if (= "virkailija" mode)
     (do (re-frame/dispatch [:load-user])
         (re-frame/dispatch [:load-section-and-module-names]))
-    (re-frame/dispatch [:set-language (resolve-lang)])))
+    (do (re-frame/dispatch [:set-language (resolve-lang)])
+        (re-frame/dispatch [:load-participant-data]))))
 
 (defn ^:export start [mode]
   (routes/app-routes)

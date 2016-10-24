@@ -48,6 +48,10 @@
                                 (map js/parseInt))]
              (or (< s-h e-h) (and (= s-h e-h) (< s-m e-m))))))
 
+(defn date-time? [x]
+  #?(:clj (instance? java.time.LocalDateTime x)
+     :cljs (inst? x)))
+
 (s/def ::id pos-int?)
 
 ;; i18n
@@ -110,3 +114,109 @@
 
 (def hetu-regexp #"[\d]{6}[+\-A-Za-z][\d]{3}[\dA-Za-z]")
 (s/def ::hetu (s/and string? #(re-matches hetu-regexp %)))
+
+(defn- valid-reference-number? [x]
+  (let [factors [7 3 1]
+        ref-str (str x)
+        check-num (-> (last ref-str) str Integer/parseInt)
+        ref (drop-last ref-str)]
+    (-> (->> (reverse ref)
+           (partition 3 3 [])
+           (map (fn [three]
+                  (->> (map #(Integer/parseInt (str %)) three)
+                       (map * factors))))
+           (flatten)
+           (reduce +)
+           str
+           last
+           str
+           Integer/parseInt
+           (- 10))
+        (mod 10)
+        (= check-num))))
+
+;; payment
+
+(s/def ::timestamp date-time?)
+(s/def ::amount (s/and number? pos?))
+(s/def ::reference-number (s/and number? #(valid-reference-number? %)))
+(s/def ::order-number (s/and ::non-blank-string #(< (count %) 33)))
+(s/def ::app-name ::non-blank-string)
+(s/def ::msg ::non-blank-string)
+(s/def ::payment-id (s/and ::non-blank-string #(< (count %) 26)))
+
+(s/def ::payment-params (s/keys :req [::timestamp
+                                      ::language-code
+                                      ::amount
+                                      ::reference-number
+                                      ::order-number
+                                      ::app-name
+                                      ::msg
+                                      ::payment-id]))
+
+(def amount-regexp #"\d{0,3},\d{2}")
+
+(s/def ::RCVID ::non-blank-string)
+(s/def ::APPID ::non-blank-string)
+(s/def ::TIMESTMP ::non-blank-string)
+(s/def ::SO string?)
+(s/def ::SOLIST ::non-blank-string)
+(s/def ::TYPE ::non-blank-string)
+(s/def ::AU ::non-blank-string)
+(s/def ::LG ::non-blank-string)
+(s/def ::RETURL ::non-blank-string)
+(s/def ::CANURL ::non-blank-string)
+(s/def ::ERRURL ::non-blank-string)
+(s/def ::AP ::non-blank-string)
+(s/def ::MAC ::non-blank-string)
+(s/def ::APPNAME ::non-blank-string)
+(s/def ::AM (s/and string? #(re-matches amount-regexp %)))
+(s/def ::REF ::reference-number)
+(s/def ::ORDNR ::order-number)
+(s/def ::MSGBUYER ::msg)
+(s/def ::MSGFORM ::msg)
+(s/def ::PAYM_CALL_ID ::payment-id)
+
+(s/def ::payment-form-params (s/keys :req [::RCVID
+                                           ::APPID
+                                           ::TIMESTMP
+                                           ::SO
+                                           ::SOLIST
+                                           ::TYPE
+                                           ::AU
+                                           ::LG
+                                           ::RETURL
+                                           ::CANURL
+                                           ::ERRURL
+                                           ::AP
+                                           ::MAC
+                                           ::APPNAME
+                                           ::AM
+                                           ::REF
+                                           ::ORDNR
+                                           ::MSGBUYER
+                                           ::MSGFORM
+                                           ::PAYM_CALL_ID]))
+
+(s/def ::uri ::non-blank-string)
+
+(s/def ::payment-form-data (s/keys :req [::uri
+                                         ::payment-form-params]))
+
+(s/def ::payment-query-params (s/keys :req [::RCVID
+                                            ::APPID
+                                            ::TIMESTMP
+                                            ::SO
+                                            ::SOLIST
+                                            ::TYPE
+                                            ::AU
+                                            ::LG
+                                            ::RETURL
+                                            ::CANURL
+                                            ::ERRURL
+                                            ::AP
+                                            ::MAC
+                                            ::PAYM_CALL_ID]))
+
+(s/def ::payment-query-data (s/keys :req [::uri
+                                          ::payment-query-params]))

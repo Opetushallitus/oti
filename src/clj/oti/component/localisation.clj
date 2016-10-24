@@ -7,7 +7,8 @@
 (defprotocol LocalisationQuery
   "Localisation query protocol"
   (translations-by-lang [this lang] "Query translation by language")
-  (refresh-translations [this] "Refresh all translations by fetching from the external localisation service"))
+  (refresh-translations [this] "Refresh all translations by fetching from the external localisation service")
+  (t [this lang key]))
 
 (defn- parse-translations [response-body]
   (into {} (->> response-body
@@ -30,18 +31,27 @@
 (defrecord Localisation [config]
   component/Lifecycle
   (start [this] (assoc this :translations (atom (fetch-translations (:service-base-uri config)
-                                                                    (:default-parameters config)))))
-  (stop [this] (assoc this :translations (atom {})))
+                                                                    (:default-parameters config)))
+                            :translations-by-lang (atom {})))
+  (stop [this] (assoc this :translations (atom {}) :translations-by-lang (atom {})))
 
   LocalisationQuery
-  (translations-by-lang [this lang]
-    (->> @(:translations this)
-         (map (fn [[k v]] [k ((keyword lang) v)]))
-         (into {})))
-  (refresh-translations [this]
+  (translations-by-lang [{:keys [translations translations-by-lang]} lang]
+    (let [t-key (keyword lang)]
+      (if-let [t-map (t-key @translations-by-lang)]
+        t-map
+        (->> @translations
+             (map (fn [[k v]] [k (t-key v)]))
+             (into {})
+             (swap! translations-by-lang assoc t-key)
+             t-key))))
+  (refresh-translations [{:keys [translations translations-by-lang]}]
     (when-let [new-translations (fetch-translations (:service-base-uri config)
                                                     (:default-parameters config))]
-      (reset! (:translations this) new-translations))))
+      (reset! translations-by-lang {})
+      (reset! translations new-translations)))
+  (t [this lang key]
+    (get (translations-by-lang this lang) key key)))
 
 (defn localisation [config]
   (->Localisation config))
