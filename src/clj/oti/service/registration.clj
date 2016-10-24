@@ -54,10 +54,13 @@
                   (valid-module-registration? sect accredit-modules :accredit))))
             sections)))
 
+(defn- gen-order-number [db reference]
+  (let [order-suffix (dba/next-order-number! db)]
+    (str "OTI" reference order-suffix)))
+
 (defn- payment-params [{:keys [db localisation]} external-user-id amount lang]
   (let [ref-number (-> (str/split external-user-id #"\.") last)
-        order-suffix (dba/next-order-number! db)
-        order-number (str "OTI" ref-number order-suffix)]
+        order-number (gen-order-number db ref-number)]
     #::os{:timestamp (LocalDateTime/now)
           :language-code lang
           :amount amount
@@ -76,15 +79,22 @@
      :order-number order-number
      :payment-id payment-id}))
 
-(defn- db-payment->payment-params [localisation {:keys [created amount reference order_number paym_call_id]} ui-lang]
-  #::os{:timestamp (.toLocalDateTime created)
-        :language-code (keyword ui-lang)
-        :amount amount
-        :reference-number reference
-        :order-number order_number
-        :app-name (loc/t localisation ui-lang "vetuma-app-name")
-        :msg (loc/t localisation ui-lang "payment-name")
-        :payment-id paym_call_id})
+(defn- db-payment->payment-params [{:keys [db localisation]} {:keys [amount reference]} ui-lang]
+  (let [new-order-number (gen-order-number db reference)]
+    #::os{:timestamp (LocalDateTime/now)
+          :language-code (keyword ui-lang)
+          :amount amount
+          :reference-number reference
+          :order-number new-order-number
+          :app-name (loc/t localisation ui-lang "vetuma-app-name")
+          :msg (loc/t localisation ui-lang "payment-name")
+          :payment-id new-order-number}))
+
+(defn- update-db-payment! [db payment-id {::os/keys [order-number timestamp] :as payment-params}]
+  (dba/update-payment-order-number-and-ts! db {:id payment-id
+                                               :order-number order-number
+                                               :created timestamp})
+  payment-params)
 
 (defn payment-amounts [{:keys [payments db]} external-user-id]
   (let [paid? (and external-user-id (pos? (dba/valid-full-payments-for-user db external-user-id)))]
@@ -124,12 +134,13 @@
                "| Spec errors:" (s/explain-data ::os/registration registration-data))
         (registration-response 400 :error (t localisation (or ui-lang :fi) "registration-invalid-data") session)))))
 
-(defn payment-data-for-retry [{:keys [db localisation vetuma-payment]}
+(defn payment-data-for-retry [{:keys [db localisation vetuma-payment] :as config}
                               {{:keys [registration-id registration-status]} :participant :as session}
                               ui-lang]
   (if (= :pending registration-status)
-    (if-let [db-pmt (dba/unpaid-payment-by-registration db registration-id)]
-      (->> (db-payment->payment-params localisation db-pmt ui-lang)
+    (if-let [{payment-id :id :as db-pmt} (dba/unpaid-payment-by-registration db registration-id)]
+      (->> (db-payment->payment-params config db-pmt ui-lang)
+           (update-db-payment! db payment-id)
            (payment-util/form-data-for-payment vetuma-payment)
            (registration-response 200 :pending (t localisation ui-lang "registration-payment-pending") session registration-id))
       (do

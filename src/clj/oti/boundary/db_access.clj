@@ -139,7 +139,8 @@
   (next-order-number! [db])
   (unpaid-payments [db])
   (unpaid-payments-by-participant [db external-user-id])
-  (unpaid-payment-by-registration [db registration-id]))
+  (unpaid-payment-by-registration [db registration-id])
+  (update-payment-order-number-and-ts! [db params]))
 
 (extend-type HikariCP
   DbAccess
@@ -220,4 +221,6 @@
     (q/select-unpaid-payments-by-participant {:external-user-id external-user-id} {:connection spec}))
   (unpaid-payment-by-registration [{:keys [spec]} registration-id]
     (-> (q/select-unpaid-payment-by-registration-id {:registration-id registration-id} {:connection spec})
-        first)))
+        first))
+  (update-payment-order-number-and-ts! [{:keys [spec]} params]
+    (q/update-payment-order-and-timestamp! params {:connection spec})))

@@ -283,6 +283,11 @@ UPDATE payment
 SET state = :state::payment_state
 WHERE order_number = :order-number;
 
+-- name: update-payment-order-and-timestamp!
+UPDATE payment SET
+  created = :created, order_number = :order-number, paym_call_id = :order-number
+WHERE id = :id;
+
 -- name: update-registration-state-by-payment-order!
 UPDATE registration
 SET state = :state::registration_state
