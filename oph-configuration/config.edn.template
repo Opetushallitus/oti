@@ -17,4 +17,10 @@
         :user {:username "{{oti_cas_username}}"
                :password "{{oti_cas_password}}"}}
   :localisation {:service-base-uri "{{oti_localisation_service_base_uri}}"
-                 :default-parameters {:category "{{oti_localisation_default_category}}"}}}}
+                 :default-parameters {:category "{{oti_localisation_default_category}}"}}
+  :vetuma-payment {:vetuma-host "{{oti_vetuma_host}}"
+                   :app-id {{oti_vetuma_app_id}}""
+                   :oti-vetuma-uri "{{oti_vetuma_oti_vetuma_uri}}"
+                   :secret "{{oti_vetuma_shared_secret}}"
+                   :ap "{{oti_vetuma_shared_ap}}"
+                   :rcvid "{{oti_vetuma_shared_rcvid}}"}}}
