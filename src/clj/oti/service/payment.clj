@@ -94,7 +94,8 @@
 
 (defn check-and-process-unpaid-payments! [{:keys [db] :as config}]
   (let [payments (dba/unpaid-payments db)]
-    (info "Checking" (count payments) "unpaid payments")
-    (doseq [pmt payments]
-      (check-and-process-unpaid-payment! config pmt 30))
-    (when (pos? (count payments)) (info "Payments checked."))))
+    (when (pos? (count payments))
+      (info "Checking" (count payments) "unpaid payments")
+      (doseq [pmt payments]
+        (check-and-process-unpaid-payment! config pmt 30))
+      (info "Payments checked."))))
