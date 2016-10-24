@@ -58,9 +58,9 @@
                       :registration-message (loc/t localisation lang msg-key)})]
     (meta-merge session {:participant data})))
 
-(defn- session-participant [config {:keys [participant] :as session} lang]
+(defn- session-participant [{:keys [db] :as config} {:keys [participant] :as session} lang]
   (let [{:keys [registration-status registration-id external-user-id]} participant]
-    (if (and (= :pending registration-status) external-user-id)
+    (if (and (= :pending registration-status) external-user-id registration-id)
       ; Delete pending payments / regs older than 25 minutes
       (if-let [pmt (-> (payment/process-unpaid-payments-of-participant! config external-user-id 25)
                        (get registration-id))]
@@ -69,7 +69,11 @@
           :cancelled (update-participant-session config session :error "registration-payment-cancel" lang)
           :expired (update-participant-session config session :error "registration-payment-cancel" lang)
           :unpaid session)
-        (update-participant-session config session :error "registration-payment-error" lang))
+        ; If the payment was not found, check the status from the registration
+        (condp = (dba/registration-state-by-id db registration-id)
+          "OK" (update-participant-session config session :success "registration-complete" lang)
+          "ERROR" (update-participant-session config session :error "registration-payment-cancel" lang)
+          (update-participant-session config session :error "registration-payment-error" lang)))
       ; Other or missing registration status, just return the session as is
       session)))
 

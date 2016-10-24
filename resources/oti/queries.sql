@@ -260,6 +260,9 @@ FROM registration r
 WHERE r.exam_session_id = :exam-session-id AND r.state != 'ERROR'::registration_state
 ORDER BY r.id, recs.section_id, recm.module_id;
 
+-- name: select-registration-state-by-id
+SELECT state FROM registration WHERE id = :id;
+
 -- name: select-section-and-module-names
 SELECT st.section_id, st.name AS section_name, mt.module_id, mt.name AS module_name
 FROM section s
