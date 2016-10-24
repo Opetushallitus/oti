@@ -58,17 +58,20 @@
   (let [order-suffix (dba/next-order-number! db)]
     (str "OTI" reference order-suffix)))
 
+(defn- payment-param-map [localisation lang amount ref-number order-number]
+  #::os{:timestamp        (LocalDateTime/now)
+        :language-code    (keyword lang)
+        :amount           amount
+        :reference-number (bigdec ref-number)
+        :order-number     order-number
+        :app-name         (loc/t localisation lang "vetuma-app-name")
+        :msg              (loc/t localisation lang "payment-name")
+        :payment-id       order-number})
+
 (defn- payment-params [{:keys [db localisation]} external-user-id amount lang]
   (let [ref-number (-> (str/split external-user-id #"\.") last)
         order-number (gen-order-number db ref-number)]
-    #::os{:timestamp (LocalDateTime/now)
-          :language-code lang
-          :amount amount
-          :reference-number (bigdec ref-number)
-          :order-number order-number
-          :app-name (loc/t localisation lang "vetuma-app-name")
-          :msg (loc/t localisation lang "payment-name")
-          :payment-id order-number}))
+    (payment-param-map localisation lang amount ref-number order-number)))
 
 (defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params} type]
   (when params
@@ -81,14 +84,7 @@
 
 (defn- db-payment->payment-params [{:keys [db localisation]} {:keys [amount reference]} ui-lang]
   (let [new-order-number (gen-order-number db reference)]
-    #::os{:timestamp (LocalDateTime/now)
-          :language-code (keyword ui-lang)
-          :amount amount
-          :reference-number reference
-          :order-number new-order-number
-          :app-name (loc/t localisation ui-lang "vetuma-app-name")
-          :msg (loc/t localisation ui-lang "payment-name")
-          :payment-id new-order-number}))
+    (payment-param-map localisation ui-lang amount reference new-order-number)))
 
 (defn- update-db-payment! [db payment-id {::os/keys [order-number timestamp] :as payment-params}]
   (dba/update-payment-order-number-and-ts! db {:id payment-id

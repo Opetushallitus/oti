@@ -90,7 +90,10 @@
   (fn [{::os/keys [uri payment-form-params]}]
     (let [form (doto (.createElement js/document "form")
                  (.setAttribute "method" "post")
-                 (.setAttribute "action" uri))]
+                 (.setAttribute "action" uri)
+                 (.setAttribute "accept-charset" "ISO-8859-1"))]
+      ;; For IE compatibility
+      (-> js/document .-charset (set! "ISO-8859-1"))
       (doseq [[key val] payment-form-params]
         (->> (doto (.createElement js/document "input")
                (.setAttribute "type" "hidden")

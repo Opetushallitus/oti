@@ -19,7 +19,7 @@
   (let [plaintext (str/join "&" (->> [RCVID APPID TIMESTMP SO SOLIST TYPE AU LG RETURL CANURL ERRURL AP
                                       APPNAME AM REF ORDNR MSGBUYER MSGFORM PAYM_CALL_ID secret ""]
                                      (remove nil?)))]
-    (-> plaintext DigestUtils/sha256Hex str/upper-case)))
+    (-> plaintext (.getBytes "ISO-8859-1") DigestUtils/sha256Hex str/upper-case)))
 
 (defn- generate-form-data [{:keys [vetuma-host rcvid app-id success-uri cancel-uri error-uri secret ap]}
                            {::os/keys [timestamp language-code amount reference-number order-number
