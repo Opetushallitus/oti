@@ -15,9 +15,7 @@
                  :default-parameters {:category "oti"}}
   :vetuma-payment {:vetuma-host "https://testitunnistus.suomi.fi/VETUMAPayment/"
                    :app-id "oph-oti"
-                   :success-uri "https://oti.local/oti/vetuma/success"
-                   :cancel-uri "https://oti.local/oti/vetuma/cancel"
-                   :error-uri "https://oti.local/oti/vetuma/error"
+                   :oti-vetuma-uri "https://oti.local/oti/vetuma"
                    :secret "TESTIASIAKAS11-873C992B8C4C01EC8355500CAA709B37EA43BC2E591ABF29FEE5EAFE4DCBFA35"
                    :ap "TESTIASIAKAS1"
                    :rcvid "TESTIASIAKAS11"}}}

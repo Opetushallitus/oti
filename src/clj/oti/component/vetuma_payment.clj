@@ -21,7 +21,7 @@
                                      (remove nil?)))]
     (-> plaintext (.getBytes "ISO-8859-1") DigestUtils/sha256Hex str/upper-case)))
 
-(defn- generate-form-data [{:keys [vetuma-host rcvid app-id success-uri cancel-uri error-uri secret ap]}
+(defn- generate-form-data [{:keys [vetuma-host rcvid app-id oti-vetuma-uri secret ap]}
                            {::os/keys [timestamp language-code amount reference-number order-number
                                        app-name msg payment-id] :as params}]
   {:pre  [(s/valid? ::os/payment-params params)]
@@ -34,9 +34,9 @@
                                :TYPE         "PAYMENT"
                                :AU           "PAY"
                                :LG           (name language-code)
-                               :RETURL       success-uri
-                               :CANURL       cancel-uri
-                               :ERRURL       error-uri
+                               :RETURL       (str oti-vetuma-uri "/success")
+                               :CANURL       (str oti-vetuma-uri "/cancel")
+                               :ERRURL       (str oti-vetuma-uri "/error")
                                :AP           ap
                                :APPNAME      app-name
                                :AM           (format-number amount)
@@ -49,7 +49,7 @@
     #:oti.spec{:uri                 vetuma-host
                :payment-form-params (assoc form-params ::os/MAC mac)}))
 
-(defn- generate-payment-query-params [{:keys [vetuma-host rcvid app-id success-uri cancel-uri error-uri secret ap]}
+(defn- generate-payment-query-params [{:keys [vetuma-host rcvid app-id oti-vetuma-uri secret ap]}
                                       {:keys [timestamp payment-id]}]
   {:post [(s/valid? ::os/payment-query-data %)]}
   (let [form-params #:oti.spec{:RCVID        rcvid
@@ -60,9 +60,9 @@
                                :TYPE         "PAYMENT"
                                :AU           "CHECK"
                                :LG           "fi"
-                               :RETURL       success-uri
-                               :CANURL       cancel-uri
-                               :ERRURL       error-uri
+                               :RETURL       (str oti-vetuma-uri "/success")
+                               :CANURL       (str oti-vetuma-uri "/cancel")
+                               :ERRURL       (str oti-vetuma-uri "/error")
                                :AP           ap
                                :PAYM_CALL_ID payment-id}
         mac (calculate-mac form-params secret)]
