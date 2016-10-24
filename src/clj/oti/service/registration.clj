@@ -8,8 +8,7 @@
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
             [oti.exam-rules :as rules]
-            [oti.boundary.payment :as payment-util]
-            [oti.component.localisation :refer [t]])
+            [oti.boundary.payment :as payment-util])
   (:import [java.time LocalDateTime]))
 
 (defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} preferred-name lang]
@@ -97,7 +96,7 @@
     {:full (if paid? 0 (-> payments :amounts :full))
      :retry (-> payments :amounts :retry)}))
 
-(defn register! [{:keys [db api-client vetuma-payment localisation] :as config}
+(defn register! [{:keys [db api-client vetuma-payment] :as config}
                  {old-session :session {:keys [registration-data ui-lang]} :params}]
   (let [conformed (s/conform ::os/registration registration-data)
         lang (::os/language-code conformed)
@@ -120,17 +119,17 @@
               msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
               status (if (pos? amount) :pending :success)
               registration-id (dba/register! db conformed external-user-id reg-state db-pmt)]
-          (registration-response 200 status (t localisation ui-lang msg-key) session registration-id payment-form-data))
+          (registration-response 200 status msg-key session registration-id payment-form-data))
         (catch Throwable t
           (error "Error inserting registration")
           (error t)
-          (registration-response 500 :error (t localisation ui-lang "registration-unknown-error") session)))
+          (registration-response 500 :error "registration-unknown-error" session)))
       (do
         (error "Invalid registration data. Valid selection:" (valid-registration? config external-user-id conformed)
                "| Spec errors:" (s/explain-data ::os/registration registration-data))
-        (registration-response 400 :error (t localisation (or ui-lang :fi) "registration-invalid-data") session)))))
+        (registration-response 400 :error "registration-invalid-data" session)))))
 
-(defn payment-data-for-retry [{:keys [db localisation vetuma-payment] :as config}
+(defn payment-data-for-retry [{:keys [db vetuma-payment] :as config}
                               {{:keys [registration-id registration-status]} :participant :as session}
                               ui-lang]
   (if (= :pending registration-status)
@@ -138,10 +137,10 @@
       (->> (db-payment->payment-params config db-pmt ui-lang)
            (update-db-payment! db payment-id)
            (payment-util/form-data-for-payment vetuma-payment)
-           (registration-response 200 :pending (t localisation ui-lang "registration-payment-pending") session registration-id))
+           (registration-response 200 :pending "registration-payment-pending" session registration-id))
       (do
         (error "Tried to retry payment for registration" registration-id "but matching payment was not found")
-        (registration-response 404 :error (t localisation ui-lang "registration-payment-expired") session)))
+        (registration-response 404 :error "registration-payment-expired" session)))
     (do
       (error "Tried to retry payment for registration" registration-id "but it's status is not pending")
-      (registration-response 400 :error (t localisation ui-lang "registration-unknown-error") session))))
+      (registration-response 400 :error "registration-unknown-error" session))))

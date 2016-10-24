@@ -23,7 +23,6 @@
     {:http-xhrio {:method          :get
                   :uri             (routing/p-a-route "/authenticated/participant-data")
                   :response-format (ajax/transit-response-format)
-                  :params          {:lang "fi"}
                   :on-success      [:store-response-to-db :participant-data]
                   :on-failure      [:bad-response]}}))
 
@@ -83,7 +82,7 @@
     [db [{:keys [response]}]]
     (update db :participant-data merge {:registration-status :error
                                         :registration-message (or (:registration-message response)
-                                                                  "Ilmoittautumisessa tapahtui odottamaton virhe")})))
+                                                                  "registration-unknown-error")})))
 
 (re-frame/reg-fx
   :submit-payment-form

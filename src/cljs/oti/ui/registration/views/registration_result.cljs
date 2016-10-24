@@ -7,7 +7,7 @@
   (let [lang (rf/subscribe [:language])]
     (fn [{:keys [registration-message registration-status]}]
       [:div
-       [:h3 registration-message]
+       [:h3 (t registration-message registration-message)]
        (when (= :pending registration-status)
          [:div.guide (t "retry-payment-guide")])
        [:div.buttons

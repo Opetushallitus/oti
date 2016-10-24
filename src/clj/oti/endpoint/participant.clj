@@ -10,8 +10,7 @@
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
             [oti.service.registration :as registration]
-            [oti.service.payment :as payment]
-            [oti.spec :as os]))
+            [oti.service.payment :as payment]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -53,27 +52,27 @@
       (handler request)
       {:status 401 :body {:error "Identification required"}})))
 
-(defn- update-participant-session [{:keys [localisation]} session reg-status msg-key lang]
+(defn- update-participant-session [session reg-status msg-key]
   (let [data (cond-> {:registration-status reg-status
-                      :registration-message (loc/t localisation lang msg-key)})]
+                      :registration-message msg-key})]
     (meta-merge session {:participant data})))
 
-(defn- session-participant [{:keys [db] :as config} {:keys [participant] :as session} lang]
+(defn- session-participant [{:keys [db] :as config} {:keys [participant] :as session}]
   (let [{:keys [registration-status registration-id external-user-id]} participant]
     (if (and (= :pending registration-status) external-user-id registration-id)
       ; Delete pending payments / regs older than 25 minutes
       (if-let [pmt (-> (payment/process-unpaid-payments-of-participant! config external-user-id 25)
                        (get registration-id))]
         (condp = pmt
-          :confirmed (update-participant-session config session :success "registration-complete" lang)
-          :cancelled (update-participant-session config session :error "registration-payment-cancel" lang)
-          :expired (update-participant-session config session :error "registration-payment-cancel" lang)
+          :confirmed (update-participant-session session :success "registration-complete")
+          :cancelled (update-participant-session session :error "registration-payment-cancel")
+          :expired (update-participant-session session :error "registration-payment-cancel")
           :unpaid session)
         ; If the payment was not found, check the status from the registration
         (condp = (dba/registration-state-by-id db registration-id)
-          "OK" (update-participant-session config session :success "registration-complete" lang)
-          "ERROR" (update-participant-session config session :error "registration-payment-cancel" lang)
-          (update-participant-session config session :error "registration-payment-error" lang)))
+          "OK" (update-participant-session session :success "registration-complete")
+          "ERROR" (update-participant-session session :error "registration-payment-cancel")
+          (update-participant-session session :error "registration-payment-error")))
       ; Other or missing registration status, just return the session as is
       session)))
 
@@ -116,11 +115,9 @@
                             (map c/convert-session-row))]
           (response sessions)))
       (-> (context "/authenticated" {session :session}
-            (GET "/participant-data" [lang]
-              (if-not (str/blank? lang)
-                (let [updated-session (session-participant config session lang)]
-                  {:status 200 :body (:participant updated-session) :session updated-session})
-                {:status 400 :body {:error "Missing language parameter"}}))
+            (GET "/participant-data" []
+              (let [updated-session (session-participant config session)]
+                {:status 200 :body (:participant updated-session) :session updated-session}))
             (GET "/registration-options" []
               (let [user-id (-> session :participant :external-user-id)] ; user-id is nil at this stage if the user is new
                 (->> {:sections (dba/sections-and-modules-available-for-user db user-id)
