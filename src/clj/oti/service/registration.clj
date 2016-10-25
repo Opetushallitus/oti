@@ -44,8 +44,6 @@
 
 (defn- valid-registration? [{:keys [db]} external-user-id {::os/keys [sections]}]
   (let [avail-sections (dba/sections-and-modules-available-for-user db external-user-id)]
-    (clojure.pprint/pprint avail-sections)
-    (clojure.pprint/pprint sections)
     (every? (fn [[id {::os/keys [retry? retry-modules accredit-modules]}]]
               (when-let [sect (first (filter #(= id (:id %)) avail-sections))]
                 (and

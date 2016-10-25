@@ -77,7 +77,8 @@
     :main {:jar true
            :source-paths ["src/cljs" "src/cljc"]
            :compiler {:output-to "target/cljsbuild/oti/public/js/main.js"
-                      :optimizations :advanced}}}}
+                      :optimizations :advanced
+                      :closure-defines {"goog.DEBUG" false}}}}}
   :aliases {"setup"  ["run" "-m" "duct.util.repl/setup"]}
   :profiles
   {:dev  [:project/dev  :profiles/dev]
