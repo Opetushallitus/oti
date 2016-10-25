@@ -66,6 +66,15 @@
   (let [{:keys [etunimet sukunimi hetu]} participant-data]
     [:div.name (str (str/join " " etunimet) " " sukunimi ", " hetu)]))
 
+(defn valid-registration? [{reg-sections ::spec/sections :as form-data} {:keys [sections]}]
+  (and (s/valid? ::spec/registration form-data)
+       (not-any?
+         (fn [{:keys [id modules]}]
+           (let [accredit-modules (-> (get reg-sections id) ::spec/accredit-modules set)
+                 all-modules (-> (map :id modules) set)]
+             (= accredit-modules all-modules)))
+         sections)))
+
 (defn registration-panel [participant-data session-id]
   (re-frame/dispatch [:load-available-sessions])
   (re-frame/dispatch [:load-registration-options])
@@ -179,7 +188,7 @@
              [:div.left
               (abort-button @lang)]
              [:div.right
-              [:button.button-primary {:disabled (not (s/valid? ::spec/registration @form-data))
+              [:button.button-primary {:disabled (not (valid-registration? @form-data @registration-options))
                                        :type "submit"}
                (str (t "continue-to-payment" "Jatka maksamaan") ">>")]]]]
            [:div
