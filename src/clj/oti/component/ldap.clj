@@ -25,10 +25,11 @@
   component/Lifecycle
   (start [this]
     (assoc this :pool (atom nil)))
-  (stop [{:keys [pool]}]
-    (when @pool
-      (ldap/close @pool))
-    (reset! pool nil))
+  (stop [{:keys [pool] :as this}]
+    (when (and pool @pool)
+      (ldap/close @pool)
+      (reset! pool nil))
+    this)
   ldap-access/LdapAccess
   (user-has-access? [{:keys [pool]} username]
     (when-not @pool
