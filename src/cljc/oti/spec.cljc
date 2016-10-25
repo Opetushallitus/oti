@@ -1,7 +1,9 @@
 (ns oti.spec
-  (:require #?(:clj [clojure.spec :as s]
-               :cljs [cljs.spec :as s])
-                    [clojure.string :as str]))
+  (:require
+    #?(:clj  [clojure.spec :as s]
+       :cljs [cljs.spec :as s])
+             [clojure.string :as str]
+             [oti.utils :refer [parse-int]]))
 
 (defn future-date? [candidate]
   #?(:clj (.after candidate (java.util.Date.))
@@ -118,19 +120,19 @@
 (defn- valid-reference-number? [x]
   (let [factors [7 3 1]
         ref-str (str x)
-        check-num (-> (last ref-str) str Integer/parseInt)
+        check-num (-> (last ref-str) str parse-int)
         ref (drop-last ref-str)]
     (-> (->> (reverse ref)
            (partition 3 3 [])
            (map (fn [three]
-                  (->> (map #(Integer/parseInt (str %)) three)
+                  (->> (map #(parse-int (str %)) three)
                        (map * factors))))
            (flatten)
            (reduce +)
            str
            last
            str
-           Integer/parseInt
+           parse-int
            (- 10))
         (mod 10)
         (= check-num))))

@@ -1,7 +1,8 @@
 (ns oti.ui.exam-sessions.exam-session
   (:require [oti.ui.exam-sessions.handlers]
             [oti.ui.exam-sessions.subs]
-            [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys parse-int]]
+            [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
+            [oti.utils :refer [parse-int]]
             [oti.spec :as spec]
             [re-frame.core :as re-frame]
             [reagent.core :as r]

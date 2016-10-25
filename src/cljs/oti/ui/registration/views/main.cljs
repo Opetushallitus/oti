@@ -4,7 +4,7 @@
             [oti.ui.registration.views.authentication :as av]
             [oti.ui.registration.views.registration :as rv]
             [oti.ui.registration.views.registration-result :as rrv]
-            [oti.ui.exam-sessions.utils :as utils]
+            [oti.utils :as utils]
             [oti.ui.views.common :refer [loader]]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]
