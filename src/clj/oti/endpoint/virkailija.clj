@@ -1,6 +1,6 @@
 (ns oti.endpoint.virkailija
   (:require [compojure.core :refer :all]
-            [ring.util.response :refer [response not-found]]
+            [ring.util.response :refer [response not-found header]]
             [oti.util.auth :as auth]
             [clojure.spec :as s]
             [oti.boundary.db-access :as dba]
@@ -25,6 +25,11 @@
                  (merge registration)))
            regs))
     []))
+
+(defn- disable-cache [handler]
+  (fn [req]
+    (-> (handler req)
+        (header "Cache-Control" "no-store, must-revalidate"))))
 
 (defn virkailija-endpoint [{:keys [db] :as config}]
   (-> (context routing/virkailija-api-root []
@@ -73,4 +78,5 @@
             (if-let [data (user-data/participant-data config id)]
               (response data)
               (not-found {})))))
-      (wrap-routes auth/wrap-authorization)))
+      (wrap-routes auth/wrap-authorization)
+      (wrap-routes disable-cache)))
