@@ -5,11 +5,11 @@
             [taoensso.timbre :as log]
             [oti.boundary.db-access :as dba]
             [clojure.java.jdbc :as jdbc]
-            [clojure.string :as str]
-            [clojure.spec :as s]))
+            [clojure.spec :as s]
+            [oti.service.email-templates :as templates]))
 
 (defprotocol EmailSender
-  (send-email-by-payment-order-number! [this db email-params])
+  (send-email-by-payment-order-number! [this db params])
   (send-queued-mails! [this db]))
 
 (defn- send-email-via-service! [{:keys [email-service-url]} {:keys [recipients subject body]}]
@@ -27,9 +27,11 @@
         true)
       (log/error "Could not send email to" recipients ", HTTP status from email service was" status))))
 
-(defn- add-email-to-queue! [db {:keys [order-number subject body] :as params}]
-  {:pre [(every? #(identity %) [order-number subject body])]}
-  (dba/add-email-by-payment-order-number! db params))
+(defn- add-email-to-queue! [db {:keys [order-number template-id lang template-values]}]
+  {:pre [(every? #(identity %) [order-number template-id lang template-values])]}
+  (->> (templates/prepare-email template-id lang template-values)
+       (merge {:order-number order-number})
+       (dba/add-email-by-payment-order-number! db)))
 
 (defn- send-emails! [this db]
   (jdbc/with-db-transaction [tx (:spec db) {:isolation :serializable}]
@@ -42,8 +44,8 @@
   (start [this] this)
   (stop [this] this)
   EmailSender
-  (send-email-by-payment-order-number! [this db email-params]
-    (add-email-to-queue! db email-params)
+  (send-email-by-payment-order-number! [this db template-params]
+    (add-email-to-queue! db template-params)
     (send-emails! this db))
   (send-queued-mails! [this db]
     (send-emails! this db)))
