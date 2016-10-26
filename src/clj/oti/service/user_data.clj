@@ -99,8 +99,8 @@
                 :created payment_created}))))
        (remove nil?)))
 
-(defn participant-data [{:keys [db api-client]} id]
-  (when-let [db-data (seq (dba/participant-by-id db id))]
+(defn- merge-db-and-api-data [{:keys [api-client]} db-data]
+  (when (seq db-data)
     (let [external-user-id (:ext_reference_id (first db-data))
           api-data (-> (api-user-data-by-oid api-client [external-user-id])
                        (get external-user-id))]
@@ -109,3 +109,11 @@
         (select-keys (first db-data) [:id :email])
         {:sections (group-by-section db-data)
          :payments (payments db-data)}))))
+
+(defn participant-data
+  ([{:keys [db] :as config} participant-id]
+   (->> (dba/participant-by-id db participant-id)
+        (merge-db-and-api-data config)))
+  ([{:keys [db] :as config} order-number lang]
+   (->> (dba/participant-by-order-number db order-number lang)
+        (merge-db-and-api-data config))))

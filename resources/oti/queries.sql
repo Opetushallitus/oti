@@ -189,31 +189,12 @@ FROM participant p
 ORDER BY id;
 
 -- name: select-participant-by-id
-SELECT p.id, p.ext_reference_id, email, s.id AS section_id, st.name AS section_name, m.id AS module_id,
-  mt.name AS module_name, ss.created AS section_score_ts, ss.accepted AS section_accepted,
-  ms.created AS module_score_ts, ms.accepted AS module_accepted, ms.points AS module_points,
-  aes.section_id section_accreditation, aes.accreditation_date AS section_accreditation_date,
-  aem.module_id AS module_accreditation, aem.accreditation_date AS module_accreditation_date,
-  es.id AS exam_session_id, es.session_date, es.start_time, es.end_time, recs.id AS section_registration,
-  recm.id AS module_registration, pm.created AS payment_created, est.city, est.street_address, est.other_location_info,
-  r.state AS registration_state, pm.id AS payment_id, pm.amount, pm.state AS payment_state
-FROM participant p
-  LEFT JOIN section s ON s.exam_id = 1
-  LEFT JOIN section_translation st ON s.id = st.section_id AND st.language_code = 'fi'
-  LEFT JOIN module m ON m.section_id = s.id
-  LEFT JOIN module_translation mt ON mt.module_id = m.id AND mt.language_code = 'fi'
-  LEFT JOIN section_score ss ON ss.participant_id = p.id AND ss.section_id = s.id
-  LEFT JOIN module_score ms ON ms.section_score_id = ss.id AND ms.module_id = m.id
-  LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id AND aes.section_id = s.id
-  LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id AND aem.module_id = m.id
-  LEFT JOIN registration r ON r.participant_id = p.id
-  LEFT JOIN registration_exam_content_section recs ON recs.section_id = s.id AND recs.participant_id = p.id AND recs.registration_id = r.id
-  LEFT JOIN registration_exam_content_module recm ON recm.module_id = m.id AND recm.participant_id = p.id AND recm.registration_id = r.id
-  LEFT JOIN exam_session es ON es.id = r.exam_session_id
-  LEFT JOIN payment pm ON r.id = pm.registration_id
-  LEFT JOIN exam_session_translation est ON es.id = est.exam_session_id AND est.language_code = 'fi'
-WHERE p.id = :id
-ORDER BY section_id, module_id, es.session_date;
+SELECT * FROM all_participant_data
+WHERE id = :id AND lang = 'fi';
+
+-- name: select-participant-by-payment-order-number
+SELECT * FROM all_participant_data
+WHERE order_number = :order-number AND lang = :lang;
 
 -- name: insert-registration<!
 WITH pp AS (
@@ -314,3 +295,21 @@ WHERE p.state = 'UNPAID'::payment_state AND pp.ext_reference_id = :external-user
 SELECT p.id, p.paym_call_id, p.order_number, p.created, p.amount, p.reference
 FROM payment p
 WHERE p.state = 'UNPAID'::payment_state AND p.registration_id = :registration-id;
+
+-- EMAIL
+
+-- name: insert-email-by-participant-id!
+INSERT INTO email (participant_id, recipient, subject, body)
+  SELECT p.id, p.email, :subject, :body FROM participant p
+  WHERE p.id = :participant-id;
+
+-- name: select-unsent-email-for-update
+SELECT e.id, e.subject, e.body, e.recipient
+FROM email e
+JOIN participant p ON e.participant_id = p.id
+WHERE e.sent IS NULL
+ORDER BY e.created
+FOR UPDATE OF e SKIP LOCKED;
+
+-- name: mark-email-sent!
+UPDATE email SET sent = current_timestamp WHERE id = :id;

@@ -3,7 +3,9 @@
             [oti.boundary.payment :as payment-util]
             [taoensso.timbre :refer [error info]]
             [org.httpkit.client :as http]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [oti.service.user-data :as user-data]
+            [oti.service.registration :as registration])
   (:import [java.time LocalDateTime]
            [java.net URLEncoder URLDecoder]))
 
@@ -21,8 +23,15 @@
           true)
       (error "Could not verify payment response message:" form-data))))
 
+(defn- send-confirmation-email! [config {:keys [ORDNR LG] :as payment-data}]
+  (if (not-any? str/blank? [ORDNR LG])
+    (some->> (user-data/participant-data config ORDNR LG)
+             (registration/send-confirmation-email! config LG))
+    (error "Can't send confirmation email because of missing data. Payment data:" payment-data)))
+
 (defn confirm-payment! [config form-data]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)
+    (send-confirmation-email! config form-data)
     :confirmed))
 
 (defn cancel-payment! [config form-data]

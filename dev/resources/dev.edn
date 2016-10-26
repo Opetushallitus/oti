@@ -18,4 +18,5 @@
                    :oti-vetuma-uri "https://oti.local/oti/vetuma"
                    :secret "TESTIASIAKAS11-873C992B8C4C01EC8355500CAA709B37EA43BC2E591ABF29FEE5EAFE4DCBFA35"
                    :ap "TESTIASIAKAS1"
-                   :rcvid "TESTIASIAKAS11"}}}
+                   :rcvid "TESTIASIAKAS11"}
+  :email-service {:email-service-url "https://itest-virkailija.oph.ware.fi/ryhmasahkoposti-service/email/firewall"}}}

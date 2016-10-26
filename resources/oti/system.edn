@@ -8,7 +8,8 @@
   :api-client oti.component.api-client/api-client
   :localisation oti.component.localisation/localisation
   :vetuma-payment oti.component.vetuma-payment/vetuma-payment
-  :scheduler oti.component.scheduler/scheduler}
+  :scheduler oti.component.scheduler/scheduler
+  :email-service oti.component.email-service/email-service}
  :endpoints
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint
@@ -25,9 +26,9 @@
   :virkailija [:db :api-client]
   :frontend [:authentication]
   :participant [:db :payments :api-client :localisation :vetuma-payment]
-  :payment [:vetuma-payment :db]
+  :payment [:vetuma-payment :db :api-client :email-service]
   :api-client [:cas]
-  :scheduler [:db :vetuma-payment]}
+  :scheduler [:db :vetuma-payment :email-service]}
  :config
  {:app
   {:middleware
