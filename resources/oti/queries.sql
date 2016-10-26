@@ -314,3 +314,28 @@ WHERE p.state = 'UNPAID'::payment_state AND pp.ext_reference_id = :external-user
 SELECT p.id, p.paym_call_id, p.order_number, p.created, p.amount, p.reference
 FROM payment p
 WHERE p.state = 'UNPAID'::payment_state AND p.registration_id = :registration-id;
+
+-- EMAIL
+
+-- name: insert-email-by-participant-id!
+INSERT INTO email (participant_id, recipient, subject, body)
+  SELECT p.id, p.email, :subject, :body FROM participant p
+  WHERE p.id = :participant-id;
+
+-- name: insert-email-by-order-number!
+INSERT INTO email (participant_id, recipient, subject, body)
+  SELECT p.id, p.email, :subject, :body FROM payment pmt
+    JOIN registration r ON pmt.registration_id = r.id
+    JOIN participant p ON r.participant_id = p.id
+  WHERE pmt.order_number = :order-number;
+
+-- name: select-unsent-email-for-update
+SELECT e.id, e.subject, e.body, e.recipient
+FROM email e
+JOIN participant p ON e.participant_id = p.id
+WHERE e.sent IS NULL
+ORDER BY e.created
+FOR UPDATE OF e SKIP LOCKED;
+
+-- name: mark-email-sent!
+UPDATE email SET sent = current_timestamp WHERE id = :id;

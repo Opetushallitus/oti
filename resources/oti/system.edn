@@ -28,7 +28,8 @@
   :participant [:db :payments :api-client :localisation :vetuma-payment]
   :payment [:vetuma-payment :db]
   :api-client [:cas]
-  :scheduler [:db :vetuma-payment]}
+  :scheduler [:db :vetuma-payment]
+  :email-service [:db]}
  :config
  {:app
   {:middleware

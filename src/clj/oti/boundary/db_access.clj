@@ -141,7 +141,10 @@
   (unpaid-payments-by-participant [db external-user-id])
   (unpaid-payment-by-registration [db registration-id])
   (update-payment-order-number-and-ts! [db params])
-  (registration-state-by-id [db id]))
+  (registration-state-by-id [db id])
+  (add-email-by-payment-order-number! [db params])
+  (unsent-emails-for-update [db tx])
+  (set-email-sent! [db tx email-id]))
 
 (extend-type HikariCP
   DbAccess
@@ -228,4 +231,10 @@
   (registration-state-by-id [{:keys [spec]} id]
     (-> (q/select-registration-state-by-id {:id id} {:connection spec})
         first
-        :state)))
+        :state))
+  (add-email-by-payment-order-number! [{:keys [spec]} params]
+    (q/insert-email-by-order-number! params {:connection spec}))
+  (unsent-emails-for-update [db tx]
+    (q/select-unsent-email-for-update {} {:connection tx}))
+  (set-email-sent! [db tx email-id]
+    (q/mark-email-sent! {:id email-id} {:connection tx})))
