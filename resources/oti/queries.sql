@@ -192,6 +192,10 @@ ORDER BY id;
 SELECT * FROM all_participant_data
 WHERE id = :id AND lang = 'fi';
 
+-- name: select-participant-by-payment-order-number
+SELECT * FROM all_participant_data
+WHERE order_number = :order-number AND lang = :lang;
+
 -- name: insert-registration<!
 WITH pp AS (
     SELECT id FROM participant WHERE ext_reference_id = :external-user-id
@@ -298,13 +302,6 @@ WHERE p.state = 'UNPAID'::payment_state AND p.registration_id = :registration-id
 INSERT INTO email (participant_id, recipient, subject, body)
   SELECT p.id, p.email, :subject, :body FROM participant p
   WHERE p.id = :participant-id;
-
--- name: insert-email-by-order-number!
-INSERT INTO email (participant_id, recipient, subject, body)
-  SELECT p.id, p.email, :subject, :body FROM payment pmt
-    JOIN registration r ON pmt.registration_id = r.id
-    JOIN participant p ON r.participant_id = p.id
-  WHERE pmt.order_number = :order-number;
 
 -- name: select-unsent-email-for-update
 SELECT e.id, e.subject, e.body, e.recipient

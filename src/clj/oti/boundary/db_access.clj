@@ -132,6 +132,7 @@
   (section-and-module-names [db])
   (participant-by-ext-id [db external-user-id])
   (participant-by-id [db id])
+  (participant-by-order-number [db order-number lang])
   (all-participants [db])
   (confirm-registration-and-payment! [db params])
   (cancel-registration-and-payment! [db params])
@@ -142,7 +143,7 @@
   (unpaid-payment-by-registration [db registration-id])
   (update-payment-order-number-and-ts! [db params])
   (registration-state-by-id [db id])
-  (add-email-by-payment-order-number! [db params])
+  (add-email-by-participant-id! [db params])
   (unsent-emails-for-update [db tx])
   (set-email-sent! [db tx email-id]))
 
@@ -203,6 +204,8 @@
     (q/select-participant {:external-user-id external-user-id} {:connection spec}))
   (participant-by-id [{:keys [spec]} id]
     (q/select-participant-by-id {:id id} {:connection spec}))
+  (participant-by-order-number [{:keys [spec]} order-number lang]
+    (q/select-participant-by-payment-order-number {:order-number order-number :lang lang} {:connection spec}))
   (all-participants [{:keys [spec]}]
     (q/select-all-participants {} {:connection spec}))
   (confirm-registration-and-payment! [{:keys [spec]} params]
@@ -232,8 +235,8 @@
     (-> (q/select-registration-state-by-id {:id id} {:connection spec})
         first
         :state))
-  (add-email-by-payment-order-number! [{:keys [spec]} params]
-    (q/insert-email-by-order-number! params {:connection spec}))
+  (add-email-by-participant-id! [{:keys [spec]} params]
+    (q/insert-email-by-participant-id! params {:connection spec}))
   (unsent-emails-for-update [db tx]
     (q/select-unsent-email-for-update {} {:connection tx}))
   (set-email-sent! [db tx email-id]
