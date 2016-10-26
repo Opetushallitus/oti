@@ -8,7 +8,8 @@
   :api-client oti.component.api-client/api-client
   :localisation oti.component.localisation/localisation
   :vetuma-payment oti.component.vetuma-payment/vetuma-payment
-  :scheduler oti.component.scheduler/scheduler}
+  :scheduler oti.component.scheduler/scheduler
+  :email-service oti.component.email-service/email-service}
  :endpoints
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint
