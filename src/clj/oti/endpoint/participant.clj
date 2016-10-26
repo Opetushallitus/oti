@@ -10,7 +10,8 @@
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
             [oti.service.registration :as registration]
-            [oti.service.payment :as payment]))
+            [oti.service.payment :as payment]
+            [oti.util.logging.audit :as audit]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -76,26 +77,8 @@
       ; Other or missing registration status, just return the session as is
       session)))
 
-(defn participant-endpoint [{:keys [db api-client localisation] :as config}]
-  (routes
-    (GET "/oti/abort" [lang]
-         (-> (redirect (if (= lang "fi")
-                              "/oti/ilmoittaudu"
-                              "/oti/anmala"))
-             (assoc :session {})))
-    (context routing/participant-api-root []
-      ;; TODO: Maybe relocate translation endpoints to a localisation endpoint?
-      (GET "/translations" [lang]
-        (if (str/blank? lang)
-          {:status 400 :body {:error "Missing lang parameter"}}
-          (response (loc/translations-by-lang localisation lang))))
-      (GET "/translations/refresh" []
-        (if-let [new-translations (loc/refresh-translations localisation)]
-          (response new-translations)
-          {:status 500 :body {:error "Refreshing translations failed"}}))
-      ;; FIXME: This is a dummy route
-      (GET "/authenticate" [callback]
-        (if-not (str/blank? callback)
+(defn authenticate [{:keys [db api-client] :as config} callback]
+  (if-not (str/blank? callback)
           (let [hetu (random-hetu)
                 {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
                 {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))]
@@ -110,21 +93,50 @@
                                                :hetu hetu
                                                :external-user-id oidHenkilo}})))
           {:status 400 :body {:error "Missing callback uri"}}))
-      (GET "/exam-sessions" []
-        (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
-                            (map c/convert-session-row))]
-          (response sessions)))
-      (-> (context "/authenticated" {session :session}
-            (GET "/participant-data" []
-              (let [updated-session (session-participant config session)]
-                {:status 200 :body (:participant updated-session) :session updated-session}))
-            (GET "/registration-options" []
-              (let [user-id (-> session :participant :external-user-id)] ; user-id is nil at this stage if the user is new
-                (->> {:sections (dba/sections-and-modules-available-for-user db user-id)
-                      :payments (registration/payment-amounts config user-id)}
-                     (response))))
-            (GET "/payment-form-data" {session :session {:keys [lang]} :params}
-              (registration/payment-data-for-retry config session lang))
-            (POST "/register" request
-              (registration/register! config request)))
-          (wrap-routes wrap-authentication)))))
+
+(defn- abort [lang]
+  (-> (redirect (if (= lang "fi")
+                  "/oti/ilmoittaudu"
+                  "/oti/anmala"))
+      (assoc :session {})))
+
+(defn- translations [{:keys [localisation]} lang]
+  (if (str/blank? lang)
+    {:status 400 :body {:error "Missing lang parameter"}}
+    (response (loc/translations-by-lang localisation lang))))
+
+(defn- refresh-translations [{:keys [localisation]}]
+  (if-let [new-translations (loc/refresh-translations localisation)]
+    (response new-translations)
+    {:status 500 :body {:error "Refreshing translations failed"}}))
+
+(defn- exam-sessions [{:keys [db]}]
+  (let [sessions (->> (dba/published-exam-sessions-with-space-left db)
+                      (map c/convert-session-row))]
+    (response sessions)))
+
+(defn- participant-data [config session]
+  (let [updated-session (session-participant config session)]
+    {:status 200 :body (:participant updated-session) :session updated-session}))
+
+(defn- registration-options [{:keys [db] :as config} session]
+  (let [user-id (-> session :participant :external-user-id)] ; user-id is nil at this stage if the user is new
+    (->> {:sections (dba/sections-and-modules-available-for-user db user-id)
+          :payments (registration/payment-amounts config user-id)}
+         (response))))
+
+(defn participant-endpoint [config]
+  (routes
+   (GET "/oti/abort" [lang] (abort lang))
+   (context routing/participant-api-root []
+     (GET "/translations"         [lang] (translations config lang))
+     (GET "/translations/refresh" []     (refresh-translations config))
+     ;; FIXME: This is a dummy route
+     (GET "/authenticate"         [callback] (authenticate config callback))
+     (GET "/exam-sessions"        []         (exam-sessions config))
+     (-> (context "/authenticated" {session :session}
+         (GET "/participant-data"     []      (participant-data config session))
+         (GET "/registration-options" []      (registration-options config session))
+         (GET "/payment-form-data"    request (registration/payment-data-for-retry config request))
+         (POST "/register"            request (audit/log-if-status-200 (registration/register! config request))))
+         (wrap-routes wrap-authentication)))))
