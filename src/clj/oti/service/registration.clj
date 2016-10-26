@@ -8,8 +8,11 @@
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
             [oti.exam-rules :as rules]
-            [oti.boundary.payment :as payment-util])
-  (:import [java.time LocalDateTime]))
+            [oti.boundary.payment :as payment-util]
+            [oti.component.email-service :as email])
+  (:import [java.time LocalDateTime]
+           [java.time.format DateTimeFormatter]
+           [java.util Locale]))
 
 (defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} preferred-name lang]
   (api/add-person! api-client
@@ -144,3 +147,35 @@
     (do
       (error "Tried to retry payment for registration" registration-id "but it's status is not pending")
       (registration-response 400 :error "registration-unknown-error" session))))
+
+(defn- format-date-and-time [{:keys [session-date start-time end-time]}]
+  (let [formatter (DateTimeFormatter/ofPattern "d.M.yyyy")]
+    (str
+      (-> session-date .toLocalDate (.format formatter))
+      " " start-time " - " end-time)))
+
+(defn- format-registration-selections [sections]
+  (->> sections
+       (map
+         (fn [{:keys [name sessions]}]
+           (let [modules (->> (first sessions)
+                              :modules
+                              vals
+                              (filter :registered-to?)
+                              (map :name))]
+             (str name " (" (str/join ", " modules) ")"))))
+       (str/join ", ")))
+
+(defn- format-amount [n]
+  (String/format (Locale. "fi"), "%.2f", (to-array [(double n)])))
+
+(defn send-confirmation-email! [{:keys [db email-service]} lang {:keys [sections payments id]}]
+  "Note that participant data is expected to contain data about one exam session only"
+  (let [values {:date-and-time (-> sections first :sessions first format-date-and-time)
+                :sections (format-registration-selections sections)
+                :amount (-> payments first :amount format-amount)}
+        email-data {:participant-id id
+                    :lang lang
+                    :template-id :registration-success
+                    :template-values values}]
+    (email/send-email-to-participant! email-service db email-data)))

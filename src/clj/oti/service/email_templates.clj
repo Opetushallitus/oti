@@ -17,5 +17,5 @@
 
 (defn prepare-email [template-id lang values]
   (->> (template-id templates)
-       lang
+       ((keyword lang))
        (replace-placeholders values)))
