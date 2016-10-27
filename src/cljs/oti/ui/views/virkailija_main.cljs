@@ -21,10 +21,9 @@
 (defn show-panel [panel-name data]
   [(panels panel-name) data])
 
-(defn navigation-panel [active-page user]
+(defn navigation-panel [active-page]
   [:nav#nav-holder
-   (->
-        (reduce (fn [hiccup {:keys [view url text]}]
+   (-> (reduce (fn [hiccup {:keys [view url text]}]
                   (concat hiccup [[:li.divider]
                                   [:li {:key (name view)
                                         :class (when (= active-page view) "active")}
@@ -33,11 +32,7 @@
                                      [:a {:href url} text])]]))
                 [:ul#main-nav]
                 (filter :text virkailija-routes))
-        (concat [[:li.divider]
-                 [:li.user
-                  [:span (:username user)]
-                  [:br]
-                  [:a.logout {:href (routing/auth-route "/logout")} "Kirjaudu ulos"]]])
+        (concat [[:li.divider]])
         (vec))])
 
 (defn main-panel []
@@ -51,8 +46,11 @@
        [loader @loading?]
        [:div#header
         [:img {:src (routing/img "opetushallitus.gif")}]
-        [:p "Opetushallinnon tutkintorekisteri"]]
-       [navigation-panel @active-panel @user]
+        [:p "Opetushallinnon tutkintorekisteri"]
+        [:div.user
+         [:div (:username @user)]
+         [:div [:a.logout {:href (routing/auth-route "/logout")} "Kirjaudu ulos"]]]]
+       [navigation-panel @active-panel]
        [:div#content-area
         [:main.container
          [show-panel @active-panel @active-panel-data]]]

@@ -68,22 +68,23 @@ table{
   padding-left: 0 !important;
 }
 
+a, a:visited, a:active {
+  color: @oph-green;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+a.button {
+  text-decoration: none;
+}
+
 .container{
   max-width: 940px;
 
   label,
   p {
     color: @default-font-color !important;
-  }
-  a, a:visited, a:active {
-    color: @oph-green;
-    text-decoration: none;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-  a.button {
-    text-decoration: none;
   }
 }
 
@@ -172,13 +173,30 @@ input[type="button"] {
     vertical-align: middle;
   }
 
-  & a{
+  a.language-link {
     padding-top: 25px;
     text-decoration: none;
     float: right;
     font-size: 14px;
     color: #515151;
     cursor: pointer;
+  }
+
+  .user {
+    padding-top: 20px;
+    &:extend(.clearfix all);
+    display: block;
+    line-height: normal;
+    float: right;
+    text-align: right;
+    font-size: 12px;
+    div {
+      float: none;
+    }
+    a {
+      font-size: 11px;
+      padding: 0;
+    }
   }
 }
 
@@ -219,15 +237,6 @@ input[type="button"] {
         padding: 0;
         border-left: 1px solid white;
         border-bottom: white;
-      }
-
-      &.user {
-        float: right;
-        font-size: 12px;
-        text-align: right;
-        a {
-          font-size: inherit;
-        }
       }
     }
   }

@@ -35,9 +35,10 @@
        [:div#header
         [:img {:src (routing/img "opetushallitus.gif")}]
         [:p (t "registration-title")]
-        [:a {:href "#" :on-click (fn [e]
-                                   (.preventDefault e)
-                                   (re-frame/dispatch [:set-language (if (= @current-language :fi) :sv :fi)]))}
+        [:a.language-link {:href "#"
+                           :on-click (fn [e]
+                                       (.preventDefault e)
+                                       (re-frame/dispatch [:set-language (if (= @current-language :fi) :sv :fi)]))}
          (t "switch-language")]]
        [navigation-panel]
        [:div#content-area
