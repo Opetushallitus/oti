@@ -126,6 +126,7 @@
           (audit/auditable-response
            (registration-response 200 status msg-key session registration-id payment-form-data)
            :who external-user-id
+           :app :participant
            :on :registration
            :op :create
            :after {:id registration-id}

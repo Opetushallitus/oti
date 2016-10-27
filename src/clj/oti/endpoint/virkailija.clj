@@ -31,51 +31,78 @@
     (-> (handler req)
         (header "Cache-Control" "no-store, must-revalidate"))))
 
-(defn virkailija-endpoint [{:keys [db] :as config}]
+(defn- user-info [{{:keys [identity]} :session}]
+  (response (select-keys identity [:username])))
+
+(defn- new-exam-session [{:keys [db]} {params :params}]
+  (let [conformed (s/conform ::os/exam-session params)]
+    (if (or (s/invalid? conformed) (not (seq (dba/add-exam-session! db conformed))))
+      {:status 400
+       :body {:errors (s/explain ::os/exam-session params)}}
+      (response {:success true}))))
+
+(defn- exam-sessions [{:keys [db]}]
+  (let [sessions (->> (dba/upcoming-exam-sessions db)
+                      (map c/convert-session-row))]
+    (response sessions)))
+
+(defn- exam-session [{:keys [db]} id]
+  (if-let [exam-session (->> (dba/exam-session db id)
+                             (map c/convert-session-row)
+                             first)]
+    (response exam-session)
+    (not-found {})))
+
+(defn- update-exam-session [{:keys [db]} {params :params} id]
+  (let [conformed (s/conform ::os/exam-session (assoc params ::os/id id))]
+    (if (or (s/invalid? conformed) (not (seq (dba/save-exam-session! db conformed))))
+      {:status 400
+       :body {:errors (s/explain ::os/exam-session params)}}
+      (response {:success true}))))
+
+(defn- delete-exam-session [{:keys [db]} id]
+  (if (pos? (dba/remove-exam-session! db id))
+    (response {:success true})
+    (not-found {})))
+
+(defn- exam-session-registrations [config id]
+  (response (fetch-registrations config id)))
+
+(defn- sections-and-modules [{:keys [db]}]
+  (response (dba/section-and-module-names db)))
+
+(defn- search-participant [config q filter]
+  (let [filter-kw (if (str/blank? filter) :all (keyword filter))
+        query (when q (str/trim q))
+        results (search/search-participants config query filter-kw)]
+    (response results)))
+
+(defn- participant-by-id [config id]
+  (if-let [data (user-data/participant-data config id)]
+    (response data)
+    (not-found {})))
+
+(defn- exam-session-routes [config]
+  (context "/exam-sessions" []
+    (POST "/" request (new-exam-session config request))
+    (GET "/"  []      (exam-sessions config))
+    (context "/:id{[0-9]+}" [id :<< as-int]
+      (GET "/"              []      (exam-session config id))
+      (PUT "/"              request (update-exam-session config request id))
+      (DELETE "/"           []      (delete-exam-session config id))
+      (GET "/registrations" []      (exam-session-registrations config id)))))
+
+(defn- participant-routes [config]
+  (routes
+   (GET "/participant-search"   [q filter] (search-participant config q filter))
+   (context "/participant/:id{[0-9]+}" [id :<< as-int]
+     (GET "/" [] (participant-by-id config id)))))
+
+(defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []
-        (GET "/user-info" {session :session}
-          (response (select-keys (:identity session) [:username])))
-        (context "/exam-sessions" []
-          (POST "/" {params :params}
-            (let [conformed (s/conform ::os/exam-session params)]
-              (if (or (s/invalid? conformed) (not (seq (dba/add-exam-session! db conformed))))
-                {:status 400
-                 :body {:errors (s/explain ::os/exam-session params)}}
-                (response {:success true}))))
-          (GET "/" []
-            (let [sessions (->> (dba/upcoming-exam-sessions db)
-                                (map c/convert-session-row))]
-              (response sessions)))
-          (context "/:id{[0-9]+}" [id :<< as-int]
-            (GET "/" []
-              (if-let [exam-session (->> (dba/exam-session db id)
-                                         (map c/convert-session-row)
-                                         first)]
-                (response exam-session)
-                (not-found {})))
-            (PUT "/" {params :params}
-              (let [conformed (s/conform ::os/exam-session (assoc params ::os/id id))]
-                (if (or (s/invalid? conformed) (not (seq (dba/save-exam-session! db conformed))))
-                  {:status 400
-                   :body {:errors (s/explain ::os/exam-session params)}}
-                  (response {:success true}))))
-            (DELETE "/" []
-              (if (pos? (dba/remove-exam-session! db id))
-                (response {:success true})
-                (not-found {})))
-            (GET "/registrations" []
-              (response (fetch-registrations config id)))))
-        (GET "/sections-and-modules" []
-          (response (dba/section-and-module-names db)))
-        (GET "/participant-search" [q filter]
-          (let [filter-kw (if (str/blank? filter) :all (keyword filter))
-                query (when q (str/trim q))
-                results (search/search-participants config query filter-kw)]
-            (response results)))
-        (context "/participant/:id{[0-9]+}" [id :<< as-int]
-          (GET "/" []
-            (if-let [data (user-data/participant-data config id)]
-              (response data)
-              (not-found {})))))
+        (GET "/user-info" [] user-info)
+        (GET "/sections-and-modules" [] (sections-and-modules config))
+        (exam-session-routes config)
+        (participant-routes config))
       (wrap-routes auth/wrap-authorization)
       (wrap-routes disable-cache)))

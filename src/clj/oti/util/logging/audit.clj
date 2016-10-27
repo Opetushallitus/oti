@@ -76,7 +76,8 @@
   (log-if #(= (:status %) 200) response))
 
 (defn auditable-response [response & {:keys [app who op on before after msg]}]
-  (assoc response :audit {:who who
+  (assoc response :audit {:app app
+                          :who who
                           :op op
                           :on on
                           :before before
