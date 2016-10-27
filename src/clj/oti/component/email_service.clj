@@ -18,7 +18,7 @@
   (let [wrapped-recipients (mapv (fn [rcp] {:email rcp}) recipients)
         {:keys [status]} @(http/post email-service-url {:headers {"content-type" "application/json"}
                                                         :body    (json/generate-string {:email     {:subject subject
-                                                                                                    :html  false
+                                                                                                    :isHtml  false
                                                                                                     :body    body}
                                                                                         :recipient wrapped-recipients})})]
     (if (= 200 status)
