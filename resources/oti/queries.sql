@@ -313,3 +313,6 @@ FOR UPDATE OF e SKIP LOCKED;
 
 -- name: mark-email-sent!
 UPDATE email SET sent = current_timestamp WHERE id = :id;
+
+-- name: select-exam-count
+SELECT count(id) AS exam_count FROM exam;

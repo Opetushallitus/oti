@@ -21,7 +21,7 @@
  {:http [:app]
   :app  [:status :frontend :auth :virkailija :participant :payment]
   :ragtime [:db]
-  :status []
+  :status [:db]
   :auth [:authentication :cas :ldap]
   :virkailija [:db :api-client]
   :frontend [:authentication]

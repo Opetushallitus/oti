@@ -145,7 +145,8 @@
   (registration-state-by-id [db id])
   (add-email-by-participant-id! [db params])
   (unsent-emails-for-update [db tx])
-  (set-email-sent! [db tx email-id]))
+  (set-email-sent! [db tx email-id])
+  (health-check [db]))
 
 (extend-type HikariCP
   DbAccess
@@ -240,4 +241,9 @@
   (unsent-emails-for-update [db tx]
     (q/select-unsent-email-for-update {} {:connection tx}))
   (set-email-sent! [db tx email-id]
-    (q/mark-email-sent! {:id email-id} {:connection tx})))
+    (q/mark-email-sent! {:id email-id} {:connection tx}))
+  (health-check [{:keys [spec]}]
+    (-> (q/select-exam-count {} {:connection spec})
+        first
+        :exam_count
+        pos?)))
