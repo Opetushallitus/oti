@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [ring.util.response :refer [response not-found header]]
             [oti.util.auth :as auth]
+            [oti.util.logging.audit :as audit]
             [clojure.spec :as s]
             [oti.boundary.db-access :as dba]
             [oti.spec :as os]
@@ -34,12 +35,20 @@
 (defn- user-info [{{:keys [identity]} :session}]
   (response (select-keys identity [:username])))
 
-(defn- new-exam-session [{:keys [db]} {params :params}]
-  (let [conformed (s/conform ::os/exam-session params)]
-    (if (or (s/invalid? conformed) (not (seq (dba/add-exam-session! db conformed))))
+(defn- new-exam-session [{:keys [db]} {params :params session :session}]
+  (let [conformed (s/conform ::os/exam-session params)
+        new-exam-session (when-not (s/invalid? conformed)
+                           (dba/add-exam-session! db conformed))]
+    (if new-exam-session
+      (audit/auditable-response
+       (response {:success true})
+       :app :admin
+       :who (get-in session [:identity :username])
+       :op :create
+       :on :exam-session
+       :after new-exam-session)
       {:status 400
-       :body {:errors (s/explain ::os/exam-session params)}}
-      (response {:success true}))))
+       :body {:errors (s/explain ::os/exam-session params)}})))
 
 (defn- exam-sessions [{:keys [db]}]
   (let [sessions (->> (dba/upcoming-exam-sessions db)
@@ -84,7 +93,7 @@
 
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
-    (POST "/" request (new-exam-session config request))
+    (POST "/" request (audit/log-if-status-200 (new-exam-session config request)))
     (GET "/"  []      (exam-sessions config))
     (context "/:id{[0-9]+}" [id :<< as-int]
       (GET "/"              []      (exam-session config id))

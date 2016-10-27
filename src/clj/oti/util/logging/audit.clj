@@ -2,7 +2,8 @@
   (:import (fi.vm.sade.auditlog.oti LogMessage OTIResource OTIOperation)
            (fi.vm.sade.auditlog Audit ApplicationType))
   (:require [clojure.data :as data]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [taoensso.timbre :as log]))
 
 (def ^:private ParticipantAudit (Audit. "oti" ApplicationType/OPISKELIJA))
 (def ^:private AdminAudit       (Audit. "oti" ApplicationType/VIRKAILIJA))
@@ -48,6 +49,7 @@
                       (.setDelta diff)
                       (.message msg)))]
     (condp = app
+
       :admin       (.log AdminAudit msg)
       :participant (.log ParticipantAudit msg)
       (throw (IllegalArgumentException. "Unknown app type.")))))
@@ -62,7 +64,7 @@
     (do (log :app (or app _app)
              :who (or who
                       _who
-                      (get-in response [:session :identity :username])
+                      (get-in session [:identity :username]) ; Most likely not in a response object yet
                       (throw (IllegalArgumentException. "No 'who' given for audit logging.")))
              :op  (or op _op)
              :on  (or on _on)
@@ -72,8 +74,8 @@
         (dissoc response :audit))
     (dissoc response :audit)))
 
-(defn log-if-status-200 [response]
-  (log-if #(= (:status %) 200) response))
+(defn log-if-status-200 [response & {:keys [app who op on before after msg]}]
+  (log-if #(= (:status %) 200) response :app app :who who :op op :on on :before before :after after :msg msg))
 
 (defn auditable-response [response & {:keys [app who op on before after msg]}]
   (assoc response :audit {:app app
