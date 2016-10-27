@@ -218,7 +218,8 @@ table {
   margin: 0 5px;
 }
 .registration .exam-sections .partial-accreditation {
-  margin: 10px 0 5px 55px;
+  margin: 10px 0 10px 25px;
+  font-size: .9rem;
 }
 .registration .exam-sections .partial-accreditation .modules {
   margin-left: -3px;

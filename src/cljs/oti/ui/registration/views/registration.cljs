@@ -75,6 +75,72 @@
              (= accredit-modules all-modules)))
          sections)))
 
+(defn section-selections [form-data]
+  (let [lang (re-frame/subscribe [:language])
+        registration-options (re-frame/subscribe [:registration-options])]
+    (fn []
+      [:div.section.exam-sections
+       [:h3 (t "sections-participated"
+               "Koeosiot, joihin osallistun")]
+       (doall
+         (for [{:keys [id name modules previously-attempted?]} (:sections @registration-options)]
+           (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))
+                 can-accredit-partially? (:can-accredit-partially? (get rules/rules-by-section-id id))
+                 attending? (contains? (attending-ids form-data) id)]
+             [:div.exam-section {:key id}
+              [:h4 (str (t "section" "Osio") " " (@lang name))]
+              [:div.row
+               [:label
+                [:input {:type "radio" :name (str "section-" id "-participation") :value "participate"
+                         :on-click #(add-section form-data id {::spec/retry? previously-attempted?})}]
+                [:span (cond
+                         (not previously-attempted?) (t "participate-exam" "Osallistun kokeeseen")
+                         (and previously-attempted? can-retry-partially?) (str (t "participate-in-following-modules-retry"
+                                                                                  "Osallistun uusintakokeeseen seuraavista osa-alueista") ":")
+                         :else (t "retake-the-exam" "Osallistun uusintakokeeseen"))]]
+               (when (and previously-attempted? can-retry-partially?)
+                 [:div.modules
+                  (doall
+                    (for [module modules]
+                      [:label {:key (:id module)}
+                       [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
+                                :on-click (module-selection form-data id (:id module) ::spec/retry-modules)}]
+                       [:span (@lang (:name module))]]))])
+               (when (and can-accredit-partially? attending?)
+                 [:div.row.partial-accreditation
+                  [:span (str (t "accredited-for-following-modules"
+                                 "Olen saanut korvaavuuden seuraavista osa-alueista") ":")]
+                  [:div.modules
+                   (doall
+                     (for [module modules]
+                       [:label {:key (:id module)}
+                        [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
+                                 :on-click (module-selection form-data id (:id module) ::spec/accredit-modules)}]
+                        [:span (@lang (:name module))]]))]])]
+              [:div.row
+               [:label
+                [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
+                         :on-click #(add-section form-data id {::spec/accredit? true})}]
+                [:span (t "has-accreditation-or-other-substitution"
+                          "Olen saanut korvaavuuden / korvannut kurssisuorituksella tai esseellä koko osion")]]]
+              [:div.row
+               [:label
+                [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
+                         :on-click #(swap! form-data update ::spec/sections dissoc id)}]
+                [:span (t "not-participating" "En osallistu")]]]])))
+       (when-not (empty? (attending-ids form-data))
+         [:div.exam-section
+          [:h4 (t "exam-question-language"
+                  "Tenttikysymysten kieli")]
+          (doall
+            (for [lang spec/recognized-languages]
+              [:div.row {:key (name lang)}
+               [:label
+                [:input {:type "radio" :name "language" :value (name lang)
+                         :checked (= lang (::spec/language-code @form-data))
+                         :on-change #(swap! form-data assoc ::spec/language-code lang)}]
+                [:span (t lang)]]]))])])))
+
 (defn registration-panel [participant-data session-id]
   (re-frame/dispatch [:load-available-sessions])
   (re-frame/dispatch [:load-registration-options])
@@ -116,67 +182,7 @@
                  [:input {:type "email" :name "email" :value (::spec/email @form-data)
                           :on-change (partial set-val form-data ::spec/email)
                           :class (when (::spec/email invalids) "invalid")}])]]]
-            [:div.section.exam-sections
-             [:h3 (t "sections-participated"
-                     "Koeosiot, joihin osallistun")]
-             (doall
-               (for [{:keys [id name modules previously-attempted?]} (:sections @registration-options)]
-                 (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))
-                       can-accredit-partially? (:can-accredit-partially? (get rules/rules-by-section-id id))
-                       attending? (contains? (attending-ids form-data) id)]
-                   [:div.exam-section {:key id}
-                    [:h4 (str (t "section" "Osio") " " (@lang name))]
-                    [:div.row
-                     [:label
-                      [:input {:type "radio" :name (str "section-" id "-participation") :value "participate"
-                               :on-click #(add-section form-data id {::spec/retry? previously-attempted?})}]
-                      [:span (cond
-                               (not previously-attempted?) (t "participate-exam" "Osallistun kokeeseen")
-                               (and previously-attempted? can-retry-partially?) (str (t "participate-in-following-modules-retry"
-                                                                                        "Osallistun uusintakokeeseen seuraavista osa-alueista") ":")
-                               :else (t "retake-the-exam" "Osallistun uusintakokeeseen"))]]
-                     (when (and previously-attempted? can-retry-partially?)
-                       [:div.modules
-                        (doall
-                          (for [module modules]
-                            [:label {:key (:id module)}
-                                [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                         :on-click (module-selection form-data id (:id module) ::spec/retry-modules)}]
-                             [:span (@lang (:name module))]]))])]
-                    [:div.row
-                     [:label
-                      [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
-                               :on-click #(add-section form-data id {::spec/accredit? true})}]
-                      [:span (t "has-accreditation-or-other-substitution"
-                                "Olen saanut korvaavuuden / korvannut kurssisuorituksella tai esseellä koko osion")]]]
-                    [:div.row
-                     [:label
-                      [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
-                               :on-click #(swap! form-data update ::spec/sections dissoc id)}]
-                      [:span (t "not-participating" "En osallistu")]]]
-                    (when (and can-accredit-partially? attending?)
-                      [:div.row.partial-accreditation
-                       [:span (str (t "accredited-for-following-modules"
-                                      "Olen saanut korvaavuuden seuraavista osa-alueista") ":")]
-                       [:div.modules
-                        (doall
-                          (for [module modules]
-                            [:label {:key (:id module)}
-                             [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                      :on-click (module-selection form-data id (:id module) ::spec/accredit-modules)}]
-                             [:span (@lang (:name module))]]))]])])))
-             (when-not (empty? (attending-ids form-data))
-               [:div.exam-section
-                [:h4 (t "exam-question-language"
-                        "Tenttikysymysten kieli")]
-                (doall
-                  (for [lang spec/recognized-languages]
-                    [:div.row {:key (name lang)}
-                     [:label
-                      [:input {:type "radio" :name "language" :value (name lang)
-                               :checked (= lang (::spec/language-code @form-data))
-                               :on-change #(swap! form-data assoc ::spec/language-code lang)}]
-                      [:span (t lang)]]]))])]
+            [section-selections form-data]
             [:div.section.price
              [:div.right
               [:span (str (t "participation-cost"
