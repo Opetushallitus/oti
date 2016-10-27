@@ -5,7 +5,7 @@
             [oti.ui.registration.views.registration :as rv]
             [oti.ui.registration.views.registration-result :as rrv]
             [oti.utils :as utils]
-            [oti.ui.views.common :refer [loader]]
+            [oti.ui.views.common :refer [loader flash-message]]
             [re-frame.core :as re-frame]
             [oti.routing :as routing]
             [oti.ui.i18n :refer [t]]))
@@ -25,7 +25,7 @@
          (utils/parse-int))))
 
 (defn main-panel []
-  (let [flash-message (re-frame/subscribe [:flash-message])
+  (let [flash-opts (re-frame/subscribe [:flash-message])
         current-language (re-frame/subscribe [:language])
         participant-data (re-frame/subscribe [:participant-data])
         loading? (re-frame/subscribe [:loading?])]
@@ -46,11 +46,4 @@
            (empty? @participant-data) [av/authentication-panel]
            (:registration-status @participant-data) [rrv/result-panel @participant-data]
            (seq @participant-data) [rv/registration-panel @participant-data (parse-session-id)])]]
-       (when (seq @flash-message)
-         (let [{:keys [type text]} @flash-message]
-           [:div.flash-message
-            [:span.icon {:class (if (= :success type) "success" "error")}
-             (if (= :success type)
-               "\u2713"
-               "\u26A0")]
-            [:span.text text]]))])))
+       [flash-message @flash-opts]])))

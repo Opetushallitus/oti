@@ -24,7 +24,12 @@
                   :uri             (routing/p-a-route "/authenticated/participant-data")
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :participant-data]
-                  :on-failure      [:bad-response]}}))
+                  :on-failure      [:no-op]}}))
+
+(re-frame/reg-event-fx
+  :no-op
+  (fn [_ _]
+    {}))
 
 (re-frame/reg-event-fx
   :load-available-sessions

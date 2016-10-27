@@ -6,7 +6,7 @@
             [oti.ui.participants.views.search :as search]
             [oti.ui.participants.views.details :as details]
             [oti.ui.routes :refer [virkailija-routes]]
-            [oti.ui.views.common :refer [loader]]
+            [oti.ui.views.common :refer [loader flash-message]]
             [oti.routing :as routing]))
 
 (defmulti panels identity)
@@ -44,7 +44,7 @@
   (let [active-panel (re-frame/subscribe [:active-panel])
         active-panel-data (re-frame/subscribe [:active-panel-data])
         user (re-frame/subscribe [:user])
-        flash-message (re-frame/subscribe [:flash-message])
+        flash-opts (re-frame/subscribe [:flash-message])
         loading? (re-frame/subscribe [:loading?])]
     (fn []
       [:div
@@ -56,12 +56,4 @@
        [:div#content-area
         [:main.container
          [show-panel @active-panel @active-panel-data]]]
-       (when (seq @flash-message)
-         (let [{:keys [type text]} @flash-message]
-           [:div.flash-container
-            [:div.flash-message
-             [:span.icon {:class (if (= :success type) "success" "error")}
-              (if (= :success type)
-                "\u2713"
-                "\u26A0")]
-             [:span.text text]]]))])))
+       [flash-message @flash-opts]])))

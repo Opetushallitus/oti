@@ -25,7 +25,7 @@
                   :uri             (routing/v-a-route "/user-info")
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :user]
-                  :on-failure      [:bad-response]}}))
+                  :on-failure      [:bad-load-user-response]}}))
 
 (re-frame/reg-event-fx
   :store-response-to-db
@@ -35,12 +35,32 @@
     {:db (assoc db key response)
      :loader false}))
 
-(re-frame/reg-event-db
+(defn redirect-to-auth []
+  (let [location (-> js/window .-location)
+        host (.-host location)
+        protocol (.-protocol location)]
+    (->> (str protocol "//" host (routing/auth-route "/cas?path=") (js/encodeURIComponent (.-href location)))
+         (set! (.-href location)))))
+
+(re-frame/reg-event-fx
+  :bad-load-user-response
+  [trim-v]
+  (fn
+    [{:keys [db]} [response]]
+    (if (= 401 (:status response))
+      (redirect-to-auth)
+      {:db (assoc db :error response)
+       :show-flash [:error "Tietojen lataus palvelimelta epäonnistui"]
+       :loader false})))
+
+(re-frame/reg-event-fx
   :bad-response
   [trim-v]
   (fn
-    [db [response]]
-    (assoc db :error response)))
+    [{:keys [db]} [response]]
+    {:db (assoc db :error response)
+     :show-flash [:error "Tietojen lataus palvelimelta epäonnistui"]
+     :loader false}))
 
 (re-frame/reg-fx
   :redirect

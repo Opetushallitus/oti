@@ -34,8 +34,7 @@
 (defn virkailija-endpoint [{:keys [db] :as config}]
   (-> (context routing/virkailija-api-root []
         (GET "/user-info" {session :session}
-          {:status 200
-           :body (select-keys (:identity session) [:username])})
+          (response (select-keys (:identity session) [:username])))
         (context "/exam-sessions" []
           (POST "/" {params :params}
             (let [conformed (s/conform ::os/exam-session params)]
