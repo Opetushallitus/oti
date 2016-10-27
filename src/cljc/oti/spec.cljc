@@ -93,7 +93,7 @@
 (s/def ::accredit? any?)
 (s/def ::retry-modules (s/* ::id))
 (s/def ::accredit-modules (s/* ::id))
-(s/def ::session-id pos-int?)
+(s/def ::session-id integer?)
 (s/def ::preferred-name (s/and string? #(not (str/blank? %))))
 
 (defn retry-or-accredit? [{::keys [retry? accredit?]}]
