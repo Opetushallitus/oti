@@ -23,4 +23,5 @@
                    :oti-vetuma-uri "{{oti_vetuma_oti_vetuma_uri}}"
                    :secret "{{oti_vetuma_shared_secret}}"
                    :ap "{{oti_vetuma_shared_ap}}"
-                   :rcvid "{{oti_vetuma_shared_rcvid}}"}}}
+                   :rcvid "{{oti_vetuma_shared_rcvid}}"}
+  :email-service {:email-service-url "https://{{host_virkailija}}/ryhmasahkoposti-service/email/firewall"}}}
