@@ -1,4 +1,4 @@
-DROP VIEW all_participant_data;
+DROP VIEW IF EXISTS all_participant_data;
 
 ALTER TABLE payment
   DROP COLUMN participant_id,

@@ -42,6 +42,7 @@
      :points (some #(get-fn % "points") rows)
      :accreditation-requested? (some #(get-fn % "accreditation") rows)
      :accreditation-date (some #(get-fn % "accreditation_date") rows)
+     :accreditation-type (some #(get-fn % "accreditation_type") rows)
      :registered-to? (some #(get-fn % "registration") rows)}))
 
 (defn- group-by-session [rows]
