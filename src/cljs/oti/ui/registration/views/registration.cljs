@@ -47,6 +47,23 @@
          set
          (= all-ids))))
 
+(defn attending-ids [form-data]
+  (reduce
+    (fn [ids [id section-opts]]
+      (if-not (::spec/accredit? section-opts)
+        (conj ids id)
+        ids))
+    #{}
+    (::spec/sections form-data)))
+
+(defn accredit-or-not-attend-all? [{::spec/keys [sections] :as form-data}]
+  (let [accrediting? (->> sections
+                          (filter (fn [[_ opts]]
+                                    (::spec/accredit? opts)))
+                          count
+                          pos?)]
+    (and accrediting? (empty? (attending-ids form-data)))))
+
 (defn add-section [form-data sections id data]
   (swap! form-data assoc-in [::spec/sections id] data)
   (when (accredit-all? @form-data sections)
@@ -61,15 +78,6 @@
                         (set (conj s id))
                         (disj s id)))]
       (swap! form-data update-in [::spec/sections section-id key] update-fn module-id))))
-
-(defn attending-ids [form-data]
-  (reduce
-    (fn [ids [id section-opts]]
-      (if-not (::spec/accredit? section-opts)
-        (conj ids id)
-        ids))
-    #{}
-    (::spec/sections @form-data)))
 
 (defn abort-button [lang]
   [:a.button {:href (str "/oti/abort?lang=" (name lang))}
@@ -87,7 +95,7 @@
                  all-modules (-> (map :id modules) set)]
              (= accredit-modules all-modules)))
          sections)
-       (if (accredit-all? form-data sections)
+       (if (accredit-or-not-attend-all? form-data)
          (= -1 (::spec/session-id form-data))
          (not= -1 (::spec/session-id form-data)))))
 
@@ -102,7 +110,7 @@
          (for [{:keys [id name modules previously-attempted?]} sections]
            (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))
                  can-accredit-partially? (:can-accredit-partially? (get rules/rules-by-section-id id))
-                 attending? (contains? (attending-ids form-data) id)]
+                 attending? (contains? (attending-ids @form-data) id)]
              [:div.exam-section {:key id}
               [:h4 (str (t "section" "Osio") " " (@lang name))]
               [:div.row
@@ -144,7 +152,7 @@
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
                          :on-click #(swap! form-data update ::spec/sections dissoc id)}]
                 [:span (t "not-participating" "En osallistu")]]]])))
-       (when-not (empty? (attending-ids form-data))
+       (when-not (empty? (attending-ids @form-data))
          [:div.exam-section
           [:h4 (t "exam-question-language"
                   "Tenttikysymysten kieli")]
