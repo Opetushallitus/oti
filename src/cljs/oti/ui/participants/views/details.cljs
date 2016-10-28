@@ -1,8 +1,9 @@
 (ns oti.ui.participants.views.details
   (:require [re-frame.core :as re-frame]
             [oti.ui.exam-sessions.utils :refer [unparse-date]]
-            [clojure.string :as str]
-            [cognitect.transit :as transit]))
+            [reagent.core :as r]
+            [cognitect.transit :as transit]
+            [meta-merge.core :refer [meta-merge]]))
 
 (defn- exam-label [score-ts accepted?]
   (cond
@@ -73,30 +74,69 @@
             [:td (format-state state)]]))]]
      [:div "Ei maksutietoja"])])
 
+(defn accreditation-map [accreditation-types items]
+  (->> items
+       (map (fn [{:keys [id accreditation-date accreditation-type]}]
+              [id {:approved? accreditation-date
+                   :type (or accreditation-type (-> accreditation-types last :id))}]))
+       (into {})))
+
+(defn prepare-form-data [sections accreditation-types]
+  {:accredited-sections (->> (filter :accreditation-requested? sections)
+                             (accreditation-map accreditation-types))
+   :accredited-modules (->> (map :modules sections)
+                            flatten
+                            (filter :accreditation-requested?)
+                            (accreditation-map accreditation-types))})
+
+(defn participation-section [sections accreditation-types form-data]
+  [:div.participation-section
+   (doall
+     (for [{:keys [name accreditation-requested? sessions id module-titles]} sections]
+       [:div.section {:key id}
+        [:h3 (str "Osa " name)]
+        (when accreditation-requested?
+          (let [{:keys [approved? type]} (-> @form-data :accredited-sections (get id))]
+            [:div.accreditation
+             [:div
+              [:label
+               [:input {:type "checkbox" :checked approved?
+                        :on-change (fn [e]
+                                     (let [value (cond-> (-> e .-target .-checked))]
+                                       (swap! form-data update :accredited-sections meta-merge {id {:approved? value}})))}]
+               [:span "Osio on hyväksytty korvatuksi"]]]
+             [:div.accreditation-type
+              [:label
+               [:span "Tieto korvaavuudesta"]
+               [:select {:value type
+                         :on-change (fn [e]
+                                      (let [new-type (-> e .-target .-value)]
+                                        (swap! form-data update :accredited-sections meta-merge {id {:type new-type}})))}
+                (doall
+                  (for [{:keys [id description]} accreditation-types]
+                    [:option {:value id :key id} description]))]]]]))
+        [session-table sessions module-titles]]))])
+
 (defn participant-details-panel [participant-id]
   (re-frame/dispatch [:load-participant-details participant-id])
   (let [participant-details (re-frame/subscribe [:participant-details])
-        {:keys [etunimet sukunimi hetu email sections payments]} @participant-details]
-    [:div.participant-details
-     [:div.person
-      [:h3 "Henkilötiedot"]
-      [:div.row
-       [:span.label "Henkilötunnus"]
-       [:span.value hetu]]
-      [:div.row
-       [:span.label "Nimi"]
-       [:span.value (str etunimet " " sukunimi)]]
-      [:div.row
-       [:span.label "Sähköpostiosoite"]
-       [:span.value email]]]
-     (doall
-       (for [{:keys [name accreditation-requested? accreditation-date sessions id module-titles]} sections]
-         [:div.section {:key id}
-          [:h3 (str "Osa " name)]
-          (when accreditation-requested?
-            [:div.accreditation
-             [:label
-              [:input {:type "checkbox" :checked (not (nil? accreditation-date))}]
-              [:span "Osio on hyväksytty korvatuksi"]]])
-          [session-table sessions module-titles]]))
-     [payment-section payments]]))
+        accreditation-types (re-frame/subscribe [:accreditation-types])
+        form-data (r/atom {})]
+    (fn [participant-id]
+      (let [{:keys [etunimet sukunimi hetu email sections payments]} @participant-details]
+        [:div.participant-details
+         [:div.person
+          [:h3 "Henkilötiedot"]
+          [:div.row
+           [:span.label "Henkilötunnus"]
+           [:span.value hetu]]
+          [:div.row
+           [:span.label "Nimi"]
+           [:span.value (str etunimet " " sukunimi)]]
+          [:div.row
+           [:span.label "Sähköpostiosoite"]
+           [:span.value email]]]
+         (when (and (seq sections) (seq @accreditation-types))
+           (reset! form-data (prepare-form-data sections @accreditation-types))
+           [participation-section sections @accreditation-types form-data])
+         [payment-section payments]]))))

@@ -596,10 +596,19 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details .section {
   margin-top: 2em;
 }
+.participant-details .accreditation {
+  margin-bottom: 1em;
+}
 .participant-details .accreditation label input {
   display: inline-block;
   margin-right: 10px;
   vertical-align: middle;
+}
+.participant-details .accreditation .accreditation-type {
+  margin-top: 5px;
+}
+.participant-details .accreditation .accreditation-type span {
+  margin-right: 10px;
 }
 .participant-details table {
   font-size: 0.9rem;

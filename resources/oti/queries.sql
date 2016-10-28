@@ -318,3 +318,6 @@ UPDATE email SET sent = current_timestamp WHERE id = :id;
 
 -- name: select-exam-count
 SELECT count(id) AS exam_count FROM exam;
+
+-- name: select-accreditation-types
+SELECT id, description FROM accreditation_type;
