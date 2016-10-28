@@ -164,7 +164,7 @@
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
         form-data (reagent/atom #::spec{:language-code @lang
-                                        :session-id session-id
+                                        :session-id (if (zero? session-id) -1 session-id)
                                         :preferred-name (or (:kutsumanimi participant-data) (first (:etunimet participant-data)))
                                         :email (:email participant-data)})]
     (fn [participant-data]
