@@ -160,11 +160,14 @@
       (error "Tried to retry payment for registration" registration-id "but it's status is not pending")
       (registration-response 400 :error "registration-unknown-error" session))))
 
+(def formatter (DateTimeFormatter/ofPattern "d.M.yyyy"))
+
 (defn- format-date-and-time [{:keys [session-date start-time end-time]}]
-  (let [formatter (DateTimeFormatter/ofPattern "d.M.yyyy")]
+  (if session-date
     (str
       (-> session-date .toLocalDate (.format formatter))
-      " " start-time " - " end-time)))
+      " " start-time " - " end-time)
+    "-"))
 
 (defn- format-registration-selections [sections]
   (->> sections
