@@ -176,6 +176,8 @@
                                              (re-frame/dispatch [:store-registration @form-data @lang]))}
             [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
+            (when (empty? @exam-sessions)
+              [:div.section.exam-session-info (t "no-available-sessions-info")])
             [:div.section.participant
              [:h3 (t "particulars" "Henkilötiedot")]
              (participant-div participant-data)

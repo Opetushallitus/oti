@@ -204,7 +204,11 @@ table {
 .registration .participant .row input,
 .registration .participant .row select {
   width: 60%;
-  max-width: 500px;
+  max-width: 600px;
+}
+.registration .exam-session-info {
+  margin-left: 150px;
+  max-width: 600px;
 }
 .registration .exam-sections .row {
   margin: 5px 0 5px 30px;
@@ -241,7 +245,7 @@ table {
 }
 .exam-session-selection select {
   width: 60%;
-  max-width: 500px;
+  max-width: 600px;
 }
 .exam-session-selection span.label {
   display: inline-block;
