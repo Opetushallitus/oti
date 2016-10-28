@@ -88,9 +88,9 @@
                         :module-titles module-titles)))))))
 
 (defn- payments [participant-rows]
-  (->> (partition-by :payment_id participant-rows)
+  (->> (group-by :payment_id participant-rows)
        (map
-         (fn [payment-rows]
+         (fn [[id payment-rows]]
            (let [{:keys [payment_id amount payment_state payment_created]} (first payment-rows)]
              (when payment_id
                {:id payment_id

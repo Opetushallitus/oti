@@ -76,15 +76,16 @@
         order-number (gen-order-number db ref-number)]
     (payment-param-map localisation lang amount ref-number order-number)))
 
-
-(defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params} type]
+(defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params}
+                                   type external-user-id]
   (when params
     {:created timestamp,
      :type (if (= type :full) "FULL" "PARTIAL")
      :amount amount
      :reference reference-number
      :order-number order-number
-     :payment-id payment-id}))
+     :payment-id payment-id
+     :external-user-id external-user-id}))
 
 (defn- db-payment->payment-params [{:keys [db localisation]} {:keys [amount reference]} ui-lang]
   (let [new-order-number (gen-order-number db reference)]
@@ -120,7 +121,7 @@
         (if valid?
           (try
             (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
-                  db-pmt (payment-params->db-payment pmt price-type)
+                  db-pmt (payment-params->db-payment pmt price-type external-user-id)
                   payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
                   msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
                   status (if (pos? amount) :pending :success)

@@ -149,9 +149,9 @@ GROUP BY m.id;
 SELECT
   COUNT(*)
 FROM payment p
-JOIN registration r ON p.registration_id = r.id
-JOIN participant pp ON r.participant_id = pp.id
-JOIN exam_session e ON r.exam_session_id = e.id
+JOIN participant pp ON p.participant_id = pp.id
+LEFT JOIN registration r ON p.registration_id = r.id
+LEFT JOIN exam_session e ON r.exam_session_id = e.id
 LEFT JOIN section_score ss ON (ss.exam_session_id = e.id AND ss.participant_id = p.id)
 LEFT JOIN module_score ms ON ms.section_score_id = ss.id
 WHERE pp.ext_reference_id = :external-user-id AND p.state = 'OK' AND p.type = 'FULL' AND
@@ -254,8 +254,10 @@ WHERE st.language_code = 'fi' AND s.exam_id = 1
 ORDER BY section_id, module_id;
 
 -- name: insert-payment!
-INSERT INTO payment (created, state, type, registration_id, amount, reference, order_number, paym_call_id) VALUES
-  (:created, 'UNPAID'::payment_state, :type::payment_type, :registration-id, :amount, :reference, :order-number, :payment-id);
+INSERT INTO payment (created, state, type, participant_id, registration_id, amount, reference, order_number, paym_call_id)
+SELECT :created, 'UNPAID'::payment_state, :type::payment_type, id, :registration-id, :amount,
+  :reference, :order-number, :payment-id
+  FROM participant WHERE ext_reference_id = :external-user-id;
 
 -- name: update-payment!
 UPDATE payment
