@@ -138,5 +138,5 @@
            (GET "/participant-data"     []      (participant-data config session))
            (GET "/registration-options" []      (registration-options config session))
            (GET "/payment-form-data"    request (registration/payment-data-for-retry config request))
-           (POST "/register"            request (audit/log-if-status-200 (registration/register! config request))))
+           (POST "/register"            request (registration/register! config request)))
          (wrap-routes wrap-authentication)))))

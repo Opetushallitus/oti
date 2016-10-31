@@ -123,14 +123,13 @@
               msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
               status (if (pos? amount) :pending :success)
               registration-id (dba/register! db conformed external-user-id reg-state db-pmt)]
-          (audit/auditable-response
-           (registration-response 200 status msg-key session registration-id payment-form-data)
-           :who external-user-id
-           :app :participant
-           :on :registration
-           :op :create
-           :after {:id registration-id}
-           :msg "New registration"))
+          (audit/log :app :participant
+                     :who external-user-id
+                     :op :create
+                     :on :registration
+                     :after {:id registration-id}
+                     :msg "New registration")
+          (registration-response 200 status msg-key session registration-id payment-form-data))
         (catch Throwable t
           (error "Error inserting registration")
           (error t)

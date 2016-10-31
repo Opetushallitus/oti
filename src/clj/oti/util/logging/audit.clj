@@ -30,7 +30,7 @@
              :create OTIOperation/CREATE
              :delete OTIOperation/DELETE
              :update OTIOperation/UPDATE
-             (IllegalArgumentException. "Unknown operation."))
+             (IllegalArgumentException. "Unknown or missing operation type."))
         on (condp = on
              :exam          OTIResource/EXAM
              :exam-session  OTIResource/EXAM_SESSION
@@ -41,7 +41,7 @@
              :participant   OTIResource/PARTICIPANT
              :registration  OTIResource/REGISTRATION
              :payment       OTIResource/PAYMENT
-             (throw (IllegalArgumentException. "Unknown resource.")))
+             (throw (IllegalArgumentException. "Unknown or missing resource type.")))
         msg (.build (doto (LogMessage/builder)
                       (.id who)
                       (.setResource on)
@@ -52,36 +52,4 @@
 
       :admin       (.log AdminAudit msg)
       :participant (.log ParticipantAudit msg)
-      (throw (IllegalArgumentException. "Unknown app type.")))))
-
-(defn log-if [pred-fn
-              {{_app :app _who :who _op :op _on :on _before :before _after :after _msg :msg :as _audit} :audit
-               session :session
-               :as response}
-              & {:keys [app who op on before after msg] :as audit}]
-  {:pre [(or (seq audit) (seq _audit))]}
-  (if (pred-fn response)
-    (do (log :app (or app _app)
-             :who (or who
-                      _who
-                      (get-in session [:identity :username]) ; Most likely not in a response object yet
-                      (throw (IllegalArgumentException. "No 'who' given for audit logging.")))
-             :op  (or op _op)
-             :on  (or on _on)
-             :before (or before _before)
-             :after  (or after _after)
-             :msg    (or msg _msg))
-        (dissoc response :audit))
-    (dissoc response :audit)))
-
-(defn log-if-status-200 [response & {:keys [app who op on before after msg]}]
-  (log-if #(= (:status %) 200) response :app app :who who :op op :on on :before before :after after :msg msg))
-
-(defn auditable-response [response & {:keys [app who op on before after msg]}]
-  (assoc response :audit {:app app
-                          :who who
-                          :op op
-                          :on on
-                          :before before
-                          :after after
-                          :msg msg}))
+      (throw (IllegalArgumentException. "Unknown or missing app type.")))))

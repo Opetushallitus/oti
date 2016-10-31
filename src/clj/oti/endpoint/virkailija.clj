@@ -44,15 +44,14 @@
   (let [conformed (s/conform ::os/exam-session params)
         new-exam-session (when-not (s/invalid? conformed)
                            (fetch-exam-session db (:id (dba/add-exam-session! db conformed))))]
-    (if new-exam-session
-      (audit/auditable-response
-       (response {:success true})
-       :app :admin
-       :who (get-in session [:identity :username])
-       :op :create
-       :on :exam-session
-       :after new-exam-session
-       :msg "Creating a new exam session.")
+    (if (seq new-exam-session)
+      (do (audit/log :app :admin
+                     :who (get-in session [:identity :username])
+                     :op :create
+                     :on :exam-session
+                     :after new-exam-session
+                     :msg "Creating a new exam session.")
+          (response {:success true}))
       {:status 400
        :body {:errors (s/explain ::os/exam-session params)}})))
 
@@ -73,29 +72,27 @@
                                (dba/save-exam-session! db conformed)
                                (fetch-exam-session db id))]
     (if updated-exam-session
-      (audit/auditable-response
-       (response {:success true})
-       :app :admin
-       :who (get-in session [:identity :username])
-       :op :update
-       :on :exam-session
-       :before exam-session
-       :after updated-exam-session
-       :msg "Updating an existing exam session.")
+      (do (audit/log :app :admin
+                     :who (get-in session [:identity :username])
+                     :op :update
+                     :on :exam-session
+                     :before exam-session
+                     :after updated-exam-session
+                     :msg "Updating an existing exam session.")
+          (response {:success true}))
       {:status 400
        :body {:errors (s/explain ::os/exam-session params)}})))
 
 (defn- delete-exam-session [{:keys [db]} {session :session} id]
   (let [exam-session (fetch-exam-session db id)]
     (if (pos? (dba/remove-exam-session! db id))
-      (audit/auditable-response
-       (response {:success true})
-       :app :admin
-       :who (get-in session [:identity :username])
-       :op :delete
-       :on :exam-session
-       :before exam-session
-       :msg "Deleting an exam session.")
+      (do (audit/log :app :admin
+                     :who (get-in session [:identity :username])
+                     :op :delete
+                     :on :exam-session
+                     :before exam-session
+                     :msg "Deleting an exam session.")
+          (response {:success true}))
       (not-found {}))))
 
 (defn- exam-session-registrations [config id]
@@ -117,14 +114,12 @@
 
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
-    (POST "/" request (audit/log-if-status-200 (new-exam-session config request)))
+    (POST "/" request (new-exam-session config request))
     (GET "/"  []      (exam-sessions config))
     (context "/:id{[0-9]+}" [id :<< as-int]
       (GET "/"              []      (exam-session config id))
-      (PUT "/"              request (audit/log-if-status-200
-                                     (update-exam-session config request id)))
-      (DELETE "/"           request (audit/log-if-status-200
-                                     (delete-exam-session config request id)))
+      (PUT "/"              request (update-exam-session config request id))
+      (DELETE "/"           request (delete-exam-session config request id))
       (GET "/registrations" []      (exam-session-registrations config id)))))
 
 (defn- participant-routes [config]
