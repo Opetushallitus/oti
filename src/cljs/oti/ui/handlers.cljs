@@ -4,7 +4,8 @@
             [oti.ui.db :as db]
             [ajax.core :as ajax]
             [oti.ui.routes :as routes]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [oti.utils :as utils]))
 
 (re-frame/reg-event-db
  :initialize-db
@@ -12,11 +13,11 @@
    db/default-db))
 
 (re-frame/reg-event-db
- :set-active-panel
- [trim-v]
- (fn [db [active-panel params]]
+  :set-active-panel
+  [trim-v]
+  (fn [db [active-panel params]]
    (let [id (when (sequential? params) (first params))]
-     (assoc db :active-panel active-panel :active-panel-data id))))
+     (assoc db :active-panel active-panel :active-panel-data (utils/parse-int id)))))
 
 (re-frame/reg-event-fx
   :load-user

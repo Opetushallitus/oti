@@ -7,6 +7,7 @@ body {
 .exam-session-form,
 .registration .section,
 .search .search-fields,
+.buttons,
 #header .user,
 #nav-holder ul {
   zoom: 1;
@@ -19,6 +20,8 @@ body {
 .registration .section:after,
 .search .search-fields:before,
 .search .search-fields:after,
+.buttons:before,
+.buttons:after,
 #header .user:before,
 #header .user:after,
 #nav-holder ul:before,
@@ -30,6 +33,7 @@ body {
 .exam-session-form:after,
 .registration .section:after,
 .search .search-fields:after,
+.buttons:after,
 #header .user:after,
 #nav-holder ul:after {
   clear: both;
@@ -656,6 +660,9 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details table .module-name {
   text-align: right;
 }
+.participant-details .payments {
+  margin-bottom: 2em;
+}
 .left {
   float: left;
 }
@@ -696,6 +703,7 @@ a.button {
 }
 .container {
   max-width: 940px;
+  padding-bottom: 2em;
 }
 .container label,
 .container p {

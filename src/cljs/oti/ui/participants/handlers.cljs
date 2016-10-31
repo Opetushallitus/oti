@@ -16,14 +16,24 @@
                   :on-failure      [:bad-response]}}))
 
 (re-frame/reg-event-fx
+  :store-participant-details
+  [re-frame/trim-v]
+  (fn [{:keys [db]} [participant-id response]]
+    {:db (update db :participant-details assoc participant-id response)
+     :loader false}))
+
+(defn participant-load-xhrio [id]
+  {:method          :get
+   :uri             (routing/v-a-route "/participant/" id)
+   :response-format (ajax/transit-response-format)
+   :on-success      [:store-participant-details id]
+   :on-failure      [:bad-response]})
+
+(re-frame/reg-event-fx
   :load-participant-details
   [re-frame/trim-v]
   (fn [_ [id]]
-    {:http-xhrio {:method          :get
-                  :uri             (routing/v-a-route "/participant/" id)
-                  :response-format (ajax/transit-response-format)
-                  :on-success      [:store-response-to-db :participant-details]
-                  :on-failure      [:bad-response]}}))
+    {:http-xhrio (participant-load-xhrio id)}))
 
 (re-frame/reg-event-db
   :set-participant-search-query
@@ -37,3 +47,22 @@
     [db _]
     (assoc db  :participant-search-query {:query "" :filter :all}
                :participant-search-results nil)))
+
+(re-frame/reg-event-fx
+  :save-accreditation-data
+  [re-frame/trim-v]
+  (fn [_ [participant-id data]]
+    {:http-xhrio {:method          :post
+                  :uri             (routing/v-a-route "/participant/" participant-id "/accreditations")
+                  :params          data
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:accreditations-saved participant-id]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
+  :accreditations-saved
+  [re-frame/trim-v]
+  (fn [_ [participant-id]]
+    {:show-flash [:success "Tallennettu"]
+     :http-xhrio (participant-load-xhrio participant-id)}))

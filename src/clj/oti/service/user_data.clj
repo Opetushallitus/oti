@@ -83,7 +83,7 @@
                                             sessions)
                                     (sort-by :id))]
              (-> (sec-or-mod-props "section" section-rows)
-                 (select-keys [:id :name :accreditation-requested? :accreditation-date])
+                 (select-keys [:id :name :accreditation-requested? :accreditation-date :accreditation-type])
                  (assoc :sessions sessions
                         :accredited-modules accredited-modules
                         :module-titles module-titles)))))))

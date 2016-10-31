@@ -56,7 +56,7 @@
     [:div "Ei ilmoittautumisia"]))
 
 (defn payment-section [payments]
-  [:div.section
+  [:div.section.payments
    [:h3 "Maksutiedot"]
    (if (seq payments)
      [:table
@@ -77,7 +77,7 @@
 (defn accreditation-map [accreditation-types items]
   (->> items
        (map (fn [{:keys [id accreditation-date accreditation-type name]}]
-              [id {:approved? accreditation-date
+              [id {:approved? (not (nil? accreditation-date))
                    :type (or accreditation-type (-> accreditation-types last :id))
                    :name name}]))
        (into {})))
@@ -109,7 +109,7 @@
        [:span "Tieto korvaavuudesta"]
        [:select {:value type
                  :on-change (fn [e]
-                              (let [new-type (-> e .-target .-value)]
+                              (let [new-type (-> e .-target .-value js/parseInt)]
                                 (swap! form-data update form-key meta-merge {id {:type new-type}})))}
         (doall
           (for [{:keys [id description]} accreditation-types]
@@ -134,26 +134,38 @@
                  [accreditation-inputs form-data accreditation-types :accredited-modules id]]))]])
         [session-table sessions module-titles]]))])
 
+(defn participant-main-component [participant-data initial-form-data accreditation-types]
+  (let [{:keys [id etunimet sukunimi hetu email sections payments]} participant-data
+        ;initial-form-data (prepare-form-data sections accreditation-types)
+        form-data (r/atom initial-form-data)]
+    (fn [participant-data initial-form-data]
+      [:div.participant-details
+       [:div.person
+        [:h3 "Henkilötiedot"]
+        [:div.row
+         [:span.label "Henkilötunnus"]
+         [:span.value hetu]]
+        [:div.row
+         [:span.label "Nimi"]
+         [:span.value (str etunimet " " sukunimi)]]
+        [:div.row
+         [:span.label "Sähköpostiosoite"]
+         [:span.value email]]]
+       [participation-section sections accreditation-types form-data]
+       [payment-section payments]
+       [:div.buttons
+        [:div.left
+         [:button {:on-click #(-> js/window .-history .back)} "Peruuta"]]
+        [:div.right
+         [:button.button-primary {:on-click #(re-frame/dispatch [:save-accreditation-data id @form-data])
+                                  :disabled (= initial-form-data @form-data)}
+          "Tallenna"]]]])))
+
 (defn participant-details-panel [participant-id]
   (re-frame/dispatch [:load-participant-details participant-id])
-  (let [participant-details (re-frame/subscribe [:participant-details])
-        accreditation-types (re-frame/subscribe [:accreditation-types])
-        form-data (r/atom {})]
+  (let [all-participants (re-frame/subscribe [:participant-details])
+        accreditation-types (re-frame/subscribe [:accreditation-types])]
     (fn [participant-id]
-      (let [{:keys [etunimet sukunimi hetu email sections payments]} @participant-details]
-        [:div.participant-details
-         [:div.person
-          [:h3 "Henkilötiedot"]
-          [:div.row
-           [:span.label "Henkilötunnus"]
-           [:span.value hetu]]
-          [:div.row
-           [:span.label "Nimi"]
-           [:span.value (str etunimet " " sukunimi)]]
-          [:div.row
-           [:span.label "Sähköpostiosoite"]
-           [:span.value email]]]
-         (when (and (seq sections) (seq @accreditation-types))
-           (reset! form-data (prepare-form-data sections @accreditation-types))
-           [participation-section sections @accreditation-types form-data])
-         [payment-section payments]]))))
+      (let [{:keys [sections] :as participant-data} (get @all-participants participant-id)]
+        (when (and (seq sections) (seq @accreditation-types))
+          [participant-main-component participant-data (prepare-form-data sections @accreditation-types) @accreditation-types])))))

@@ -147,7 +147,8 @@
   (unsent-emails-for-update [db tx])
   (set-email-sent! [db tx email-id])
   (health-check [db])
-  (accreditation-types [db]))
+  (accreditation-types [db])
+  (update-accreditations! [db params]))
 
 (extend-type HikariCP
   DbAccess
@@ -250,4 +251,10 @@
         :exam_count
         pos?))
   (accreditation-types [{:keys [spec]}]
-    (q/select-accreditation-types {} {:connection spec})))
+    (q/select-accreditation-types {} {:connection spec}))
+  (update-accreditations! [{:keys [spec]} params]
+    (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+      (doseq [section (:sections params)]
+        (q/update-section-accreditation! section {:connection tx}))
+      (doseq [module (:modules params)]
+        (q/update-module-accreditation! module {:connection tx})))))

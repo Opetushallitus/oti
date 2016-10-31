@@ -219,14 +219,6 @@ SELECT id FROM module WHERE section_id = :section-id;
 INSERT INTO registration_exam_content_module (module_id, participant_id, registration_id)
 SELECT :module-id, id, :registration-id FROM participant WHERE ext_reference_id = :external-user-id;
 
--- name: insert-section-accreditation!
-INSERT INTO accredited_exam_section (section_id, participant_id)
-SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-id;
-
--- name: insert-module-accreditation!
-INSERT INTO accredited_exam_module (module_id, participant_id)
-SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
-
 -- name: update-registration-state!
 UPDATE registration SET state = :state::registration_state WHERE id = :id;
 
@@ -321,3 +313,23 @@ SELECT count(id) AS exam_count FROM exam;
 
 -- name: select-accreditation-types
 SELECT id, description FROM accreditation_type;
+
+-- ACCREDITATION
+
+-- name: insert-section-accreditation!
+INSERT INTO accredited_exam_section (section_id, participant_id)
+  SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: insert-module-accreditation!
+INSERT INTO accredited_exam_module (module_id, participant_id)
+  SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: update-section-accreditation!
+UPDATE accredited_exam_section
+SET accreditor = :accreditor, accreditation_date = :date, accreditation_type_id = :type
+WHERE participant_id = :participant-id AND section_id = :id;
+
+-- name: update-module-accreditation!
+UPDATE accredited_exam_module
+SET accreditor = :accreditor, accreditation_date = :date, accreditation_type_id = :type
+WHERE participant_id = :participant-id AND module_id = :id;

@@ -10,6 +10,7 @@
             [oti.routing :as routing]
             [oti.service.user-data :as user-data]
             [oti.service.search :as search]
+            [oti.service.accreditation :as accreditation]
             [clojure.string :as str]))
 
 (defn- as-int [x]
@@ -100,7 +101,7 @@
 
 (defn- frontend-config [{:keys [db]}]
   (response {:section-and-module-names (dba/section-and-module-names db)
-             :accreditation-types (dba/accreditation-types db)})))
+             :accreditation-types (dba/accreditation-types db)}))
 
 (defn- search-participant [config q filter]
   (let [filter-kw (if (str/blank? filter) :all (keyword filter))
@@ -127,7 +128,9 @@
   (routes
    (GET "/participant-search"   [q filter] (search-participant config q filter))
    (context "/participant/:id{[0-9]+}" [id :<< as-int]
-     (GET "/" [] (participant-by-id config id)))))
+     (GET "/" [] (participant-by-id config id))
+     (POST "/accreditations" {params :params session :session}
+       (accreditation/approve-accreditations! config id params session)))))
 
 (defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []
