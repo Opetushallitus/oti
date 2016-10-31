@@ -76,6 +76,7 @@
         order-number (gen-order-number db ref-number)]
     (payment-param-map localisation lang amount ref-number order-number)))
 
+
 (defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params} type]
   (when params
     {:created timestamp,

@@ -2,7 +2,9 @@
   (:require [compojure.core :refer :all]
             [taoensso.timbre :refer [error]]
             [ring.util.response :as resp]
-            [oti.service.payment :as payment-service]))
+            [oti.service.payment :as payment-service]
+            [oti.util.logging.audit :as audit]
+            [clojure.string :as str]))
 
 (defn- registration-response [status text {:keys [participant] :as session} & [lang]]
   (let [body (cond-> {:registration-message text
@@ -14,9 +16,21 @@
         (assoc :session (assoc session :participant new-participant)))))
 
 (defn- confirm-payment [config {:keys [params session]}]
-  (let [{lang :LG} params]
+  (let [{lang :LG payment-id :PAYID} params]
     (if (payment-service/confirm-payment! config params)
-      (registration-response :success "registration-complete" session lang)
+      ;; FIX: Not entirely sure how this should be audited
+      (do (audit/log :app :participant
+                     :who "SYSTEM"
+                     :on :payment
+                     :op :update
+                     :before {:id (when-not (str/blank? payment-id)
+                                    payment-id)
+                              :state "UNPAID"}
+                     :after {:id (when-not (str/blank? payment-id)
+                                   payment-id)
+                             :state "OK"}
+                     :msg "Payment state is confirmed.")
+          (registration-response :success "registration-complete" session lang))
       (registration-response :error "registration-payment-error" session))))
 
 (defn- cancel-payment [config {:keys [params session]} cancellation?]
