@@ -158,8 +158,9 @@
     (-> (q/exam-session-by-id {:id id} {:connection spec}) group-exam-session-translations))
   (add-exam-session! [{:keys [spec]} exam-session]
     (jdbc/with-db-transaction [tx spec]
-      (let [exam-session-id (:id (insert-exam-session tx exam-session))]
-        (store-exam-session-translations tx (assoc exam-session ::spec/id exam-session-id) false))))
+      (let [new-exam-session (insert-exam-session tx exam-session)]
+        (store-exam-session-translations tx (assoc exam-session ::spec/id (:id new-exam-session)) false)
+        new-exam-session)))
   (save-exam-session! [{:keys [spec]} exam-session]
     (jdbc/with-db-transaction [tx spec]
       (q/update-exam-session! exam-session {:connection tx})
