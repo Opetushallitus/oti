@@ -76,45 +76,62 @@
 
 (defn accreditation-map [accreditation-types items]
   (->> items
-       (map (fn [{:keys [id accreditation-date accreditation-type]}]
+       (map (fn [{:keys [id accreditation-date accreditation-type name]}]
               [id {:approved? accreditation-date
-                   :type (or accreditation-type (-> accreditation-types last :id))}]))
+                   :type (or accreditation-type (-> accreditation-types last :id))
+                   :name name}]))
        (into {})))
 
 (defn prepare-form-data [sections accreditation-types]
   {:accredited-sections (->> (filter :accreditation-requested? sections)
                              (accreditation-map accreditation-types))
-   :accredited-modules (->> (map :modules sections)
+   :accredited-modules (->> (map :accredited-modules sections)
                             flatten
                             (filter :accreditation-requested?)
                             (accreditation-map accreditation-types))})
 
+(defn accreditation-inputs [form-data accreditation-types form-key id]
+  (let [{:keys [approved? type name]} (-> @form-data form-key (get id))
+        label-text (-> (if (= :accredited-sections form-key)
+                         "Osio"
+                         name)
+                       (str " on hyväksytty korvatuksi"))]
+    [:div.accreditation
+     [:div
+      [:label
+       [:input {:type "checkbox" :checked approved?
+                :on-change (fn [e]
+                             (let [value (cond-> (-> e .-target .-checked))]
+                               (swap! form-data update form-key meta-merge {id {:approved? value}})))}]
+       [:span label-text]]]
+     [:div.accreditation-type
+      [:label
+       [:span "Tieto korvaavuudesta"]
+       [:select {:value type
+                 :on-change (fn [e]
+                              (let [new-type (-> e .-target .-value)]
+                                (swap! form-data update form-key meta-merge {id {:type new-type}})))}
+        (doall
+          (for [{:keys [id description]} accreditation-types]
+            [:option {:value id :key id} description]))]]]]))
+
 (defn participation-section [sections accreditation-types form-data]
   [:div.participation-section
    (doall
-     (for [{:keys [name accreditation-requested? sessions id module-titles]} sections]
+     (for [{:keys [name accreditation-requested? sessions id module-titles accredited-modules]} sections]
        [:div.section {:key id}
         [:h3 (str "Osa " name)]
         (when accreditation-requested?
-          (let [{:keys [approved? type]} (-> @form-data :accredited-sections (get id))]
-            [:div.accreditation
-             [:div
-              [:label
-               [:input {:type "checkbox" :checked approved?
-                        :on-change (fn [e]
-                                     (let [value (cond-> (-> e .-target .-checked))]
-                                       (swap! form-data update :accredited-sections meta-merge {id {:approved? value}})))}]
-               [:span "Osio on hyväksytty korvatuksi"]]]
-             [:div.accreditation-type
-              [:label
-               [:span "Tieto korvaavuudesta"]
-               [:select {:value type
-                         :on-change (fn [e]
-                                      (let [new-type (-> e .-target .-value)]
-                                        (swap! form-data update :accredited-sections meta-merge {id {:type new-type}})))}
-                (doall
-                  (for [{:keys [id description]} accreditation-types]
-                    [:option {:value id :key id} description]))]]]]))
+          [:div.accreditations
+           [accreditation-inputs form-data accreditation-types :accredited-sections id]])
+        (when (seq accredited-modules)
+          [:div.accreditations
+           [:h4 "Osa-alueiden korvaavudet"]
+           [:div.module-accreditations
+            (doall
+              (for [{:keys [id]} accredited-modules]
+                [:div.module {:key id}
+                 [accreditation-inputs form-data accreditation-types :accredited-modules id]]))]])
         [session-table sessions module-titles]]))])
 
 (defn participant-details-panel [participant-id]

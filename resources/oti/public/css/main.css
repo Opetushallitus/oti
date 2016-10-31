@@ -50,7 +50,6 @@ select {
   /* The 6px vertically centers text on FF, ignored by Webkit */
   background-color: #fff;
   border: 1px solid #D1D1D1;
-  border-radius: 4px;
   box-shadow: none;
   box-sizing: border-box;
 }
@@ -596,19 +595,32 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details .section {
   margin-top: 2em;
 }
-.participant-details .accreditation {
+.participant-details .accreditations {
+  background-color: #f5f5f5;
+  padding: 10px 5px;
+  border-radius: 4px;
   margin-bottom: 1em;
+}
+.participant-details .accreditations h4 {
+  margin-top: 0;
 }
 .participant-details .accreditation label input {
   display: inline-block;
   margin-right: 10px;
   vertical-align: middle;
 }
+.participant-details .accreditation select {
+  min-width: 200px;
+  background-color: #FFFFFF;
+}
 .participant-details .accreditation .accreditation-type {
   margin-top: 5px;
 }
 .participant-details .accreditation .accreditation-type span {
   margin-right: 10px;
+}
+.participant-details .module-accreditations .module:not(:first-child) {
+  margin-top: 1em;
 }
 .participant-details table {
   font-size: 0.9rem;
@@ -693,6 +705,11 @@ input,
 .form-control,
 .btn {
   border-radius: 0 !important;
+}
+select {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  background: url("data:image/svg+xml;utf8,<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='24' height='24' viewBox='0 0 24 24'><path fill='#444' d='M7.406 7.828l4.594 4.594 4.594-4.594 1.406 1.406-6 6-6-6z'></path></svg>") no-repeat 100% 50%;
 }
 .button,
 button,
