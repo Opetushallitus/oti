@@ -12,7 +12,8 @@
             [oti.service.registration :as registration]
             [oti.service.payment :as payment]
             [oti.spec :as os]
-            [clojure.spec :as s]))
+            [clojure.spec :as s]
+            [oti.util.request :as req]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -128,16 +129,17 @@
 
 (defn participant-endpoint [config]
   (routes
-   (GET "/oti/abort" [lang] (abort lang))
-   (context routing/participant-api-root []
-     (GET "/translations"         [lang] (translations config lang))
-     (GET "/translations/refresh" []     (refresh-translations config))
-     ;; FIXME: This is a dummy route
-     (GET "/authenticate"         [callback hetu] (authenticate config callback hetu))
-     (GET "/exam-sessions"        []         (exam-sessions config))
-     (-> (context "/authenticated" {session :session}
+    (GET "/oti/abort" [lang] (abort lang))
+    (context routing/participant-api-root []
+      (GET "/translations"         [lang] (translations config lang))
+      (GET "/translations/refresh" []     (refresh-translations config))
+      ;; FIXME: This is a dummy route
+      (GET "/authenticate"         [callback hetu] (authenticate config callback hetu))
+      (GET "/exam-sessions"        []         (exam-sessions config))
+      (-> (context "/authenticated" {session :session}
            (GET "/participant-data"     []      (participant-data config session))
            (GET "/registration-options" []      (registration-options config session))
            (GET "/payment-form-data"    request (registration/payment-data-for-retry config request))
            (POST "/register"            request (registration/register! config request)))
-         (wrap-routes wrap-authentication)))))
+          (wrap-routes wrap-authentication)
+          (wrap-routes req/wrap-disable-cache)))))

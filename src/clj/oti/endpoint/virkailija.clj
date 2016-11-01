@@ -11,7 +11,8 @@
             [oti.service.user-data :as user-data]
             [oti.service.search :as search]
             [oti.service.accreditation :as accreditation]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [oti.util.request :as req]))
 
 (defn- as-int [x]
   (try (Integer/parseInt x)
@@ -27,11 +28,6 @@
                  (merge registration)))
            regs))
     []))
-
-(defn- disable-cache [handler]
-  (fn [req]
-    (-> (handler req)
-        (header "Cache-Control" "no-store, must-revalidate"))))
 
 (defn- fetch-exam-session [db id]
   (->> (dba/exam-session db id)
@@ -139,4 +135,4 @@
         (exam-session-routes config)
         (participant-routes config))
       (wrap-routes auth/wrap-authorization)
-      (wrap-routes disable-cache)))
+      (wrap-routes req/wrap-disable-cache)))
