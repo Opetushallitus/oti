@@ -134,8 +134,7 @@
                          :msg "New registration")
               (registration-response 200 status msg-key session registration-id payment-form-data))
             (catch Throwable t
-              (error "Error inserting registration")
-              (error t)
+              (error t "Error inserting registration")
               (registration-response 500 :error "registration-unknown-error" session)))
           (do
             (error "Invalid registration data. Valid selection:" (valid-registration? config external-user-id conformed)
