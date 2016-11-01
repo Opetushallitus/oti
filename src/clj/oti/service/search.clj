@@ -5,41 +5,36 @@
             [clojure.spec :as s]
             [oti.boundary.api-client-access :as api]))
 
-(defn- score-map [id-kw ts-kw acc-kw rows]
-  (->> (filter id-kw rows)
-       (reduce (fn [result row]
-                 (assoc result (id-kw row) {:ts (ts-kw row)
-                                            ; Accredited rows do not have accepted, so it will be nil. For scored rows it's true or false.
-                                            :accepted (if (nil? acc-kw) true (acc-kw row))}))
-               {})))
+(defn- group-by-section [participant-rows]
+  (->> (partition-by :section_id participant-rows)
+       (map
+         (fn [section-rows]
+           (let [accredited-modules (->> (partition-by :module_id section-rows)
+                                         (map #(user-data/sec-or-mod-props "module" %))
+                                         (filter :accreditation-requested?))]
+             (-> (user-data/sec-or-mod-props "section" section-rows)
+                 (assoc :accredited-modules accredited-modules)))))))
 
 (defn- process-db-participants [db participants filter-kw]
-  (let [{:keys [sections]} (dba/section-and-module-names db)]
-    (->> (partition-by :id participants)
-         (map
-           (fn [participant-rows]
-             (let [scored-sections (score-map :scored_section_id :section_score_ts :section_accepted participant-rows)
-                   scored-modules (score-map :scored_module_id :module_score_ts :module_accepted participant-rows)
-                   accredited-sections (score-map :accredited_section_id :accredited_section_date nil participant-rows)
-                   accredited-modules (score-map :accredited_module_id :accredited_module_date nil participant-rows)
-                   completed-sections (->> (merge scored-sections accredited-sections)
-                                           (filter #(-> % second :accepted))
-                                           (map first)
-                                           set)
-                   required-sections (set (keys sections))
-                   assigned-filter (cond
-                                     (= completed-sections required-sections) :complete
-                                     :else :incomplete)
-                   {:keys [id ext_reference_id email]} (first participant-rows)]
-               {:id id
-                :external-user-id ext_reference_id
-                :email email
-                :filter assigned-filter
-                :scored-sections scored-sections
-                :scored-modules scored-modules
-                :accredited-sections accredited-sections
-                :accredited-modules accredited-modules})))
-         (filter #(or (= filter-kw :all) (= (:filter %) filter-kw))))))
+  (->> (partition-by :id participants)
+       (map
+         (fn [participant-rows]
+           (let [sections (group-by-section participant-rows)
+                 completed-sections (->> sections
+                                         (filter #(or (:accepted %) (:accreditation-date %)))
+                                         (map :id)
+                                         set)
+                 required-sections (->> (dba/section-and-module-names db) :sections keys set)
+                 assigned-filter (cond
+                                   (= completed-sections required-sections) :complete
+                                   :else :incomplete)
+                 {:keys [id ext_reference_id email]} (first participant-rows)]
+             {:id id
+              :external-user-id ext_reference_id
+              :email email
+              :filter assigned-filter
+              :sections (->> sections (map (fn [{:keys [id] :as data}] [id data])) (into {}))})))
+       (filter #(or (= filter-kw :all) (= (:filter %) filter-kw)))))
 
 (defn- query-matches? [query user-data]
   (when user-data

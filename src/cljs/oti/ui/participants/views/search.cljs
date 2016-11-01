@@ -6,15 +6,43 @@
             [clojure.string :as str]
             [oti.routing :as routing]))
 
-(defn- section-status [{:keys [scored-sections accredited-sections]} section-id]
-  (let [{:keys [accepted ts]} (get scored-sections section-id)
-        acc (get accredited-sections section-id)]
+(defn- section-status [{:keys [sections]} section-id]
+  (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]
     (cond
-      accepted ts
-      (and ts (not accepted)) "Ei hyväksytty"
-      (and acc (:ts acc)) "Korvattu"
-      acc "Korv. vahvistettava"
+      accepted score-ts
+      (and score-ts (not accepted)) "Ei hyväksytty"
+      accreditation-date "Korvattu"
+      accreditation-requested? "Korv. vahvistettava"
+      (and (seq accredited-modules) (every? :accreditation-date accredited-modules)) "Puuttuu"
+      (seq accredited-modules) "Osakorv. vahvistettava"
       :else "Puuttuu")))
+
+(defn search-result-list [search-results {:keys [sections]}]
+  [:div.results
+   (if (seq search-results)
+     [:table
+      [:thead
+       [:tr
+        [:th [:input {:type "checkbox"}]]
+        [:th "Nimi"]
+        [:th "Henkilötunnus"]
+        (doall
+          (for [[_ name] sections]
+            [:th {:key name} (str "Osa " name)]))
+        [:th "Tutkinnon tila"]]]
+      [:tbody
+       (doall
+         (for [{:keys [id etunimet sukunimi hetu] filter-kw :filter :as result} search-results]
+           [:tr {:key id}
+            [:td (when (= filter-kw :complete) [:input {:type "checkbox"}])]
+            [:td [:a {:href (routing/v-route "/henkilot/" id)} (str etunimet " " sukunimi)]]
+            [:td hetu]
+            (doall
+              (for [[id _] sections]
+                [:td {:key id} (section-status result id)]))
+            [:td (filter-kw filters/participant-filters)]]))]]
+     (when (sequential? search-results)
+       [:div.no-results "Ei hakutuloksia"]))])
 
 (defn search-panel []
   (let [search-query (re-frame/subscribe [:participant-search-query])
@@ -45,28 +73,4 @@
          [:button {:type "reset"
                    :on-click #(re-frame/dispatch [:reset-search])} "Tyhjennä"]
          [:button.button-primary {:type "submit"} "Hae"]]
-        [:div.results
-         (if (seq @search-results)
-           [:table
-            [:thead
-             [:tr
-              [:th [:input {:type "checkbox"}]]
-              [:th "Nimi"]
-              [:th "Henkilötunnus"]
-              (doall
-                (for [[_ name] (:sections @sm-names)]
-                  [:th {:key name} (str "Osa " name)]))
-              [:th "Tutkinnon tila"]]]
-            [:tbody
-             (doall
-               (for [{:keys [id etunimet sukunimi hetu] filter-kw :filter :as result} @search-results]
-                 [:tr {:key id}
-                  [:td (when (= filter-kw :complete) [:input {:type "checkbox"}])]
-                  [:td [:a {:href (routing/v-route "/henkilot/" id)} (str etunimet " " sukunimi)]]
-                  [:td hetu]
-                  (doall
-                    (for [[id _] (:sections @sm-names)]
-                      [:td {:key id} (section-status result id)]))
-                  [:td (filter-kw filters/participant-filters)]]))]]
-           (when (sequential? @search-results)
-             [:div.no-results "Ei hakutuloksia"]))]]])))
+        [search-result-list @search-results @sm-names]]])))

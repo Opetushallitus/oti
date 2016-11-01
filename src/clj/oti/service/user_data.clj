@@ -32,7 +32,7 @@
     (let [key (make-kw kw-prefix suffix)]
       (key row))))
 
-(defn- sec-or-mod-props [kw-prefix rows]
+(defn sec-or-mod-props [kw-prefix rows]
   (let [get-fn (make-get-fn kw-prefix)
         first-row (first rows)]
     {:id (get-fn first-row "id")

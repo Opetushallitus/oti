@@ -164,28 +164,16 @@ INSERT INTO participant (ext_reference_id, email)
   WHERE NOT EXISTS (SELECT id FROM participant WHERE ext_reference_id = :external-user-id);
 
 -- name: select-participant
-SELECT p.id, ext_reference_id, email, ss.section_id AS scored_section_id, ss.created AS section_score_ts,
-  ss.accepted AS section_accepted, ms.module_id AS scored_module_id, ms.created AS module_score_ts,
-  ms.accepted AS module_accepted, aes.section_id accredited_section_id, aes.accreditation_date AS accredited_section_date,
-  aem.module_id AS accredited_module_id, aem.accreditation_date AS accredited_module_date
-FROM participant p
-LEFT JOIN section_score ss ON ss.participant_id = p.id
-LEFT JOIN module_score ms ON ms.section_score_id = ss.id
-LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id
-LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id
+SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
+  module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date
+FROM all_participant_data
 WHERE ext_reference_id = :external-user-id
 ORDER BY id;
 
 -- name: select-all-participants
-SELECT p.id, ext_reference_id, email, ss.section_id AS scored_section_id, ss.created AS section_score_ts,
-  ss.accepted AS section_accepted, ms.module_id AS scored_module_id, ms.created AS module_score_ts,
-  ms.accepted AS module_accepted, aes.section_id accredited_section_id, aes.accreditation_date AS accredited_section_date,
-  aem.module_id AS accredited_module_id, aem.accreditation_date AS accredited_module_date
-FROM participant p
-  LEFT JOIN section_score ss ON ss.participant_id = p.id
-  LEFT JOIN module_score ms ON ms.section_score_id = ss.id
-  LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id
-  LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id
+SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
+  module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date
+FROM all_participant_data
 ORDER BY id;
 
 -- name: select-participant-by-id
