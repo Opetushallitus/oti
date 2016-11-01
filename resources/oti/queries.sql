@@ -149,9 +149,9 @@ GROUP BY m.id;
 SELECT
   COUNT(*)
 FROM payment p
-JOIN registration r ON p.registration_id = r.id
-JOIN participant pp ON r.participant_id = pp.id
-JOIN exam_session e ON r.exam_session_id = e.id
+JOIN participant pp ON p.participant_id = pp.id
+LEFT JOIN registration r ON p.registration_id = r.id
+LEFT JOIN exam_session e ON r.exam_session_id = e.id
 LEFT JOIN section_score ss ON (ss.exam_session_id = e.id AND ss.participant_id = p.id)
 LEFT JOIN module_score ms ON ms.section_score_id = ss.id
 WHERE pp.ext_reference_id = :external-user-id AND p.state = 'OK' AND p.type = 'FULL' AND
@@ -164,28 +164,16 @@ INSERT INTO participant (ext_reference_id, email)
   WHERE NOT EXISTS (SELECT id FROM participant WHERE ext_reference_id = :external-user-id);
 
 -- name: select-participant
-SELECT p.id, ext_reference_id, email, ss.section_id AS scored_section_id, ss.created AS section_score_ts,
-  ss.accepted AS section_accepted, ms.module_id AS scored_module_id, ms.created AS module_score_ts,
-  ms.accepted AS module_accepted, aes.section_id accredited_section_id, aes.accreditation_date AS accredited_section_date,
-  aem.module_id AS accredited_module_id, aem.accreditation_date AS accredited_module_date
-FROM participant p
-LEFT JOIN section_score ss ON ss.participant_id = p.id
-LEFT JOIN module_score ms ON ms.section_score_id = ss.id
-LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id
-LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id
+SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
+  module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date
+FROM all_participant_data
 WHERE ext_reference_id = :external-user-id
 ORDER BY id;
 
 -- name: select-all-participants
-SELECT p.id, ext_reference_id, email, ss.section_id AS scored_section_id, ss.created AS section_score_ts,
-  ss.accepted AS section_accepted, ms.module_id AS scored_module_id, ms.created AS module_score_ts,
-  ms.accepted AS module_accepted, aes.section_id accredited_section_id, aes.accreditation_date AS accredited_section_date,
-  aem.module_id AS accredited_module_id, aem.accreditation_date AS accredited_module_date
-FROM participant p
-  LEFT JOIN section_score ss ON ss.participant_id = p.id
-  LEFT JOIN module_score ms ON ms.section_score_id = ss.id
-  LEFT JOIN accredited_exam_section aes ON aes.participant_id = p.id
-  LEFT JOIN accredited_exam_module aem ON aem.participant_id = p.id
+SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
+  module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date
+FROM all_participant_data
 ORDER BY id;
 
 -- name: select-participant-by-id
@@ -219,14 +207,6 @@ SELECT id FROM module WHERE section_id = :section-id;
 INSERT INTO registration_exam_content_module (module_id, participant_id, registration_id)
 SELECT :module-id, id, :registration-id FROM participant WHERE ext_reference_id = :external-user-id;
 
--- name: insert-section-accreditation!
-INSERT INTO accredited_exam_section (section_id, participant_id)
-SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-id;
-
--- name: insert-module-accreditation!
-INSERT INTO accredited_exam_module (module_id, participant_id)
-SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
-
 -- name: update-registration-state!
 UPDATE registration SET state = :state::registration_state WHERE id = :id;
 
@@ -254,8 +234,10 @@ WHERE st.language_code = 'fi' AND s.exam_id = 1
 ORDER BY section_id, module_id;
 
 -- name: insert-payment!
-INSERT INTO payment (created, state, type, registration_id, amount, reference, order_number, paym_call_id) VALUES
-  (:created, 'UNPAID'::payment_state, :type::payment_type, :registration-id, :amount, :reference, :order-number, :payment-id);
+INSERT INTO payment (created, state, type, participant_id, registration_id, amount, reference, order_number, paym_call_id)
+SELECT :created, 'UNPAID'::payment_state, :type::payment_type, id, :registration-id, :amount,
+  :reference, :order-number, :payment-id
+  FROM participant WHERE ext_reference_id = :external-user-id;
 
 -- name: update-payment!
 UPDATE payment
@@ -316,3 +298,26 @@ UPDATE email SET sent = current_timestamp WHERE id = :id;
 
 -- name: select-exam-count
 SELECT count(id) AS exam_count FROM exam;
+
+-- name: select-accreditation-types
+SELECT id, description FROM accreditation_type;
+
+-- ACCREDITATION
+
+-- name: insert-section-accreditation!
+INSERT INTO accredited_exam_section (section_id, participant_id)
+  SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: insert-module-accreditation!
+INSERT INTO accredited_exam_module (module_id, participant_id)
+  SELECT :module-id, id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: update-section-accreditation!
+UPDATE accredited_exam_section
+SET accreditor = :accreditor, accreditation_date = :date, accreditation_type_id = :type
+WHERE participant_id = :participant-id AND section_id = :id;
+
+-- name: update-module-accreditation!
+UPDATE accredited_exam_module
+SET accreditor = :accreditor, accreditation_date = :date, accreditation_type_id = :type
+WHERE participant_id = :participant-id AND module_id = :id;

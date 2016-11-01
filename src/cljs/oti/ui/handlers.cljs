@@ -4,7 +4,8 @@
             [oti.ui.db :as db]
             [ajax.core :as ajax]
             [oti.ui.routes :as routes]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [oti.utils :as utils]))
 
 (re-frame/reg-event-db
  :initialize-db
@@ -12,11 +13,11 @@
    db/default-db))
 
 (re-frame/reg-event-db
- :set-active-panel
- [trim-v]
- (fn [db [active-panel params]]
+  :set-active-panel
+  [trim-v]
+  (fn [db [active-panel params]]
    (let [id (when (sequential? params) (first params))]
-     (assoc db :active-panel active-panel :active-panel-data id))))
+     (assoc db :active-panel active-panel :active-panel-data (utils/parse-int id)))))
 
 (re-frame/reg-event-fx
   :load-user
@@ -32,7 +33,9 @@
   [trim-v]
   (fn
     [{:keys [db]} [key response]]
-    {:db (assoc db key response)
+    {:db (if (= :root key)
+           (merge db response)
+           (assoc db key response))
      :loader false}))
 
 (defn redirect-to-auth []
@@ -79,10 +82,10 @@
     (swap! re-frame.db/app-db assoc :loading? state)))
 
 (re-frame/reg-event-fx
-  :load-section-and-module-names
+  :load-frontend-config
   (fn [_ _]
     {:http-xhrio {:method          :get
-                  :uri             (routing/v-a-route "/sections-and-modules")
+                  :uri             (routing/v-a-route "/frontend-config")
                   :response-format (ajax/transit-response-format)
-                  :on-success      [:store-response-to-db :section-and-module-names]
+                  :on-success      [:store-response-to-db :root]
                   :on-failure      [:bad-response]}}))

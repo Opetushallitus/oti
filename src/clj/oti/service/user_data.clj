@@ -32,7 +32,7 @@
     (let [key (make-kw kw-prefix suffix)]
       (key row))))
 
-(defn- sec-or-mod-props [kw-prefix rows]
+(defn sec-or-mod-props [kw-prefix rows]
   (let [get-fn (make-get-fn kw-prefix)
         first-row (first rows)]
     {:id (get-fn first-row "id")
@@ -42,6 +42,7 @@
      :points (some #(get-fn % "points") rows)
      :accreditation-requested? (some #(get-fn % "accreditation") rows)
      :accreditation-date (some #(get-fn % "accreditation_date") rows)
+     :accreditation-type (some #(get-fn % "accreditation_type") rows)
      :registered-to? (some #(get-fn % "registration") rows)}))
 
 (defn- group-by-session [rows]
@@ -82,15 +83,15 @@
                                             sessions)
                                     (sort-by :id))]
              (-> (sec-or-mod-props "section" section-rows)
-                 (select-keys [:id :name :accreditation-requested? :accreditation-date])
+                 (select-keys [:id :name :accreditation-requested? :accreditation-date :accreditation-type])
                  (assoc :sessions sessions
                         :accredited-modules accredited-modules
                         :module-titles module-titles)))))))
 
 (defn- payments [participant-rows]
-  (->> (partition-by :payment_id participant-rows)
+  (->> (group-by :payment_id participant-rows)
        (map
-         (fn [payment-rows]
+         (fn [[id payment-rows]]
            (let [{:keys [payment_id amount payment_state payment_created]} (first payment-rows)]
              (when payment_id
                {:id payment_id

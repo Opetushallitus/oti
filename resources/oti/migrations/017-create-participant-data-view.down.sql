@@ -1,1 +1,1 @@
-DROP VIEW all_participant_data;
+DROP VIEW IF EXISTS all_participant_data;

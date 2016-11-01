@@ -7,6 +7,7 @@ body {
 .exam-session-form,
 .registration .section,
 .search .search-fields,
+.buttons,
 #header .user,
 #nav-holder ul {
   zoom: 1;
@@ -19,6 +20,8 @@ body {
 .registration .section:after,
 .search .search-fields:before,
 .search .search-fields:after,
+.buttons:before,
+.buttons:after,
 #header .user:before,
 #header .user:after,
 #nav-holder ul:before,
@@ -30,6 +33,7 @@ body {
 .exam-session-form:after,
 .registration .section:after,
 .search .search-fields:after,
+.buttons:after,
 #header .user:after,
 #nav-holder ul:after {
   clear: both;
@@ -50,7 +54,6 @@ select {
   /* The 6px vertically centers text on FF, ignored by Webkit */
   background-color: #fff;
   border: 1px solid #D1D1D1;
-  border-radius: 4px;
   box-shadow: none;
   box-sizing: border-box;
 }
@@ -204,7 +207,11 @@ table {
 .registration .participant .row input,
 .registration .participant .row select {
   width: 60%;
-  max-width: 500px;
+  max-width: 600px;
+}
+.registration .exam-session-info {
+  margin-left: 150px;
+  max-width: 600px;
 }
 .registration .exam-sections .row {
   margin: 5px 0 5px 30px;
@@ -241,7 +248,7 @@ table {
 }
 .exam-session-selection select {
   width: 60%;
-  max-width: 500px;
+  max-width: 600px;
 }
 .exam-session-selection span.label {
   display: inline-block;
@@ -592,10 +599,32 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details .section {
   margin-top: 2em;
 }
+.participant-details .accreditations {
+  background-color: #f5f5f5;
+  padding: 10px 5px;
+  border-radius: 4px;
+  margin-bottom: 1em;
+}
+.participant-details .accreditations h4 {
+  margin-top: 0;
+}
 .participant-details .accreditation label input {
   display: inline-block;
   margin-right: 10px;
   vertical-align: middle;
+}
+.participant-details .accreditation select {
+  min-width: 200px;
+  background-color: #FFFFFF;
+}
+.participant-details .accreditation .accreditation-type {
+  margin-top: 5px;
+}
+.participant-details .accreditation .accreditation-type span {
+  margin-right: 10px;
+}
+.participant-details .module-accreditations .module:not(:first-child) {
+  margin-top: 1em;
 }
 .participant-details table {
   font-size: 0.9rem;
@@ -630,6 +659,9 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details table .score,
 .participant-details table .module-name {
   text-align: right;
+}
+.participant-details .payments {
+  margin-bottom: 2em;
 }
 .left {
   float: left;
@@ -671,6 +703,7 @@ a.button {
 }
 .container {
   max-width: 940px;
+  padding-bottom: 2em;
 }
 .container label,
 .container p {
@@ -680,6 +713,11 @@ input,
 .form-control,
 .btn {
   border-radius: 0 !important;
+}
+select {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  background: url("data:image/svg+xml;utf8,<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='24' height='24' viewBox='0 0 24 24'><path fill='#444' d='M7.406 7.828l4.594 4.594 4.594-4.594 1.406 1.406-6 6-6-6z'></path></svg>") no-repeat 100% 50%;
 }
 .button,
 button,

@@ -2,7 +2,8 @@
     (:require-macros [reagent.ratom :refer [reaction]])
     (:require [re-frame.core :as re-frame]))
 
-(def interesting-keys [:user :active-panel :flash-message :active-panel-data :loading? :section-and-module-names])
+(def interesting-keys [:user :active-panel :flash-message :active-panel-data :loading? :section-and-module-names
+                       :accreditation-types])
 
 (doseq [key interesting-keys]
   (re-frame/reg-sub

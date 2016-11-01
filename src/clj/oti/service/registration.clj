@@ -76,15 +76,16 @@
         order-number (gen-order-number db ref-number)]
     (payment-param-map localisation lang amount ref-number order-number)))
 
-
-(defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params} type]
+(defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params}
+                                   type external-user-id]
   (when params
     {:created timestamp,
      :type (if (= type :full) "FULL" "PARTIAL")
      :amount amount
      :reference reference-number
      :order-number order-number
-     :payment-id payment-id}))
+     :payment-id payment-id
+     :external-user-id external-user-id}))
 
 (defn- db-payment->payment-params [{:keys [db localisation]} {:keys [amount reference]} ui-lang]
   (let [new-order-number (gen-order-number db reference)]
@@ -103,42 +104,45 @@
 
 (defn register! [{:keys [db api-client vetuma-payment] :as config}
                  {old-session :session {:keys [registration-data ui-lang]} :params}]
-  (let [conformed (s/conform ::os/registration registration-data)
-        lang (::os/language-code conformed)
-        participant-data (-> old-session :participant)
-        external-user-id (or (:external-user-id participant-data)
-                             (:oidHenkilo (api/get-person-by-hetu api-client (:hetu participant-data)))
-                             (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))
-        session (assoc-in old-session [:participant :external-user-id] external-user-id)
-        valid?  (and (not (s/invalid? conformed))
-                     external-user-id
-                     (valid-registration? config external-user-id conformed))
-        price-type (rules/price-type-for-registration conformed)
-        amount (price-type (payment-amounts config external-user-id))
-        reg-state (if (zero? amount) "OK" "INCOMPLETE")]
-    (if valid?
-      (try
-        (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
-              db-pmt (payment-params->db-payment pmt price-type)
-              payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
-              msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
-              status (if (pos? amount) :pending :success)
-              registration-id (dba/register! db conformed external-user-id reg-state db-pmt)]
-          (audit/log :app :participant
-                     :who external-user-id
-                     :op :create
-                     :on :registration
-                     :after {:id registration-id}
-                     :msg "New registration")
-          (registration-response 200 status msg-key session registration-id payment-form-data))
-        (catch Throwable t
-          (error "Error inserting registration")
-          (error t)
-          (registration-response 500 :error "registration-unknown-error" session)))
+  (let [conformed (s/conform ::os/registration registration-data)]
+    (if-not (s/invalid? conformed)
+      (let [lang (::os/language-code conformed)
+            participant-data (-> old-session :participant)
+            external-user-id (or (:external-user-id participant-data)
+                                 (:oidHenkilo (api/get-person-by-hetu api-client (:hetu participant-data)))
+                                 (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))
+            session (assoc-in old-session [:participant :external-user-id] external-user-id)
+            valid?  (and (not (s/invalid? conformed))
+                         external-user-id
+                         (valid-registration? config external-user-id conformed))
+            price-type (rules/price-type-for-registration conformed)
+            amount (price-type (payment-amounts config external-user-id))
+            reg-state (if (zero? amount) "OK" "INCOMPLETE")]
+        (if valid?
+          (try
+            (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
+                  db-pmt (payment-params->db-payment pmt price-type external-user-id)
+                  payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
+                  msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
+                  status (if (pos? amount) :pending :success)
+                  registration-id (dba/register! db conformed external-user-id reg-state db-pmt)]
+              (audit/log :app :participant
+                         :who external-user-id
+                         :op :create
+                         :on :registration
+                         :after {:id registration-id}
+                         :msg "New registration")
+              (registration-response 200 status msg-key session registration-id payment-form-data))
+            (catch Throwable t
+              (error t "Error inserting registration")
+              (registration-response 500 :error "registration-unknown-error" session)))
+          (do
+            (error "Invalid registration data. Valid selection:" (valid-registration? config external-user-id conformed)
+                   "External user id:" external-user-id)
+            (registration-response 400 :error "registration-invalid-data" session))))
       (do
-        (error "Invalid registration data. Valid selection:" (valid-registration? config external-user-id conformed)
-               "| Spec errors:" (s/explain-data ::os/registration registration-data))
-        (registration-response 400 :error "registration-invalid-data" session)))))
+        (error "Invalid registration data. Spec errors: " (s/explain-data ::os/registration registration-data))
+        (registration-response 400 :error "registration-invalid-data" old-session)))))
 
 (defn payment-data-for-retry [{:keys [db vetuma-payment] :as config}
                               {{{:keys [registration-id registration-status]} :participant :as session} :session {:keys [lang]} :params}]
@@ -155,11 +159,14 @@
       (error "Tried to retry payment for registration" registration-id "but it's status is not pending")
       (registration-response 400 :error "registration-unknown-error" session))))
 
+(def formatter (DateTimeFormatter/ofPattern "d.M.yyyy"))
+
 (defn- format-date-and-time [{:keys [session-date start-time end-time]}]
-  (let [formatter (DateTimeFormatter/ofPattern "d.M.yyyy")]
+  (if session-date
     (str
       (-> session-date .toLocalDate (.format formatter))
-      " " start-time " - " end-time)))
+      " " start-time " - " end-time)
+    "-"))
 
 (defn- format-registration-selections [sections]
   (->> sections
