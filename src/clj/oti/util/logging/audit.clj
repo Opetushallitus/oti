@@ -41,6 +41,7 @@
              :participant   OTIResource/PARTICIPANT
              :registration  OTIResource/REGISTRATION
              :payment       OTIResource/PAYMENT
+             :accreditation OTIResource/ACCREDITATION
              (throw (IllegalArgumentException. "Unknown or missing resource type.")))
         msg (.build (doto (LogMessage/builder)
                       (.id who)
