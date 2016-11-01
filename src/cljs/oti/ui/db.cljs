@@ -4,7 +4,7 @@
   {:user {}
    :language nil
    :translations {}
-   :exam-sessions []
+   :exam-sessions nil
    :flash-message {}
-   :loading true
+   :loading? true
    :participant-search-query {:query "" :filter :all}})

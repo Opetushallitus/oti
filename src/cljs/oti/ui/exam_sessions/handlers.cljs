@@ -43,14 +43,9 @@
     {:http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/exam-sessions")
                   :response-format (ajax/transit-response-format)
-                  :on-success      [:exam-sessions-response]
-                  :on-failure      [:bad-response]}}))
-
-(re-frame/reg-event-db
-  :exam-sessions-response
-  (fn
-    [db [_ response]]
-    (assoc db :exam-sessions response)))
+                  :on-success      [:store-response-to-db :exam-sessions]
+                  :on-failure      [:bad-response]}
+     :loader     true}))
 
 (re-frame/reg-event-fx
   :load-exam-session-editor
