@@ -183,20 +183,24 @@
                           :on-change (partial set-val form-data ::spec/email)
                           :class (when (::spec/email invalids) "invalid")}])]]]
             [section-selections form-data]
-            [:div.section.price
-             [:div.right
-              [:span (str (t "participation-cost"
-                             "Osallistumismaksu") " " (-> @registration-options
-                                                          :payments
-                                                          ((rules/price-type-for-registration @form-data))
-                                                          format-price))]]]
-            [:div.section.buttons
-             [:div.left
-              (abort-button @lang)]
-             [:div.right
-              [:button.button-primary {:disabled (not (valid-registration? @form-data @registration-options))
-                                       :type "submit"}
-               (str (t "continue-to-payment" "Jatka maksamaan") ">>")]]]]
+            (let [price (-> @registration-options
+                            :payments
+                            ((rules/price-type-for-registration @form-data)))]
+              [:div.bottom-part
+               [:div.section.price
+                [:div.right
+                 [:span (str (t "participation-cost"
+                                "Osallistumismaksu") " " (format-price price))]]]
+               [:div.section.buttons
+                [:div.left
+                 (abort-button @lang)]
+                [:div.right
+                 [:button.button-primary {:disabled (not (valid-registration? @form-data @registration-options))
+                                          :type "submit"}
+                  (str (if (zero? price)
+                         (t "register" "Ilmoittaudu")
+                         (t "continue-to-payment" "Jatka maksamaan"))
+                       " >>")]]]])]
            [:div
             [:h3 (t "error-enrollment-unavailable"
                     "Ilmoittautuminen ei ole mahdollista")]
