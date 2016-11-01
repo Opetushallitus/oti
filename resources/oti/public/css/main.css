@@ -512,13 +512,10 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 /* '' */
 .registrations {
-  margin-top: 1em;
+  margin-top: 2em;
 }
 .registrations table {
   width: 100%;
-}
-.registrations table td {
-  width: 25%;
 }
 @keyframes loader {
   0% {
@@ -766,9 +763,6 @@ li {
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #1b1b1b !important;
-}
-table {
-  max-width: 940px !important;
 }
 .language-dropdown {
   padding-left: 0 !important;

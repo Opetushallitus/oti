@@ -7,12 +7,44 @@
             [oti.ui.exam-registrations.subs]
             [oti.exam-rules :as rules]
             [clojure.string :as str]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [oti.ui.views.common :refer [small-loader]]))
+
+(defn- registrations-table [registrations]
+  (let [sm-names (re-frame/subscribe [:section-and-module-names])]
+    (fn [registrations]
+      [:table
+       [:thead
+        [:tr
+         [:th "Nimi"]
+         (doall
+           (for [[_ name] (:sections @sm-names)]
+             [:th {:key name} (str "Osa " name)]))
+         [:th "Kokeen kieli"]]]
+       [:tbody
+        (doall
+          (for [{:keys [sections id etunimet sukunimi lang participant-id]} registrations]
+            [:tr {:key id}
+             [:td [:a {:href (routing/v-route "/henkilot/" participant-id)} (str etunimet " " sukunimi)]]
+             (doall
+               (for [[id _] (:sections @sm-names)]
+                 [:td {:key id}
+                  (if-let [modules (get sections id)]
+                    (let [rules (rules/rules-by-section-id id)]
+                      (if (or (:can-retry-partially? rules) (:can-accredit-partially? rules))
+                        [:div
+                         "Suorittaa osiot:"
+                         [:br]
+                         (->> modules (map #(get (:modules @sm-names) %)) (str/join ", "))]
+                        [:div "Suorittaa"]))
+                    [:div "Ei suorita"])]))
+             [:td (if (= :sv lang)
+                    "Ruotsi"
+                    "Suomi")]]))]])))
 
 (defn- panel [exam-sessions pre-selected-session-id]
   (let [session-id (r/atom pre-selected-session-id)
-        registration-data (re-frame/subscribe [:registrations])
-        sm-names (re-frame/subscribe [:section-and-module-names])]
+        registration-data (re-frame/subscribe [:registrations])]
     (fn [exam-sessions pre-selected-session-id]
       [:div [:h2 "Ilmoittautumiset"]
        [:div.exam-session-selection
@@ -32,35 +64,10 @@
 
        [:div.registrations
         (let [registrations (get @registration-data @session-id)]
-          (if (seq registrations)
-            [:table
-             [:thead
-              [:tr
-               [:th "Nimi"]
-               (doall
-                 (for [[_ name] (:sections @sm-names)]
-                   [:th {:key name} (str "Osa " name)]))
-               [:th "Kokeen kieli"]]]
-             [:tbody
-              (doall
-                (for [{:keys [sections id etunimet sukunimi lang participant-id]} registrations]
-                  [:tr {:key id}
-                   [:td [:a {:href (routing/v-route "/henkilot/" participant-id)} (str etunimet " " sukunimi)]]
-                   (doall
-                     (for [[id _] (:sections @sm-names)]
-                       [:td {:key id}
-                        (if-let [modules (get sections id)]
-                          (let [rules (rules/rules-by-section-id id)]
-                            (if (or (:can-retry-partially? rules) (:can-accredit-partially? rules))
-                              [:div
-                               "Suorittaa osiot:"
-                               [:br]
-                               (->> modules (map #(get (:modules @sm-names) %)) (str/join ", "))]
-                              [:div "Suorittaa"]))
-                          [:div "Ei suorita"])]))
-                   [:td (if (= :sv lang)
-                          "Ruotsi"
-                          "Suomi")]]))]]))]])))
+          (cond
+            (nil? registrations) [small-loader]
+            (seq registrations) [registrations-table registrations]
+            :else [:span "Ei ilmoittautumisia"]))]])))
 
 (defn reg-list-panel [pre-selected-session-id]
   (re-frame/dispatch [:load-exam-sessions])
