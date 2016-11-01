@@ -99,9 +99,8 @@
          (= -1 (::spec/session-id form-data))
          (not= -1 (::spec/session-id form-data)))))
 
-(defn section-selections [form-data]
-  (let [lang (re-frame/subscribe [:language])
-        {:keys [sections]} @(re-frame/subscribe [:registration-options])]
+(defn section-selections [form-data {:keys [sections]}]
+  (let [lang (re-frame/subscribe [:language])]
     (fn []
       [:div.section.exam-sections
        [:h3 (t "sections-participated"
@@ -208,7 +207,7 @@
                  [:input {:type "email" :name "email" :value (::spec/email @form-data)
                           :on-change (partial set-val form-data ::spec/email)
                           :class (when (::spec/email invalids) "invalid")}])]]]
-            [section-selections form-data]
+            [section-selections form-data @registration-options]
             [:div.section.price
              [:div.right
               [:span (str (t "participation-cost"
