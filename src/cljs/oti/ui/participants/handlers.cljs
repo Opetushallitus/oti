@@ -13,7 +13,8 @@
                                     :filter (name (get-in db [:participant-search-query :filter]))}
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :participant-search-results]
-                  :on-failure      [:bad-response]}}))
+                  :on-failure      [:bad-response]}
+     :loader true}))
 
 (re-frame/reg-event-fx
   :store-participant-details

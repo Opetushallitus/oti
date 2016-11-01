@@ -3,7 +3,7 @@
             [oti.ui.participants.handlers]
             [oti.ui.participants.subs]
             [oti.filters :as filters]
-            [clojure.string :as str]
+            [oti.ui.views.common :refer [small-loader]]
             [oti.routing :as routing]))
 
 (defn- section-status [{:keys [sections]} section-id]
@@ -47,7 +47,8 @@
 (defn search-panel []
   (let [search-query (re-frame/subscribe [:participant-search-query])
         search-results (re-frame/subscribe [:participant-search-results])
-        sm-names (re-frame/subscribe [:section-and-module-names])]
+        sm-names (re-frame/subscribe [:section-and-module-names])
+        loading? (re-frame/subscribe [:loading?])]
     (fn []
       [:div.search
        [:form.search-form {:on-submit (fn [e]
@@ -73,4 +74,6 @@
          [:button {:type "reset"
                    :on-click #(re-frame/dispatch [:reset-search])} "Tyhjennä"]
          [:button.button-primary {:type "submit"} "Hae"]]
-        [search-result-list @search-results @sm-names]]])))
+        (if @loading?
+          [small-loader]
+          [search-result-list @search-results @sm-names])]])))

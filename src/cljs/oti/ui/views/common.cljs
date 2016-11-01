@@ -5,6 +5,10 @@
   (when (or (nil? loading?) loading?)
     [:div.loader "Ladataan"]))
 
+(defn small-loader []
+  [:div.small-loader
+   [:i.icon-spin3.animate-spin]])
+
 (defn flash-message [flash-opts]
   (when (seq flash-opts)
     (let [{:keys [type text]} flash-opts]

@@ -6,7 +6,7 @@
             [oti.ui.participants.views.search :as search]
             [oti.ui.participants.views.details :as details]
             [oti.ui.routes :refer [virkailija-routes]]
-            [oti.ui.views.common :refer [loader flash-message]]
+            [oti.ui.views.common :refer [flash-message]]
             [oti.routing :as routing]))
 
 (defmulti panels identity)
@@ -39,11 +39,9 @@
   (let [active-panel (re-frame/subscribe [:active-panel])
         active-panel-data (re-frame/subscribe [:active-panel-data])
         user (re-frame/subscribe [:user])
-        flash-opts (re-frame/subscribe [:flash-message])
-        loading? (re-frame/subscribe [:loading?])]
+        flash-opts (re-frame/subscribe [:flash-message])]
     (fn []
       [:div
-       [loader @loading?]
        [:div#header
         [:img {:src (routing/img "opetushallitus.gif")}]
         [:p "Opetushallinnon tutkintorekisteri"]
