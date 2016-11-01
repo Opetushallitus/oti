@@ -2,7 +2,8 @@
  {:app
   {:middleware
    {:functions {:stacktrace ring.middleware.stacktrace/wrap-stacktrace}
-    :applied   ^:replace [:not-found :restful-format :ring-defaults :stacktrace :session]}}
+    :applied   ^:replace [:not-found :restful-format :ring-defaults :stacktrace :session]
+    :arguments {:session "soroRfgsbxRTsnXc"}}}
   :http
   {:port 3000}
   :db

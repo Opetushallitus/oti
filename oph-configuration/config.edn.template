@@ -1,6 +1,7 @@
 ; Configuration template for remote deployments
 {:config
- {:db {:uri "{{oti_db_uri}}"
+ {:app {:middleware {:arguments {:session "{{oti_session_cookie_key}}"}}}
+  :db {:uri "{{oti_db_uri}}"
        :username "{{oti_db_username}}"
        :password "{{oti_db_password}}"
        :pool-name "oti-pool"
