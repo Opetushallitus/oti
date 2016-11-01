@@ -8,8 +8,10 @@
 (defn- score-map [id-kw ts-kw acc-kw rows]
   (->> (filter id-kw rows)
        (reduce (fn [result row]
-                 (assoc result (id-kw row) (cond-> {:ts (ts-kw row)}
-                                                   acc-kw (assoc :accepted (acc-kw row))))) {})))
+                 (assoc result (id-kw row) {:ts (ts-kw row)
+                                            ; Accredited rows do not have accepted, so it will be nil. For scored rows it's true or false.
+                                            :accepted (if (nil? acc-kw) true (acc-kw row))}))
+               {})))
 
 (defn- process-db-participants [db participants filter-kw]
   (let [{:keys [sections]} (dba/section-and-module-names db)]
@@ -21,7 +23,7 @@
                    accredited-sections (score-map :accredited_section_id :accredited_section_date nil participant-rows)
                    accredited-modules (score-map :accredited_module_id :accredited_module_date nil participant-rows)
                    completed-sections (->> (merge scored-sections accredited-sections)
-                                           (filter (fn [[_ props]] (or (:section_accepted props) (:accredited_section_date props))))
+                                           (filter #(-> % second :accepted))
                                            (map first)
                                            set)
                    required-sections (set (keys sections))
