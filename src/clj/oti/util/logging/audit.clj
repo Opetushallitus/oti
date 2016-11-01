@@ -2,10 +2,11 @@
   (:import (fi.vm.sade.auditlog.oti LogMessage OTIResource OTIOperation)
            (fi.vm.sade.auditlog Audit ApplicationType))
   (:require [clojure.data :as data]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [taoensso.timbre :as log]))
 
-(def ^:private ParticipantAudit (Audit. "oti" (. ApplicationType OPISKELIJA)))
-(def ^:private AdminAudit       (Audit. "oti" (. ApplicationType VIRKAILIJA)))
+(def ^:private ParticipantAudit (Audit. "oti" ApplicationType/OPISKELIJA))
+(def ^:private AdminAudit       (Audit. "oti" ApplicationType/VIRKAILIJA))
 
 (defn log
   "Audit log function complying to OPH standards.
@@ -26,21 +27,21 @@
                                     :added only-after
                                     :stayedSame in-both})
         op (condp = op
-             :create (. OTIOperation CREATE)
-             :delete (. OTIOperation DELETE)
-             :update (. OTIOperation UPDATE)
-             (IllegalArgumentException. "Unknown operation."))
+             :create OTIOperation/CREATE
+             :delete OTIOperation/DELETE
+             :update OTIOperation/UPDATE
+             (IllegalArgumentException. "Unknown or missing operation type."))
         on (condp = on
-             :exam          (. OTIResource EXAM)
-             :exam-session  (. OTIResource EXAM_SESSION)
-             :section       (. OTIResource SECTION)
-             :section-score (. OTIResource SECTION_SCORE)
-             :module        (. OTIResource MODULE)
-             :module-score  (. OTIResource MODULE_SCORE)
-             :participant   (. OTIResource PARTICIPANT)
-             :registration  (. OTIResource REGISTRATION)
-             :payment       (. OTIResource PAYMENT)
-             (throw (IllegalArgumentException. "Unknown resource.")))
+             :exam          OTIResource/EXAM
+             :exam-session  OTIResource/EXAM_SESSION
+             :section       OTIResource/SECTION
+             :section-score OTIResource/SECTION_SCORE
+             :module        OTIResource/MODULE
+             :module-score  OTIResource/MODULE_SCORE
+             :participant   OTIResource/PARTICIPANT
+             :registration  OTIResource/REGISTRATION
+             :payment       OTIResource/PAYMENT
+             (throw (IllegalArgumentException. "Unknown or missing resource type.")))
         msg (.build (doto (LogMessage/builder)
                       (.id who)
                       (.setResource on)
@@ -48,6 +49,7 @@
                       (.setDelta diff)
                       (.message msg)))]
     (condp = app
+
       :admin       (.log AdminAudit msg)
       :participant (.log ParticipantAudit msg)
-      (throw (IllegalArgumentException. "Unknown app type.")))))
+      (throw (IllegalArgumentException. "Unknown or missing app type.")))))

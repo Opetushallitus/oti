@@ -9,6 +9,7 @@
             [oti.boundary.api-client-access :as api]
             [oti.exam-rules :as rules]
             [oti.boundary.payment :as payment-util]
+            [oti.util.logging.audit :as audit]
             [oti.component.email-service :as email])
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]
@@ -75,6 +76,7 @@
         order-number (gen-order-number db ref-number)]
     (payment-param-map localisation lang amount ref-number order-number)))
 
+
 (defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params} type]
   (when params
     {:created timestamp,
@@ -122,6 +124,12 @@
               msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
               status (if (pos? amount) :pending :success)
               registration-id (dba/register! db conformed external-user-id reg-state db-pmt)]
+          (audit/log :app :participant
+                     :who external-user-id
+                     :op :create
+                     :on :registration
+                     :after {:id registration-id}
+                     :msg "New registration")
           (registration-response 200 status msg-key session registration-id payment-form-data))
         (catch Throwable t
           (error "Error inserting registration")
@@ -133,11 +141,10 @@
         (registration-response 400 :error "registration-invalid-data" session)))))
 
 (defn payment-data-for-retry [{:keys [db vetuma-payment] :as config}
-                              {{:keys [registration-id registration-status]} :participant :as session}
-                              ui-lang]
+                              {{{:keys [registration-id registration-status]} :participant :as session} :session {:keys [lang]} :params}]
   (if (= :pending registration-status)
     (if-let [{payment-id :id :as db-pmt} (dba/unpaid-payment-by-registration db registration-id)]
-      (->> (db-payment->payment-params config db-pmt ui-lang)
+      (->> (db-payment->payment-params config db-pmt lang)
            (update-db-payment! db payment-id)
            (payment-util/form-data-for-payment vetuma-payment)
            (registration-response 200 :pending "registration-payment-pending" session registration-id))
