@@ -11,7 +11,8 @@
             [oti.boundary.api-client-access :as api]
             [oti.service.registration :as registration]
             [oti.service.payment :as payment]
-            [oti.util.logging.audit :as audit]))
+            [oti.spec :as os]
+            [clojure.spec :as s]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -77,9 +78,9 @@
       ; Other or missing registration status, just return the session as is
       session)))
 
-(defn authenticate [{:keys [db api-client] :as config} callback]
+(defn authenticate [{:keys [db api-client] :as config} callback user-hetu]
   (if-not (str/blank? callback)
-          (let [hetu (random-hetu)
+          (let [hetu (if (s/valid? ::os/hetu user-hetu) user-hetu (random-hetu))
                 {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
                 {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))]
             (when id
@@ -132,7 +133,7 @@
      (GET "/translations"         [lang] (translations config lang))
      (GET "/translations/refresh" []     (refresh-translations config))
      ;; FIXME: This is a dummy route
-     (GET "/authenticate"         [callback] (authenticate config callback))
+     (GET "/authenticate"         [callback hetu] (authenticate config callback hetu))
      (GET "/exam-sessions"        []         (exam-sessions config))
      (-> (context "/authenticated" {session :session}
            (GET "/participant-data"     []      (participant-data config session))
