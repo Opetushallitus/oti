@@ -99,9 +99,10 @@
 (defn- exam-session-registrations [config id]
   (response (fetch-registrations config id)))
 
-(defn- frontend-config [{:keys [db]}]
+(defn- frontend-config [{:keys [db]} {{:keys [identity]} :session}]
   (response {:section-and-module-names (dba/section-and-module-names db)
-             :accreditation-types (dba/accreditation-types db)}))
+             :accreditation-types (dba/accreditation-types db)
+             :user (select-keys identity [:username])}))
 
 (defn- search-participant [config q filter]
   (let [filter-kw (if (str/blank? filter) :all (keyword filter))
@@ -134,8 +135,7 @@
 
 (defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []
-        (GET "/user-info" [] user-info)
-        (GET "/frontend-config" [] (frontend-config config))
+        (GET "/frontend-config" [] (partial frontend-config config))
         (exam-session-routes config)
         (participant-routes config))
       (wrap-routes auth/wrap-authorization)

@@ -32,8 +32,7 @@
 
 (defn init-mode [mode]
   (if (= "virkailija" mode)
-    (do (re-frame/dispatch [:load-user])
-        (re-frame/dispatch [:load-frontend-config]))
+    (re-frame/dispatch [:load-frontend-config])
     (do (re-frame/dispatch [:set-language (resolve-lang)])
         (re-frame/dispatch [:load-participant-data]))))
 
