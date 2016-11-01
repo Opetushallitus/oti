@@ -4,7 +4,9 @@
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.3rd-party.rolling :refer [rolling-appender]]
             [environ.core :refer [env]]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as str])
+  (:import (java.util Locale TimeZone)))
 
 (defn make-logger []
   (reify logger.protocols/Logger
@@ -40,5 +42,27 @@
                                                   :ns-whitelist ["fi.vm.sade.auditlog.*"]
                                                   :output-fn (fn [{:keys [msg_]}]
                                                                (str (force msg_))))
-               :rolling-application-log-appender (assoc (rolling-appender {:path (str (logs-path) "/applicationlog_oti.log")})
-                                                        :ns-blacklist ["fi.vm.sade.auditlog.*"])}})
+               :rolling-application-log-appender (assoc (rolling-appender {:path (str (logs-path) "/oph-oti.log")})
+                                                        :ns-blacklist ["fi.vm.sade.auditlog.*"]
+                                                        :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+                                                                         :locale (Locale. "fi")
+                                                                         :timezone (TimeZone/getTimeZone "Europe/Helsinki")}
+
+                                                        ;; Example output:
+                                                        ;; (taoensso.timbre/info "test")
+                                                        ;; => nil
+                                                        ;; 2016-11-01T11:27:12.759+02 INFO {} [nREPL-worker-7] INFO user: test
+
+                                                        :output-fn (fn [{:keys [level ?err #_vargs msg_ ?ns-str hostname_
+                                                                                timestamp_ ?line]}]
+                                                                     (str
+                                                                      (force timestamp_) " "
+                                                                      (str/upper-case (name level)) " "
+                                                                      "{" "} " ; FIXME: %X{user} is used in log4j pattern here
+                                                                      "[" (.getName (Thread/currentThread)) "] "
+                                                                      (str/upper-case (name level)) " "
+                                                                      (or ?ns-str "?") ": "
+                                                                      (force msg_)
+                                                                      (when-let [err ?err]
+                                                                        (str "\n" (timbre/stacktrace err {:stacktrace-fonts {}}))))
+))}})
