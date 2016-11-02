@@ -19,7 +19,8 @@
         {:keys [status]} @(http/post email-service-url {:headers {"content-type" "application/json"}
                                                         :body    (json/generate-string {:email     {:subject subject
                                                                                                     :isHtml  true
-                                                                                                    :body    body}
+                                                                                                    :body    body
+                                                                                                    :charset "UTF-8"}
                                                                                         :recipient wrapped-recipients})})]
     (if (= 200 status)
       (do
