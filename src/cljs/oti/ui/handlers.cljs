@@ -41,9 +41,11 @@
   [trim-v]
   (fn
     [{:keys [db]} [response]]
-    {:db (assoc db :error response)
-     :show-flash [:error "Tietojen lataus palvelimelta epäonnistui"]
-     :loader false}))
+    (if (= 401 (:status response))
+      (redirect-to-auth)
+      {:db (assoc db :error response)
+       :show-flash [:error "Tietojen lataus palvelimelta epäonnistui"]
+       :loader false})))
 
 (re-frame/reg-fx
   :redirect
