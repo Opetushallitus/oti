@@ -243,6 +243,10 @@ table {
   display: inline-block;
   width: 150px;
 }
+.registration .registration-pending {
+  color: #00a651;
+  font-size: 2.5rem;
+}
 .exam-session-selection {
   font-weight: bold;
 }

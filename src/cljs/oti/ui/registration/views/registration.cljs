@@ -173,13 +173,15 @@
         form-data (reagent/atom #::spec{:language-code @lang
                                         :session-id (if (zero? session-id) -1 session-id)
                                         :preferred-name (or (:kutsumanimi participant-data) (first (:etunimet participant-data)))
-                                        :email (:email participant-data)})]
+                                        :email (:email participant-data)})
+        submitted? (reagent/atom false)]
     (fn [participant-data]
       (let [invalids (invalid-keys form-data ::spec/registration)]
         [:div.registration
          (if (pos? (count (:sections @registration-options)))
            [:form.registration {:on-submit (fn [e]
                                              (.preventDefault e)
+                                             (reset! submitted? true)
                                              (re-frame/dispatch [:store-registration @form-data @lang]))}
             [:div.section.exam-session-selection
              [session-select @lang @exam-sessions form-data]]
@@ -220,12 +222,17 @@
                 [:div.left
                  (abort-button @lang)]
                 [:div.right
-                 [:button.button-primary {:disabled (not (valid-registration? @form-data @registration-options))
-                                          :type "submit"}
-                  (str (if (zero? price)
-                         (t "register" "Ilmoittaudu")
-                         (t "continue-to-payment" "Jatka maksamaan"))
-                       " >>")]]]])]
+                 (if @submitted?
+                   [:div.registration-pending
+                    [:i.icon-spin3.animate-spin]]
+                   [:button.button-primary {:disabled (or (not (valid-registration? @form-data @registration-options))
+                                                          @submitted?)
+                                            :type "submit"}
+                    [:span
+                     (str (if (zero? price)
+                            (t "register" "Ilmoittaudu")
+                            (t "continue-to-payment" "Jatka maksamaan")))]
+                    [:span " >>"]])]]])]
            [:div
             [:h3 (t "error-enrollment-unavailable"
                     "Ilmoittautuminen ei ole mahdollista")]
