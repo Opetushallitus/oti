@@ -156,10 +156,11 @@
        [:div.buttons
         [:div.left
          [:button {:on-click #(-> js/window .-history .back)} "Peruuta"]]
-        [:div.right
-         [:button.button-primary {:on-click #(re-frame/dispatch [:save-accreditation-data id @form-data])
-                                  :disabled (= initial-form-data @form-data)}
-          "Tallenna"]]]])))
+        (when (or (seq (:accredited-sections @form-data)) (seq (:accredited-modules @form-data)))
+          [:div.right
+           [:button.button-primary {:on-click #(re-frame/dispatch [:save-accreditation-data id @form-data])
+                                    :disabled (= initial-form-data @form-data)}
+            "Tallenna"]])]])))
 
 (defn participant-details-panel [participant-id]
   (re-frame/dispatch [:load-participant-details participant-id])
