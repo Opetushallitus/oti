@@ -142,6 +142,11 @@
     (diploma/generate-diplomas config diploma-data session)
     {:status 400 :body {:error "Invalid parameters"}}))
 
+(defn- exam-by-language [{:keys [db]} lang]
+  (if-let [exam (dba/exam-by-lang db lang)]
+    (response exam)
+    (not-found {})))
+
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
     (POST "/" request (new-exam-session config request))
@@ -176,10 +181,16 @@
         (response {:success true})
         (not-found {:error "Registration not found"})))))
 
+(defn- exam-routes [config]
+  (routes
+   (GET "/exam" [lang] (exam-by-language config lang))))
+
+
 (defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []
         (GET "/frontend-config" [] (partial frontend-config config))
         (exam-session-routes config)
-        (participant-routes config))
+        (participant-routes config)
+        (exam-routes config))
       (wrap-routes auth/wrap-authorization)
       (wrap-routes req/wrap-disable-cache)))

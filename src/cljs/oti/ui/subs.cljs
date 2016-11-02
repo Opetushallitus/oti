@@ -3,7 +3,7 @@
     (:require [re-frame.core :as re-frame]))
 
 (def interesting-keys [:user :active-panel :flash-message :active-panel-data :loading? :section-and-module-names
-                       :accreditation-types :diploma-count :confirmation-dialog])
+                       :accreditation-types :diploma-count :confirmation-dialog :exam])
 
 (doseq [key interesting-keys]
   (re-frame/reg-sub

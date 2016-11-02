@@ -366,3 +366,18 @@ WHERE participant_id = :participant-id AND section_id = :id;
 UPDATE accredited_exam_module
 SET accreditor = :accreditor, accreditation_date = :date, accreditation_type_id = :type
 WHERE participant_id = :participant-id AND module_id = :id;
+
+--name: exam-by-lang
+SELECT s.id AS section_id,
+       s.executed_as_whole AS section_executed_as_whole,
+       st.name AS section_name,
+       m.id AS module_id,
+       m.points AS module_points,
+       m.accepted_separately AS module_accepted_separately,
+       mt.name AS module_name
+FROM exam e
+JOIN section s ON e.id = s.exam_id
+JOIN section_translation st ON s.id = st.section_id
+JOIN module m ON s.id = m.section_id
+JOIN module_translation mt ON m.id = mt.module_id
+WHERE st.language_code = :lang AND mt.language_code = :lang

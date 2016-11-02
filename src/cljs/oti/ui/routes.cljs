@@ -12,7 +12,8 @@
    {:view :registrations-panel :url (routing/v-route "/ilmoittautumiset") :text "Ilmoittautumiset"}
    {:view :registrations-panel :url (re-pattern (routing/v-route "/ilmoittautumiset/(\\d+)"))}
    {:view :participant-search-panel :url (routing/v-route "/henkilot") :text "Tutkinnon suorittajat"}
-   {:view :participant-details-panel :url (re-pattern (routing/v-route "/henkilot/(\\d+)"))}])
+   {:view :participant-details-panel :url (re-pattern (routing/v-route "/henkilot/(\\d+)"))}
+   {:view :scoring-panel :url (routing/v-route "/tutkintotulokset") :text "Tutkintotulosten tallentaminen"}])
 
 (def history (atom nil))
 

@@ -5,6 +5,7 @@
             [oti.ui.exam-registrations.registration-list :as registration-list]
             [oti.ui.participants.views.search :as search]
             [oti.ui.participants.views.details :as details]
+            [oti.ui.scoring.views :as scoring]
             [oti.ui.routes :refer [virkailija-routes]]
             [oti.ui.views.common :refer [flash-message confirmation-dialog]]
             [oti.routing :as routing]))
@@ -16,6 +17,7 @@
 (defmethod panels :edit-exam-session-panel [] edit-exam-session)
 (defmethod panels :participant-search-panel [] search/search-panel)
 (defmethod panels :participant-details-panel [] details/participant-details-panel)
+(defmethod panels :scoring-panel [] scoring/scoring-panel)
 (defmethod panels :default [] :div)
 
 (defn show-panel [panel-name data]

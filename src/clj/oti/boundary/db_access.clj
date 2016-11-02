@@ -158,7 +158,8 @@
   (access-token-for-exam-session [db id])
   (access-token-matches-session? [db id token])
   (update-participant-diploma-data! [db update-params])
-  (diploma-count [db start-date end-date]))
+  (diploma-count [db start-date end-date])
+  (exam-by-lang [db lang]))
 
 (extend-type HikariCP
   DbAccess
@@ -292,4 +293,20 @@
   (diploma-count [{:keys [spec]} start-date end-date]
     (-> (q/select-diploma-count {:start-date start-date :end-date end-date} {:connection spec})
         first
-        :count)))
+        :count))
+  (exam-by-lang [{:keys [spec]} lang]
+    (when-let [section-module-sequence (q/exam-by-lang {:lang lang} {:connection spec})]
+      (->> (group-by :section_id section-module-sequence)
+           vals
+           (mapv (fn [section-seq]
+                   (let [section {:id (:section_id (first section-seq))
+                                  :name (:section_name (first section-seq))
+                                  :executed-as-whole? (:section_executed_as_whole (first section-seq))
+                                  :modules []}]
+                     (reduce (fn [ss m]
+                               (update ss :modules conj {:id (:module_id m)
+                                                         :name (:module_name m)
+                                                         :points? (:module_points m)
+                                                         :accepted-separately? (:module_accepted_separately m)}))
+                             section
+                             section-seq))))))))
