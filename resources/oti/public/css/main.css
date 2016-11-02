@@ -912,6 +912,7 @@ input[type="button"]:not(:first-child) {
 }
 #header img {
   float: left;
+  width: 271px;
 }
 #header p {
   margin: 0;

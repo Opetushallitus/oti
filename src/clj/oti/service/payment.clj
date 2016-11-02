@@ -31,7 +31,10 @@
 
 (defn confirm-payment! [config form-data]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)
-    (send-confirmation-email! config form-data)
+    (try
+      (send-confirmation-email! config form-data)
+      (catch Throwable t
+        (error t "Could not send confirmation email. Payment data:" form-data)))
     :confirmed))
 
 (defn cancel-payment! [config form-data]
