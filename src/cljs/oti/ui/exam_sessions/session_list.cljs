@@ -51,8 +51,8 @@
 (defn exam-sessions-panel []
   (let [exam-sessions (re-frame/subscribe [:exam-sessions])
         loading?      (re-frame/subscribe [:loading?])
-        today         (-> (js/moment.) (.startOf "day") .toDate)
-        start-date    (r/atom today)
+        default-start (-> (js/moment.) (.subtract 2 "days") (.startOf "day") .toDate)
+        start-date    (r/atom default-start)
         end-date      (r/atom nil)]
     (re-frame/dispatch [:load-exam-sessions @start-date @end-date])
     (fn []
