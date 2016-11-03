@@ -119,7 +119,7 @@
     (q/update-registration-state-by-payment-order! (assoc params :state registration-state) {:connection tx})))
 
 (defprotocol DbAccess
-  (upcoming-exam-sessions [db])
+  (exam-sessions [db start-date end-date])
   (add-exam-session! [db exam-session])
   (save-exam-session! [db exam-session])
   (remove-exam-session! [db id])
@@ -152,8 +152,9 @@
 
 (extend-type HikariCP
   DbAccess
-  (upcoming-exam-sessions [{:keys [spec]}]
-    (group-exam-session-translations (q/exam-sessions-in-future {} {:connection spec})))
+  (exam-sessions [{:keys [spec]} start-date end-date]
+    (-> (q/select-exam-sessions {:start-date start-date :end-date end-date} {:connection spec})
+        group-exam-session-translations))
   (published-exam-sessions-with-space-left [{:keys [spec]}]
     (group-exam-session-translations (q/published-exam-sessions-in-future-with-space-left {} {:connection spec})))
   (exam-session [{:keys [spec]} id]

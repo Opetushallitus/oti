@@ -8,13 +8,10 @@
             [reagent.core :as r]
             [cljs.spec :as s]
             [oti.routing :as routing]
-            [clojure.string :as str]
             [cljsjs.moment]
             [cljsjs.moment.locale.fi]
             [cljs-pikaday.reagent :as pikaday]
             [oti.ui.i18n :as i18n]))
-
-(.locale js/moment "fi")
 
 (defn input-element [form-data invalids type key lang placeholder & [on-change-fn]]
   (let [value-path (if lang [key lang] [key])]

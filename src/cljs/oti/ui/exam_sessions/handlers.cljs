@@ -39,9 +39,12 @@
 
 (re-frame/reg-event-fx
   :load-exam-sessions
-  (fn [_ _]
+  [re-frame/trim-v]
+  (fn [_ [start-date end-date]]
     {:http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/exam-sessions")
+                  :params          {:start-date (when (inst? start-date) (.getTime start-date))
+                                    :end-date (when (inst? end-date) (.getTime end-date))}
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :exam-sessions]
                   :on-failure      [:bad-response]}

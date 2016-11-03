@@ -12,11 +12,9 @@
             [oti.service.search :as search]
             [oti.service.accreditation :as accreditation]
             [clojure.string :as str]
-            [oti.util.request :as req]))
-
-(defn- as-int [x]
-  (try (Integer/parseInt x)
-       (catch Throwable _)))
+            [oti.util.request :as req]
+            [compojure.coercions :refer [as-int]])
+  (:import [java.time LocalDate Instant LocalDateTime ZoneId]))
 
 (defn- fetch-registrations [{:keys [db api-client]} session-id]
   (if-let [regs (seq (dba/registrations-for-session db session-id))]
@@ -52,8 +50,23 @@
       {:status 400
        :body {:errors (s/explain ::os/exam-session params)}})))
 
-(defn- exam-sessions [{:keys [db]}]
-  (let [sessions (->> (dba/upcoming-exam-sessions db)
+(def timezone (ZoneId/of "Europe/Helsinki"))
+
+(defn- ts->local-date [ts]
+  (-> (Instant/ofEpochMilli ts)
+      (LocalDateTime/ofInstant timezone)
+      .toLocalDate))
+
+(defn- exam-sessions [{:keys [db]} start-date end-date]
+  (let [sts (as-int start-date)
+        ets (as-int end-date)
+        start-date (if sts
+                     (ts->local-date sts)
+                     (LocalDate/of 2016 1 1))
+        end-date (if ets
+                   (ts->local-date ets)
+                   (LocalDate/of 9999 12 31))
+        sessions (->> (dba/exam-sessions db start-date end-date)
                       (map c/convert-session-row))]
     (response sessions)))
 
@@ -114,7 +127,8 @@
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
     (POST "/" request (new-exam-session config request))
-    (GET "/"  []      (exam-sessions config))
+    (GET "/"  [start-date end-date]
+      (exam-sessions config start-date end-date))
     (context "/:id{[0-9]+}" [id :<< as-int]
       (GET "/"              []      (exam-session config id))
       (PUT "/"              request (update-exam-session config request id))

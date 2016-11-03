@@ -1,4 +1,4 @@
--- name: exam-sessions-in-future
+-- name: select-exam-sessions
 SELECT es.id,
        es.session_date,
        es.start_time,
@@ -14,7 +14,7 @@ SELECT es.id,
 FROM exam_session es
   JOIN exam_session_translation est ON es.id = est.exam_session_id
   LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state != 'ERROR'::registration_state
-WHERE session_date > now()
+WHERE session_date >= :start-date AND session_date <= :end-date
 GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
   est.street_address, est.language_code, est.other_location_info
 ORDER BY es.session_date, es.start_time, id;

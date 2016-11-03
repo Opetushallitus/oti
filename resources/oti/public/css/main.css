@@ -155,10 +155,22 @@ table {
   color: #ff0012;
 }
 .exam-sessions {
-  margin: 15px 0;
+  margin: 1em 0;
 }
 .exam-sessions table {
   width: 100%;
+}
+.exam-session-dates div,
+.exam-session-dates .pikaday-input {
+  display: inline-block;
+  position: relative;
+}
+.exam-session-dates div:not(:first-child),
+.exam-session-dates .pikaday-input:not(:first-child) {
+  margin-left: 15px;
+}
+.exam-session-dates input {
+  width: 150px;
 }
 .exam-session-form .row {
   margin-bottom: .7em;
@@ -169,6 +181,9 @@ table {
 .exam-session-form .pikaday-input {
   display: inline-block;
   position: relative;
+}
+.exam-session-form .pikaday-input {
+  margin-right: 15px;
 }
 .exam-session-form input {
   width: 230px;
@@ -183,20 +198,21 @@ table {
 .exam-session-form .times .dash {
   margin: 0 5px;
 }
-.exam-session-form input {
-  margin-right: 15px;
-}
 .exam-session-form .label {
   width: 250px;
 }
 .exam-session-form .input-group-inline {
   display: inline-block;
 }
-.exam-session-form .date-picker-icon {
+.exam-session-form .input-group-inline input {
+  margin-right: 15px;
+}
+.date-picker-icon {
   position: absolute;
   top: 10px;
-  right: 20px;
+  right: 5px;
   opacity: 0.7;
+  pointer-events: none;
 }
 .registration .section {
   margin-bottom: 1em;
@@ -1022,4 +1038,9 @@ input[type="button"]:not(:first-child) {
   display: block;
   line-height: 5px;
   padding-bottom: 8px;
+}
+.no-results {
+  padding-top: 1em;
+  width: 100%;
+  text-align: center;
 }

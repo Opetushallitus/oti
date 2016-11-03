@@ -8,7 +8,9 @@
             [oti.ui.views.virkailija-main :as virkailija]
             [oti.ui.registration.views.main :as registration]
             [oti.ui.config :as config]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [cljsjs.moment]
+            [cljsjs.moment.locale.fi]))
 
 (defn dev-setup []
   (when config/debug?
@@ -32,7 +34,9 @@
 
 (defn init-mode [mode]
   (if (= "virkailija" mode)
-    (re-frame/dispatch [:load-frontend-config])
+    (do
+      (.locale js/moment "fi")
+      (re-frame/dispatch [:load-frontend-config]))
     (do (re-frame/dispatch [:set-language (resolve-lang)])
         (re-frame/dispatch [:load-participant-data]))))
 
