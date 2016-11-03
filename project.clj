@@ -4,23 +4,23 @@
   :min-lein-version "2.0.0"
   :repositories [["oph-sade-releases" "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local"]
                  ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
-  :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [org.clojure/tools.reader "1.0.0-beta3"]
-                 [org.clojure/core.async "0.2.391"]
+                 [org.clojure/core.async "0.2.395"]
                  [org.clojure/java.jdbc "0.6.1"]
                  [com.stuartsierra/component "0.3.1"]
                  [compojure "1.5.1"]
-                 [duct "0.8.0"]
+                 [duct "0.8.2"]
                  [environ "1.1.0"]
                  [ring/ring-core "1.5.0"]
                  [ring/ring-devel "1.5.0"]
                  [ring/ring-defaults "0.2.1"]
                  [ring/ring-json "0.4.0"]
-                 [com.cognitect/transit-clj "0.8.288"]
+                 [com.cognitect/transit-clj "0.8.290"]
                  [com.cognitect/transit-cljs "0.8.239"]
                  [ring-middleware-format "0.7.0"]
                  [duct/hikaricp-component "0.1.0" :exclusions [org.slf4j/slf4j-nop]]
-                 [org.postgresql/postgresql "9.4.1211"]
+                 [org.postgresql/postgresql "9.4.1212"]
                  [ragtime "0.6.3"]
                  [duct/ragtime-component "0.1.4"]
                  [suspendable "0.1.1"]
@@ -33,15 +33,15 @@
                  [overtone/at-at "1.2.0"]
 
                  ;; Frontend
-                 [org.clojure/clojurescript "1.9.229"]
+                 [org.clojure/clojurescript "1.9.293"]
                  [reagent "0.6.0"]
                  [binaryage/devtools "0.8.2"]
                  [re-frame "0.8.0"]
-                 [day8.re-frame/http-fx "0.0.4"]
+                 [day8.re-frame/http-fx "0.1.2"]
                  [kibu/pushy "0.3.6"]
                  [secretary "1.2.3"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
-                 [cljsjs/moment "2.10.6-4"]
+                 [cljsjs/moment "2.15.2-2"]
                  [cljs-pikaday "0.1.3"]
 
                  ;; Logging
@@ -52,7 +52,7 @@
 
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
-            [lein-figwheel "0.5.7"]
+            [lein-figwheel "0.5.8"]
             [test2junit "1.2.2"]
             [lein-less "1.7.5"]]
 
@@ -94,7 +94,7 @@
              :uberjar-name "oti.jar"}
    :profiles/dev  {}
    :profiles/test {}
-   :project/dev   {:dependencies [[duct/generate "0.8.0"]
+   :project/dev   {:dependencies [[duct/generate "0.8.2"]
                                   [reloaded.repl "0.2.3"]
                                   [org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/tools.nrepl "0.2.12"]
