@@ -635,7 +635,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details .accreditation label input {
   display: inline-block;
   margin-right: 10px;
-  vertical-align: middle;
+  vertical-align: baseline;
 }
 .participant-details .accreditation select {
   min-width: 200px;
