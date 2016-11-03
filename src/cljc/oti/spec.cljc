@@ -94,7 +94,11 @@
 (s/def ::retry-modules (s/* ::id))
 (s/def ::accredit-modules (s/* ::id))
 (s/def ::session-id integer?)
-(s/def ::preferred-name (s/and string? #(not (str/blank? %))))
+(s/def ::preferred-name ::non-blank-string)
+(s/def ::registration-city ::non-blank-string)
+(s/def ::registration-post-office ::non-blank-string)
+(s/def ::registration-street-address ::non-blank-string)
+(s/def ::registration-zip (s/and string? #(re-matches #"\d{5}" %)))
 
 (defn retry-or-accredit? [{::keys [retry? accredit?]}]
   (not (and retry? accredit?)))
@@ -112,7 +116,16 @@
                                     ::session-id
                                     ::language-code
                                     ::preferred-name
-                                    ::sections]))
+                                    ::sections
+                                    ::registration-street-address
+                                    ::registration-zip
+                                    ::registration-post-office
+                                    ::registration-city]))
+
+(s/def ::postal-address (s/keys :req [::registration-street-address
+                                      ::registration-zip
+                                      ::registration-post-office
+                                      ::registration-city]))
 
 (def hetu-regexp #"[\d]{6}[+\-A-Za-z][\d]{3}[\dA-Za-z]")
 (s/def ::hetu (s/and string? #(re-matches hetu-regexp %)))

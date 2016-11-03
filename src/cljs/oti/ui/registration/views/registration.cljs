@@ -10,7 +10,7 @@
 
 (defn set-val [form-data key event]
   (let [val (-> event .-target .-value)
-        val (if (re-matches #"-?\d+" val) (js/parseInt val) val)]
+        val (if (= key ::spec/session-id) (js/parseInt val) val)]
     (swap! form-data assoc key val)
     true))
 
@@ -164,6 +164,25 @@
                          :on-change #(swap! form-data assoc ::spec/language-code lang)}]
                 [:span (t lang)]]]))])])))
 
+(defn address-input [field-kw participant-data form-data invalids]
+  (let [field-str (name field-kw)
+        spec-kw (keyword (str "oti.spec/" field-str))
+        input-type (if (= :email field-kw) "email" "text")]
+    [:label
+     [:span.label (str (t field-kw) ":")]
+     (if (field-kw participant-data)
+       [:span.value (field-kw participant-data)]
+       [:input {:type input-type :name field-str :value (spec-kw @form-data)
+                :on-change (partial set-val form-data spec-kw)
+                :class (when (spec-kw invalids) "invalid")}])]))
+
+(defn address-fields [participant-data form-data invalids]
+  [:div.participant-address
+   (doall
+     (for [field [:email :registration-street-address :registration-zip :registration-post-office :registration-city]]
+       [:div.row {:key (name field)}
+        [address-input field participant-data form-data invalids]]))])
+
 (defn registration-panel [participant-data session-id]
   (re-frame/dispatch [:load-available-sessions])
   (re-frame/dispatch [:load-registration-options])
@@ -201,14 +220,7 @@
                     (doall
                       (for [name (:etunimet participant-data)]
                         [:option {:value name :key name} name]))])]])
-             [:div.row
-              [:label
-               [:span.label (str (t "email" "Sähköposti") ":")]
-               (if (:email participant-data)
-                 [:span.value (:email participant-data)]
-                 [:input {:type "email" :name "email" :value (::spec/email @form-data)
-                          :on-change (partial set-val form-data ::spec/email)
-                          :class (when (::spec/email invalids) "invalid")}])]]]
+             [address-fields participant-data form-data invalids]]
             [section-selections form-data @registration-options]
             (let [price (-> @registration-options
                             :payments

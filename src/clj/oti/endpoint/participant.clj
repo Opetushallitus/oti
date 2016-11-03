@@ -42,7 +42,6 @@
         check-digit (get check-digits (mod full 31))]
     (str d m y "-" serial check-digit)))
 
-
 (defn- random-name []
   (->> (repeatedly #(rand-nth "aefhijklmnoprstuvy"))
        (take 10)
