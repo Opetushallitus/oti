@@ -16,12 +16,12 @@
 (defn- cas-login [cas-config login-callback ldap ticket path]
   (info "validating ticket" ticket)
   (if-let [username (cas/username-from-valid-service-ticket cas-config login-callback ticket)]
-    (if (la/user-has-access? ldap username)
+    (if-let [user (la/fetch-authorized-user ldap username)]
       (do
         (auth/login ticket)
-        (info "username" username "logged in")
+        (info "user" user "logged in")
         (-> (resp/redirect (or path "/oti/virkailija"))
-            (assoc :session {:identity {:username username :ticket ticket}})))
+            (assoc :session {:identity (assoc user :ticket ticket)})))
       (do
         (info "username" username "tried to log in but does not have the correct role in LDAP")
         {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))

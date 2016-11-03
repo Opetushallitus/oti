@@ -31,13 +31,15 @@
       (reset! pool nil))
     this)
   ldap-access/LdapAccess
-  (user-has-access? [{:keys [pool]} username]
+  (fetch-authorized-user [{:keys [pool]} username]
     (when-not @pool
       (reset! pool (create-ldap-connection-pool config)))
     (when-let [user (first (ldap/search @pool people-path-base {:filter (str "(uid=" username ")")}))]
-      (->> (json/parse-string (:description user))
-           (filter #(str/includes? % user-right-name))
-           first))))
+      (when (->> (json/parse-string (:description user))
+                 (some #(str/includes? % user-right-name)))
+        {:username username
+         :given-name (:givenName user)
+         :surname (:sn user)}))))
 
 (defn ldap [config]
   (->Ldap config))

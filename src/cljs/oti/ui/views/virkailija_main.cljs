@@ -46,7 +46,7 @@
         [:img {:src (routing/img "opetushallitus.gif")}]
         [:p "Opetushallinnon tutkintorekisteri"]
         [:div.user
-         [:div (:username @user)]
+         [:div (str (:given-name @user) " " (:surname @user))]
          [:div [:a.logout {:href (routing/auth-route "/logout")} "Kirjaudu ulos"]]]]
        [navigation-panel @active-panel]
        [:div#content-area

@@ -19,8 +19,10 @@
 
 (def ldap-stub
   (reify LdapAccess
-    (user-has-access? [t username]
-      (when (= username valid-user) "APP_OTI_CRUD"))))
+    (fetch-authorized-user [t username]
+      (when (= username valid-user) {:username username
+                                     :given-name "Testi"
+                                     :surname "Testaaja"}))))
 
 (def cas-stub
   (reify CasAccess
@@ -40,7 +42,10 @@
   (is (= {:status 302
           :headers {"Location" "/oti/virkailija/henkilot"}
           :body ""
-          :session {:identity {:username "virkailija", :ticket "niceticket"}}}
+          :session {:identity {:username "virkailija"
+                               :given-name "Testi"
+                               :surname "Testaaja"
+                               :ticket "niceticket"}}}
          (#'oti.endpoint.auth/login cas-stub authentication ldap-stub valid-ticket path))))
 
 (deftest login-is-denied-for-invalid-ticket

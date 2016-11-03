@@ -98,7 +98,7 @@
 (defn- frontend-config [{:keys [db]} {{:keys [identity]} :session}]
   (response {:section-and-module-names (dba/section-and-module-names db)
              :accreditation-types (dba/accreditation-types db)
-             :user (select-keys identity [:username])}))
+             :user (select-keys identity [:username :given-name :surname])}))
 
 (defn- search-participant [config q filter]
   (let [filter-kw (if (str/blank? filter) :all (keyword filter))

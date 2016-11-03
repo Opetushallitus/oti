@@ -949,7 +949,6 @@ input[type="button"]:not(:first-child) {
   float: none;
 }
 #header .user a {
-  font-size: 11px;
   padding: 0;
 }
 #content-area {
