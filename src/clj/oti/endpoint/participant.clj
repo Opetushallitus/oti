@@ -90,9 +90,13 @@
                 (assoc :session {:participant {:etunimet (if etunimet (str/split etunimet #" ") [(random-name) (random-name)])
                                                :sukunimi (or sukunimi (random-name))
                                                :kutsumanimi kutsumanimi
-                                               :email email
                                                :hetu hetu
-                                               :external-user-id oidHenkilo}})))
+                                               :external-user-id oidHenkilo
+                                               ::os/email email
+                                               ::os/registration-city "Helsinki"
+                                               ::os/registration-post-office "Helsinki"
+                                               ::os/registration-zip "00100"
+                                               ::os/registration-street-address "Testikatu 1"}})))
           {:status 400 :body {:error "Missing callback uri"}}))
 
 (defn- abort [lang]
