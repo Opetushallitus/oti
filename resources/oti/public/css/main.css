@@ -274,6 +274,9 @@ table {
   display: inline-block;
   width: 150px;
 }
+.authentication .automatic-address input {
+  margin-right: 5px;
+}
 /*!
  * Pikaday
  * Copyright © 2014 David Bushell | BSD & MIT license | http://dbushell.com/
