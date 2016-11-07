@@ -1,28 +1,65 @@
 (ns oti.service.user-data
   (:require [clojure.core.cache :as cache]
             [oti.boundary.api-client-access :as api]
-            [oti.boundary.db-access :as dba]))
+            [oti.boundary.db-access :as dba]
+            [oti.spec :as os]))
 
 (def cache-ttl
   ; 2 hours
   7200000)
+
+(def vtj-address-opts {:type "yhteystietotyyppi4"
+                       :origin "alkupera1"})
+
+(def domestic-address-opts {:type "yhteystietotyyppi1"
+                            :origin "alkupera4"})
+
+(def address-mapping {"YHTEYSTIETO_KATUOSOITE" ::os/registration-street-address
+                      "YHTEYSTIETO_POSTINUMERO" ::os/registration-zip
+                      ; XXX: "KUNTA" seems to be used for post office in other places
+                      "YHTEYSTIETO_KUNTA" ::os/registration-post-office})
 
 (defonce C (atom (cache/ttl-cache-factory {} :ttl cache-ttl)))
 
 (defn- api-fetch-required? [user-oid]
   (not (cache/has? @C user-oid)))
 
+(def interesting-user-data-keys [:etunimet :sukunimi :kutsumanimi :hetu :oidHenkilo])
+
 (defn- fetch-oids! [api-client oids]
   (when (seq oids)
     (let [users (api/get-persons api-client oids)]
       (doseq [{:keys [oidHenkilo] :as user} users]
-        (let [cache-user (select-keys user [:etunimet :sukunimi :kutsumanimi :hetu :oidHenkilo])]
+        (let [cache-user (select-keys user interesting-user-data-keys)]
           (swap! C cache/miss oidHenkilo cache-user))))))
 
 (defn api-user-data-by-oid [api-client user-oids]
   (let [must-fetch-oids (filter api-fetch-required? user-oids)]
     (fetch-oids! api-client must-fetch-oids)
     (select-keys @C user-oids)))
+
+(defn- addresses-of-type [{:keys [yhteystiedotRyhma]} {:keys [type origin]}]
+  (->> yhteystiedotRyhma
+       (filter (fn [{:keys [ryhmaKuvaus ryhmaAlkuperaTieto]}]
+                 (and (= ryhmaKuvaus type) (= ryhmaAlkuperaTieto origin))))))
+
+(defn- api-address->map [{:keys [yhteystiedot]}]
+  (reduce (fn [address {:keys [yhteystietoTyyppi yhteystietoArvo]}]
+            (if-let [key (address-mapping yhteystietoTyyppi)]
+              (assoc address key yhteystietoArvo)
+              address))
+          {}
+          yhteystiedot))
+
+(defn- user-data-with-address [api-client oid]
+  (when-let [user (api/get-person-by-id api-client oid)]
+    (->> (map #(addresses-of-type user %) [vtj-address-opts domestic-address-opts])
+         (sort-by :id)
+         (map last)
+         (remove nil?)
+         first
+         api-address->map
+         (assoc (select-keys user interesting-user-data-keys) :address))))
 
 (defn- make-kw [prefix suffix]
   (keyword (str prefix "_" suffix)))
@@ -103,8 +140,7 @@
 (defn- merge-db-and-api-data [{:keys [api-client]} db-data]
   (when (seq db-data)
     (let [external-user-id (:ext_reference_id (first db-data))
-          api-data (-> (api-user-data-by-oid api-client [external-user-id])
-                       (get external-user-id))]
+          api-data (user-data-with-address api-client external-user-id)]
       (merge
         api-data
         (select-keys (first db-data) [:id :email])

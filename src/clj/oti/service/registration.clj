@@ -10,10 +10,57 @@
             [oti.exam-rules :as rules]
             [oti.boundary.payment :as payment-util]
             [oti.util.logging.audit :as audit]
-            [oti.component.email-service :as email])
+            [oti.component.email-service :as email]
+            [clojure.set :as set]
+            [oti.service.user-data :as user-data])
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]
            [java.util Locale]))
+
+(defn- valid-address [data]
+  (let [addr (select-keys data [::os/registration-city ::os/registration-post-office ::os/registration-zip
+                                ::os/registration-street-address])]
+    (when (s/valid? ::os/postal-address addr)
+      addr)))
+
+(defn- api-address-list [registration-data]
+  (mapv (fn [[api-type key]]
+          (when-let [data (key registration-data)]
+            {:yhteystietoTyyppi api-type
+             :yhteystietoArvo data}))
+        user-data/address-mapping))
+
+(defn- existing-address [existing-person address-origin address-list]
+  (let [addr-set (set address-list)]
+    (->> (:yhteystiedotRyhma existing-person)
+         (some (fn [{:keys [ryhmaAlkuperaTieto yhteystiedot id]}]
+                 (when (and (= ryhmaAlkuperaTieto address-origin)
+                            (->> (map #(dissoc % :id) yhteystiedot)
+                                 set
+                                 (set/intersection addr-set)
+                                 (= addr-set)))
+                   id))))))
+
+(defn store-address-to-service! [api-client external-user-id participant-data reg-data]
+  (if-let [existing-person (api/get-person-by-id api-client external-user-id)]
+    (let [vtj-address (valid-address participant-data)
+          address (or vtj-address (valid-address reg-data))
+          {:keys [type origin]} (if vtj-address user-data/vtj-address-opts user-data/domestic-address-opts)
+          address-list (api-address-list address)
+          existing-address-id (existing-address existing-person origin address-list)]
+      (when-not (or vtj-address address)
+        (throw (Exception. (str "No valid postal address provided for user " external-user-id))))
+      (if-not existing-address-id
+        (api/update-person! api-client
+                            external-user-id
+                            (update existing-person
+                                    :yhteystiedotRyhma
+                                    conj {:ryhmaAlkuperaTieto origin
+                                          :ryhmaKuvaus type
+                                          :yhteystiedot address-list}))
+        (info "Not storing address for user" external-user-id "because address already exists as id" existing-address-id)))
+    (do (error "Could not retrieve user" external-user-id "from API for address update, cannot proceed")
+        (throw (Exception. "Could not store address for user")))))
 
 (defn- store-person-to-service! [api-client {:keys [etunimet sukunimi hetu]} preferred-name lang]
   (api/add-person! api-client
@@ -112,14 +159,14 @@
                                  (:oidHenkilo (api/get-person-by-hetu api-client (:hetu participant-data)))
                                  (store-person-to-service! api-client participant-data (::os/preferred-name conformed) lang))
             session (assoc-in old-session [:participant :external-user-id] external-user-id)
-            valid?  (and (not (s/invalid? conformed))
-                         external-user-id
+            valid?  (and external-user-id
                          (valid-registration? config external-user-id conformed))
             price-type (rules/price-type-for-registration conformed)
             amount (price-type (payment-amounts config external-user-id))
             reg-state (if (zero? amount) "OK" "INCOMPLETE")]
         (if valid?
           (try
+            (store-address-to-service! api-client external-user-id participant-data conformed)
             (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
                   db-pmt (payment-params->db-payment pmt price-type external-user-id)
                   payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))

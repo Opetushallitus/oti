@@ -1,7 +1,7 @@
 (ns oti.ui.registration.views.registration
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [oti.spec :as spec]
+            [oti.spec :as os]
             [oti.ui.i18n :refer [t]]
             [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
             [oti.exam-rules :as rules]
@@ -10,26 +10,26 @@
 
 (defn set-val [form-data key event]
   (let [val (-> event .-target .-value)
-        val (if (re-matches #"-?\d+" val) (js/parseInt val) val)]
+        val (if (= key ::os/session-id) (js/parseInt val) val)]
     (swap! form-data assoc key val)
     true))
 
 (defn session-select [lang exam-sessions form-data]
   (when (and (seq exam-sessions)
-             (not= -1 (::spec/session-id @form-data))
-             (or (nil? (::spec/session-id @form-data))
-                 (nil? (some #(= (::spec/id %) (::spec/session-id @form-data)) exam-sessions))))
-    (swap! form-data assoc ::spec/session-id (-> exam-sessions first ::spec/id)))
+             (not= -1 (::os/session-id @form-data))
+             (or (nil? (::os/session-id @form-data))
+                 (nil? (some #(= (::os/id %) (::os/session-id @form-data)) exam-sessions))))
+    (swap! form-data assoc ::os/session-id (-> exam-sessions first ::os/id)))
   [:div
    [:label {:for "exam-session-select"}
     [:span.label (str (t "session" "Tapahtuma") ":")]]
    (when lang
      [:select#exam-session-select
-      {:value (or (::spec/session-id @form-data) "")
-       :on-change (partial set-val form-data ::spec/session-id)}
+      {:value (or (::os/session-id @form-data) "")
+       :on-change (partial set-val form-data ::os/session-id)}
       [:option {:value -1 :key -1} (t "no-exam-session" "En osallistu koetilaisuuteen")]
       (doall
-        (for [{::spec/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
+        (for [{::os/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
           [:option {:value id :key id}
            (str (unparse-date session-date) " " start-time " - " end-time " "
                 (lang city) ", " (lang street-address) ", " (lang other-location-info))]))])])
@@ -38,11 +38,11 @@
   (when (number? number)
     (-> number (.toFixed 2) str (str/replace "." ",") (str " €"))))
 
-(defn accredit-all? [{::spec/keys [sections]} all-sections]
+(defn accredit-all? [{::os/keys [sections]} all-sections]
   (let [all-ids (->> all-sections (map :id) set)]
     (->> sections
          (filter (fn [[_ opts]]
-                   (::spec/accredit? opts)))
+                   (::os/accredit? opts)))
          (map first)
          set
          (= all-ids))))
@@ -50,24 +50,24 @@
 (defn attending-ids [form-data]
   (reduce
     (fn [ids [id section-opts]]
-      (if-not (::spec/accredit? section-opts)
+      (if-not (::os/accredit? section-opts)
         (conj ids id)
         ids))
     #{}
-    (::spec/sections form-data)))
+    (::os/sections form-data)))
 
-(defn accredit-or-not-attend-all? [{::spec/keys [sections] :as form-data}]
+(defn accredit-or-not-attend-all? [{::os/keys [sections] :as form-data}]
   (let [accrediting? (->> sections
                           (filter (fn [[_ opts]]
-                                    (::spec/accredit? opts)))
+                                    (::os/accredit? opts)))
                           count
                           pos?)]
     (and accrediting? (empty? (attending-ids form-data)))))
 
 (defn add-section [form-data sections id data]
-  (swap! form-data assoc-in [::spec/sections id] data)
+  (swap! form-data assoc-in [::os/sections id] data)
   (when (accredit-all? @form-data sections)
-    (swap! form-data assoc ::spec/session-id -1))
+    (swap! form-data assoc ::os/session-id -1))
   true)
 
 (defn module-selection [form-data section-id module-id key]
@@ -77,7 +77,7 @@
                       (if checked?
                         (set (conj s id))
                         (disj s id)))]
-      (swap! form-data update-in [::spec/sections section-id key] update-fn module-id))))
+      (swap! form-data update-in [::os/sections section-id key] update-fn module-id))))
 
 (defn abort-button [lang]
   [:a.button {:href (str "/oti/abort?lang=" (name lang))}
@@ -87,17 +87,17 @@
   (let [{:keys [etunimet sukunimi hetu]} participant-data]
     [:div.name (str (str/join " " etunimet) " " sukunimi ", " hetu)]))
 
-(defn valid-registration? [{reg-sections ::spec/sections :as form-data} {:keys [sections]}]
-  (and (s/valid? ::spec/registration form-data)
+(defn valid-registration? [{reg-sections ::os/sections :as form-data} {:keys [sections]}]
+  (and (s/valid? ::os/registration form-data)
        (not-any?
          (fn [{:keys [id modules]}]
-           (let [accredit-modules (-> (get reg-sections id) ::spec/accredit-modules set)
+           (let [accredit-modules (-> (get reg-sections id) ::os/accredit-modules set)
                  all-modules (-> (map :id modules) set)]
              (= accredit-modules all-modules)))
          sections)
        (if (accredit-or-not-attend-all? form-data)
-         (= -1 (::spec/session-id form-data))
-         (not= -1 (::spec/session-id form-data)))))
+         (= -1 (::os/session-id form-data))
+         (not= -1 (::os/session-id form-data)))))
 
 (defn section-selections [form-data {:keys [sections]}]
   (let [lang (re-frame/subscribe [:language])]
@@ -115,7 +115,7 @@
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "participate"
-                         :on-click #(add-section form-data sections id {::spec/retry? previously-attempted?})}]
+                         :on-click #(add-section form-data sections id {::os/retry? previously-attempted?})}]
                 [:span (cond
                          (not previously-attempted?) (t "participate-exam" "Osallistun kokeeseen")
                          (and previously-attempted? can-retry-partially?) (str (t "participate-in-following-modules-retry"
@@ -127,7 +127,7 @@
                     (for [module modules]
                       [:label {:key (:id module)}
                        [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                :on-click (module-selection form-data id (:id module) ::spec/retry-modules)}]
+                                :on-click (module-selection form-data id (:id module) ::os/retry-modules)}]
                        [:span (@lang (:name module))]]))])
                (when (and can-accredit-partially? attending?)
                  [:div.row.partial-accreditation
@@ -138,31 +138,50 @@
                      (for [module modules]
                        [:label {:key (:id module)}
                         [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                 :on-click (module-selection form-data id (:id module) ::spec/accredit-modules)}]
+                                 :on-click (module-selection form-data id (:id module) ::os/accredit-modules)}]
                         [:span (@lang (:name module))]]))]])]
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
-                         :on-click #(add-section form-data sections id {::spec/accredit? true})}]
+                         :on-click #(add-section form-data sections id {::os/accredit? true})}]
                 [:span (t "has-accreditation-or-other-substitution"
                           "Olen saanut korvaavuuden / korvannut kurssisuorituksella tai esseellä koko osion")]]]
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
-                         :on-click #(swap! form-data update ::spec/sections dissoc id)}]
+                         :on-click #(swap! form-data update ::os/sections dissoc id)}]
                 [:span (t "not-participating" "En osallistu")]]]])))
        (when-not (empty? (attending-ids @form-data))
          [:div.exam-section
           [:h4 (t "exam-question-language"
                   "Tenttikysymysten kieli")]
           (doall
-            (for [lang spec/recognized-languages]
+            (for [lang os/recognized-languages]
               [:div.row {:key (name lang)}
                [:label
                 [:input {:type "radio" :name "language" :value (name lang)
-                         :checked (= lang (::spec/language-code @form-data))
-                         :on-change #(swap! form-data assoc ::spec/language-code lang)}]
+                         :checked (= lang (::os/language-code @form-data))
+                         :on-change #(swap! form-data assoc ::os/language-code lang)}]
                 [:span (t lang)]]]))])])))
+
+(defn address-input [spec-kw participant-data form-data invalids]
+  (let [input-type (if (= ::os/email spec-kw) "email" "text")]
+    [:label
+     [:span.label (str (t (name spec-kw)) ":")]
+     (if (spec-kw participant-data)
+       [:span.value (spec-kw participant-data)]
+       [:input {:type input-type :name (name spec-kw) :value (spec-kw @form-data)
+                :on-change (partial set-val form-data spec-kw)
+                :class (when (spec-kw invalids) "invalid")}])]))
+
+(def address-keys [::os/email ::os/registration-street-address ::os/registration-zip ::os/registration-post-office])
+
+(defn address-fields [participant-data form-data invalids]
+  [:div.participant-address
+   (doall
+     (for [field address-keys]
+       [:div.row {:key (name field)}
+        [address-input field participant-data form-data invalids]]))])
 
 (defn registration-panel [participant-data session-id]
   (re-frame/dispatch [:load-available-sessions])
@@ -170,13 +189,14 @@
   (let [lang (re-frame/subscribe [:language])
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
-        form-data (reagent/atom #::spec{:language-code @lang
-                                        :session-id (if (zero? session-id) -1 session-id)
-                                        :preferred-name (or (:kutsumanimi participant-data) (first (:etunimet participant-data)))
-                                        :email (:email participant-data)})
+        base-form-data (merge #::os{:language-code @lang
+                                    :session-id (if (zero? session-id) -1 session-id)
+                                    :preferred-name (or (:kutsumanimi participant-data) (first (:etunimet participant-data)))}
+                              (select-keys participant-data address-keys))
+        form-data (reagent/atom base-form-data)
         submitted? (reagent/atom false)]
     (fn [participant-data]
-      (let [invalids (invalid-keys form-data ::spec/registration)]
+      (let [invalids (invalid-keys form-data ::os/registration)]
         [:div.registration
          (if (pos? (count (:sections @registration-options)))
            [:form.registration {:on-submit (fn [e]
@@ -196,19 +216,12 @@
                  [:span.label (str (t "displayname" "Kutsumanimi") ":")]
                  (if (:kutsumanimi participant-data)
                    [:span.value (:kutsumanimi participant-data)]
-                   [:select {:value (::spec/preferred-name @form-data)
-                             :on-change (partial set-val form-data ::spec/preferred-name)}
+                   [:select {:value (::os/preferred-name @form-data)
+                             :on-change (partial set-val form-data ::os/preferred-name)}
                     (doall
                       (for [name (:etunimet participant-data)]
                         [:option {:value name :key name} name]))])]])
-             [:div.row
-              [:label
-               [:span.label (str (t "email" "Sähköposti") ":")]
-               (if (:email participant-data)
-                 [:span.value (:email participant-data)]
-                 [:input {:type "email" :name "email" :value (::spec/email @form-data)
-                          :on-change (partial set-val form-data ::spec/email)
-                          :class (when (::spec/email invalids) "invalid")}])]]]
+             [address-fields participant-data form-data invalids]]
             [section-selections form-data @registration-options]
             (let [price (-> @registration-options
                             :payments
