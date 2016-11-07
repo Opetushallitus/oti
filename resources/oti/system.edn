@@ -9,7 +9,8 @@
   :localisation oti.component.localisation/localisation
   :vetuma-payment oti.component.vetuma-payment/vetuma-payment
   :scheduler oti.component.scheduler/scheduler
-  :email-service oti.component.email-service/email-service}
+  :email-service oti.component.email-service/email-service
+  :url-helper oti.component.url-helper/url-helper}
  :endpoints
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint
