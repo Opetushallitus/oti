@@ -5,7 +5,9 @@
             [oti.component.cas]
             [oti.boundary.ldap-access]
             [oti.util.auth :as auth-util]
-            [ring.middleware.defaults :refer [wrap-defaults]])
+            [ring.middleware.defaults :refer [wrap-defaults]]
+            [oti.component.url-helper :as uh]
+            [com.stuartsierra.component :as component])
   (:import [oti.boundary.ldap_access LdapAccess]
            [oti.component.cas CasAccess]))
 
@@ -30,10 +32,9 @@
       (cond (= ticket valid-ticket) valid-user
             (= ticket ticket-for-wrong-user) invalid-user))))
 
-(def authentication
-  {:opintopolku-login-uri "login-uri?service="
-   :opintopolku-logout-uri  "logout-uri?service="
-   :oti-login-success-uri "/auth/cas"})
+(def url-helper (->> (uh/url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
+                                :oti-host "http://localhost:3000"})
+                     (component/start)))
 
 (def path
   "/oti/virkailija/henkilot")
@@ -46,22 +47,22 @@
                                :given-name "Testi"
                                :surname "Testaaja"
                                :ticket "niceticket"}}}
-         (#'oti.endpoint.auth/login cas-stub authentication ldap-stub valid-ticket path))))
+         (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub valid-ticket path))))
 
 (deftest login-is-denied-for-invalid-ticket
   (is (= {:status 500, :body "Pääsyoikeuksien tarkistus epäonnistui", :headers {"Content-Type" "text/plain; charset=utf-8"}}
-        (#'oti.endpoint.auth/login cas-stub authentication ldap-stub "invalid" path))))
+        (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub "invalid" path))))
 
 (deftest login-is-denied-for-user-without-correct-role
   (is (= 403
-         (:status (#'oti.endpoint.auth/login cas-stub authentication ldap-stub ticket-for-wrong-user path)))))
+         (:status (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub ticket-for-wrong-user path)))))
 
 (deftest logout-works
   (let [request {:session {:identity {:ticket valid-ticket :username valid-user}}}]
-    (#'oti.endpoint.auth/login cas-stub authentication ldap-stub valid-ticket path)
+    (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub valid-ticket path)
     (is (auth-util/logged-in? request))
-    (is (= {:status 302, :headers {"Location" "logout-uri?service=/auth/cas"}, :body "", :session {:identity nil}}
-           (#'oti.endpoint.auth/logout authentication (:session request))))
+    (is (= {:status 302, :headers {"Location" "https://itest-virkailija.oph.ware.fi/cas/logout?service=h"}, :body "", :session {:identity nil}}
+           (#'oti.endpoint.auth/logout url-helper (:session request))))
     (is (not (auth-util/logged-in? request)))))
 
 (deftest cas-initiated-logout-works

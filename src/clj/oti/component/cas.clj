@@ -95,8 +95,6 @@
   (username-from-valid-service-ticket [{:keys [url-helper]} service-uri ticket]
     (let [uri (url url-helper "cas.service-validate")
           {:keys [status body]} @(http/get uri {:query-params {:ticket ticket :service service-uri}})]
-      (println status)
-      (println body)
       (when (= status 200)
         (with-open [in (io/input-stream (.getBytes body))]
           (let [parsed (xml/parse in)]

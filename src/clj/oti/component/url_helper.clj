@@ -6,7 +6,7 @@
   (url [this key] [this key params]))
 
 (defn- oph-properties [{:keys [virkailija-host oti-host]}]
-  (doto (OphProperties. (into-array String ["./oph-configuration/oti_url.properties"]))
+  (doto (OphProperties. (into-array String ["/oti/oti_url.properties"]))
     (.addDefault "host-virkailija" virkailija-host)
     (.addDefault "oti-host" oti-host)))
 
