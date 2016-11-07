@@ -1,9 +1,8 @@
 (ns oti.boundary.api-client-access
   (:require [oti.component.cas :as cas-api]
             [cheshire.core :as json]
-            [taoensso.timbre :refer [error]]
-            [oti.component.api-client]
-            [taoensso.timbre :refer [info]])
+            [taoensso.timbre :refer [error info]]
+            [oti.component.api-client])
   (:import [oti.component.api_client ApiClient]))
 
 (defprotocol ApiClientAccess
