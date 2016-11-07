@@ -92,14 +92,14 @@
         (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
       (-> (redirect callback)
           (assoc :session {:participant (merge
-                                          {:etunimet                        (if etunimet
-                                                                              (str/split etunimet #" ")
-                                                                              [(random-name) (random-name)])
-                                           :sukunimi                        (or sukunimi (random-name))
-                                           :kutsumanimi                     kutsumanimi
-                                           :hetu                            hetu
-                                           :external-user-id                oidHenkilo
-                                           ::os/email                       email}
+                                          {:etunimet         (if etunimet
+                                                               (str/split etunimet #" ")
+                                                               [(random-name) (random-name)])
+                                           :sukunimi         (or sukunimi (random-name))
+                                           :kutsumanimi      kutsumanimi
+                                           :hetu             hetu
+                                           :external-user-id oidHenkilo
+                                           ::os/email        email}
                                           address)})))
     {:status 400 :body {:error "Missing callback uri"}}))
 
