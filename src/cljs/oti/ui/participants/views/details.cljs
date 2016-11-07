@@ -3,7 +3,9 @@
             [oti.ui.exam-sessions.utils :refer [unparse-date]]
             [reagent.core :as r]
             [cognitect.transit :as transit]
-            [meta-merge.core :refer [meta-merge]]))
+            [meta-merge.core :refer [meta-merge]]
+            [oti.spec :as os]
+            [clojure.string :as s]))
 
 (defn- exam-label [score-ts accepted?]
   (cond
@@ -134,9 +136,13 @@
                  [accreditation-inputs form-data accreditation-types :accredited-modules id]]))]])
         [session-table sessions module-titles]]))])
 
+(defn format-address [{::os/keys [registration-street-address registration-zip registration-post-office]}]
+  (if (s/blank? registration-street-address)
+    "Ei osoitetietoa saatavilla"
+    (str registration-street-address ", " registration-zip " " registration-post-office)))
+
 (defn participant-main-component [participant-data initial-form-data accreditation-types]
-  (let [{:keys [id etunimet sukunimi hetu email sections payments]} participant-data
-        ;initial-form-data (prepare-form-data sections accreditation-types)
+  (let [{:keys [id etunimet sukunimi hetu email sections payments address]} participant-data
         form-data (r/atom initial-form-data)]
     (fn [participant-data initial-form-data]
       [:div.participant-details
@@ -148,6 +154,9 @@
         [:div.row
          [:span.label "Nimi"]
          [:span.value (str etunimet " " sukunimi)]]
+        [:div.row
+         [:span.label "Katuosoite"]
+         [:span.value (format-address address)]]
         [:div.row
          [:span.label "Sähköpostiosoite"]
          [:span.value email]]]
