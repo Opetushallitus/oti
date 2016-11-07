@@ -1,7 +1,11 @@
 (ns oti.ui.scoring.views
-  (:require [re-frame.core :as rf]))
+  (:require [re-frame.core :as rf]
+            [oti.ui.scoring.handlers]
+            [oti.ui.scoring.subs]
+            [oti.spec :as spec]
+            [oti.ui.exam-sessions.utils :refer [unparse-date]]))
 
-(defn personal-details []
+(defn personal-details [exam-sessions]
   [:div.personal-details
    [:h3 "Henkilötiedot"]
    [:div.personal-details-group
@@ -10,8 +14,22 @@
      [:option "placeholder"]]]
    [:div.personal-details-group
     [:label "Tutkintotapahtuma"]
-    [:select
-     [:option "tutkintot1"]]]])
+    [:select {:on-change (fn [e]
+                           (when-let [id (try
+                                           (js/parseInt (.. e -target -value))
+                                           (catch js/Exception _))]
+                             (rf/dispatch [:select-exam-session id])))}
+     (doall
+      (for [{::spec/keys [id
+                          street-address
+                          city
+                          other-location-info
+                          session-date
+                          start-time
+                          end-time]} exam-sessions]
+        [:option {:value id :key id}
+         (str (unparse-date session-date) " " start-time " - " end-time " "
+              (:fi city) ", " (:fi street-address) ", " (:fi other-location-info))]))]]])
 
 (defn radio [{:keys [name value]} text]
   [:div.radio
@@ -89,9 +107,13 @@
 
 (defn scoring-panel []
   (rf/dispatch [:load-exam])
-  (let [exam (rf/subscribe [:exam])]
+  (rf/dispatch [:load-exam-sessions-full])
+  (let [exam (rf/subscribe [:exam])
+        exam-sessions (rf/subscribe [:exam-sessions-full])
+        selected-exam-session (rf/subscribe [:selected-exam-session])
+        participants (rf/subscribe [:participants] [selected-exam-session])]
     (fn []
       [:div.scoring-panel
-       [personal-details]
+       [personal-details @exam-sessions]
        [scoring-form @exam]
        [button-bar]])))

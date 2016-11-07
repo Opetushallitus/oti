@@ -147,11 +147,16 @@
     (response exam)
     (not-found {})))
 
+(defn- exam-sessions-full [{:keys [db]} lang]
+  (if-let [data (dba/exam-sessions-full db lang)]
+    (response data)
+    (not-found [])))
+
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
-    (POST "/" request (new-exam-session config request))
-    (GET "/"  [start-date end-date]
-      (exam-sessions config start-date end-date))
+    (POST "/"    request               (new-exam-session config request))
+    (GET "/"     [start-date end-date] (exam-sessions config start-date end-date))
+    (GET "/full" [lang]                (exam-sessions-full config (or lang "fi")))
     (context "/:id{[0-9]+}" [id :<< as-int]
       (GET "/"              []      (exam-session config id))
       (PUT "/"              request (update-exam-session config request id))

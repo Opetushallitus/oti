@@ -127,6 +127,23 @@ DELETE FROM exam_session WHERE id = :exam-session-id;
 -- name: delete-exam-session-translations!
 DELETE FROM exam_session_translation WHERE exam_session_id = :exam-session-id;
 
+-- name: exam-sessions-full
+SELECT es.id AS exam_session_id,
+       p.ext_reference_id AS participant_ext_reference,
+       es.session_date AS exam_session_date,
+       es.start_time AS exam_session_start_time,
+       es.end_time AS exam_session_end_time,
+       es.max_participants AS exam_session_max_participants,
+       es.published AS exam_session_published,
+       est.street_address AS exam_session_street_address,
+       est.city AS exam_session_city,
+       est.other_location_info AS exam_session_other_location_info
+FROM exam_session es
+JOIN exam_session_translation est ON es.id = est.exam_session_id
+LEFT JOIN registration r ON es.id = r.exam_session_id
+LEFT JOIN participant p ON r.participant_id = p.id
+WHERE est.language_code = :lang;
+
 -- name: select-modules-available-for-user
 SELECT
   s.id AS section_id, m.id AS module_id, st.name AS section_name, st.language_code, mt.name AS module_name,

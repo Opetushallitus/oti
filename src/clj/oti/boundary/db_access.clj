@@ -4,7 +4,7 @@
             [duct.component.hikaricp]
             [oti.spec :as spec]
             [clojure.set :as cs]
-            [taoensso.timbre :refer [error]]
+            [taoensso.timbre :as log :refer [error]]
             [meta-merge.core :refer [meta-merge]])
   (:import [duct.component.hikaricp HikariCP]))
 
@@ -120,6 +120,30 @@
       (q-fn (assoc params :state payment-state) {:connection tx})
       (q/update-registration-state-by-payment-order! (assoc params :state registration-state) {:connection tx}))))
 
+(defn- hierarchial-by-section-from-exam-session [exam-session-id ss [ext-id s]]
+  (let [relevant-rows (filter #(do (log/info (:exam_session_id %) exam-session-id)
+                                   (= (:exam_session_id %) exam-session-id)) s)
+        sections (->> (group-by :section_id relevant-rows)
+                      (mapv (fn [[id x]]
+                                (let [{:keys [section_id section_accepted section_accreditation
+                                              section_accreditation_date section_score exam_session_id] participant-id :id} (first x)
+                                      section {:id section_id
+                                               :participant-id participant-id
+                                               :accepted section_accepted
+                                               :accreditation section_accreditation
+                                               :accreditation-date section_accreditation_date
+                                               :section-score section_score
+                                               :exam-session-id exam_session_id
+                                               :modules (mapv (fn [m]
+                                                                (select-keys m [:module_accreditation
+                                                                                :module_accreditation_date
+                                                                                :module_accepted
+                                                                                :module_score_ts
+                                                                                :module_id
+                                                                                :exam_session_id])) x)}]
+                                  section))))]
+    (assoc-in ss [ext-id :sections] sections)))
+
 (defprotocol DbAccess
   (exam-sessions [db start-date end-date])
   (add-exam-session! [db exam-session])
@@ -127,6 +151,7 @@
   (remove-exam-session! [db id])
   (published-exam-sessions-with-space-left [db])
   (exam-session [db id])
+  (exam-sessions-full [db lang])
   (sections-and-modules-available-for-user [db external-user-id])
   (valid-full-payments-for-user [db external-user-id])
   (register! [db registration-data external-user-id state payment-data existing-reg-id])
@@ -182,6 +207,34 @@
   (remove-exam-session! [{:keys [spec]} id]
     (q/delete-exam-session-translations! {:exam-session-id id} {:connection spec})
     (q/delete-exam-session! {:exam-session-id id} {:connection spec}))
+
+  (exam-sessions-full [{:keys [spec] :as db} lang]
+    (->> (q/exam-sessions-full {:lang lang} {:connection spec})
+         (group-by :exam_session_id)
+         (reduce (fn [ess [es-id es]]
+                   (let [{:keys [exam_session_date
+                                 exam_session_start_time
+                                 exam_session_end_time
+                                 exam_session_max_participants
+                                 exam_session_published
+                                 exam_session_street_address
+                                 exam_session_city
+                                 exam_session_other_location_info]} (first es)
+                         exam-session {:id es-id
+                                       :date exam_session_date
+                                       :start-time exam_session_start_time
+                                       :end-time exam_session_end_time
+                                       :max-participants exam_session_max_participants
+                                       :published exam_session_published
+                                       :street-address exam_session_street_address
+                                       :city exam_session_city
+                                       :other-location-info exam_session_other_location_info
+                                       :participants (->> (map :participant_ext_reference es)
+                                                          (mapv #(->> (participant-by-ext-id db %)
+                                                                      (group-by :ext_reference_id)
+                                                                      (reduce (partial hierarchial-by-section-from-exam-session es-id) {}))))}]
+                     (assoc ess es-id exam-session))) {})))
+
   (sections-and-modules-available-for-user [{:keys [spec]} external-user-id]
     (->> (q/select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
          group-sections-and-modules))
