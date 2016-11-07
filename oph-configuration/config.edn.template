@@ -11,19 +11,14 @@
          :userdn "{{ldap_manager_userdn}}"
          :password "{{ldap_manager_password}}"
          :ssl false}
-  :authentication {:opintopolku-login-uri "{{oti_authentication_opintopolku_login_url}}"
-                   :opintopolku-logout-uri  "{{oti_authentication_opintopolku_logout_url}}"
-                   :oti-login-success-uri "{{oti_authentication_oti_login_success_url}}"}
-  :cas {:virkailija-lb-uri "{{oti_cas_virkailija_lb_uri}}"
-        :user {:username "{{oti_cas_username}}"
+  :cas {:user {:username "{{oti_cas_username}}"
                :password "{{oti_cas_password}}"}}
-  :localisation {:service-base-uri "{{oti_localisation_service_base_uri}}"
-                 :default-parameters {:category "{{oti_localisation_default_category}}"}}
+  :localisation {:default-parameters {:category "{{oti_localisation_default_category}}"}}
   :vetuma-payment {:vetuma-host "{{oti_vetuma_host}}"
                    :app-id "{{oti_vetuma_app_id}}"
                    :oti-vetuma-uri "{{oti_vetuma_oti_vetuma_uri}}"
                    :secret "{{oti_vetuma_shared_secret}}"
                    :ap "{{oti_vetuma_shared_ap}}"
                    :rcvid "{{oti_vetuma_shared_rcvid}}"}
-  :email-service {:email-service-url "https://{{host_virkailija}}/ryhmasahkoposti-service/email/firewall"}
-  :url-helper {:host-virkailija "{{host_virkailija}}"}}}
+  :url-helper {:host-virkailija "{{host_virkailija}}"
+               :oti-host "{{oti_host}}"}}}

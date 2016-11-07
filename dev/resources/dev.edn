@@ -4,22 +4,14 @@
    {:functions {:stacktrace ring.middleware.stacktrace/wrap-stacktrace}
     :applied   ^:replace [:not-found :restful-format :ring-defaults :stacktrace :session]
     :arguments {:session "soroRfgsbxRTsnXc"}}}
-  :http
-  {:port 3000}
-  :db
-  {:uri "jdbc:postgresql://localhost/oti"}
-  :authentication {:opintopolku-login-uri "https://itest-virkailija.oph.ware.fi/cas/login?service="
-                   :opintopolku-logout-uri  "https://itest-virkailija.oph.ware.fi/cas/logout?service="
-                   :oti-login-success-uri "http://localhost:3000/oti/auth/cas"}
-  :cas {:virkailija-lb-uri "https://itest-virkailija.oph.ware.fi"}
-  :localisation {:service-base-uri "https://itest-virkailija.oph.ware.fi/lokalisointi/cxf/rest/v1/localisation"
-                 :default-parameters {:category "oti"}}
+  :http {:port 3000}
+  :db {:uri "jdbc:postgresql://localhost/oti"}
+  :localisation {:default-parameters {:category "oti"}}
   :vetuma-payment {:vetuma-host "https://testitunnistus.suomi.fi/VETUMAPayment/"
                    :app-id "oph-oti"
                    :oti-vetuma-uri "https://oti.local/oti/vetuma"
                    :secret "TESTIASIAKAS11-873C992B8C4C01EC8355500CAA709B37EA43BC2E591ABF29FEE5EAFE4DCBFA35"
                    :ap "TESTIASIAKAS1"
                    :rcvid "TESTIASIAKAS11"}
-  :email-service {:email-service-url "https://itest-virkailija.oph.ware.fi/ryhmasahkoposti-service/email/firewall"}
   :url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
                :oti-host "http://localhost:3000"}}}
