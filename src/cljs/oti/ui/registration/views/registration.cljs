@@ -174,8 +174,7 @@
                 :on-change (partial set-val form-data spec-kw)
                 :class (when (spec-kw invalids) "invalid")}])]))
 
-(def address-keys [::os/email ::os/registration-street-address ::os/registration-zip ::os/registration-post-office
-                   ::os/registration-city])
+(def address-keys [::os/email ::os/registration-street-address ::os/registration-zip ::os/registration-post-office])
 
 (defn address-fields [participant-data form-data invalids]
   [:div.participant-address

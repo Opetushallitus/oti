@@ -95,7 +95,6 @@
 (s/def ::accredit-modules (s/* ::id))
 (s/def ::session-id integer?)
 (s/def ::preferred-name ::non-blank-string)
-(s/def ::registration-city ::non-blank-string)
 (s/def ::registration-post-office ::non-blank-string)
 (s/def ::registration-street-address ::non-blank-string)
 (s/def ::registration-zip (s/and string? #(re-matches #"\d{5}" %)))
@@ -119,13 +118,11 @@
                                     ::sections
                                     ::registration-street-address
                                     ::registration-zip
-                                    ::registration-post-office
-                                    ::registration-city]))
+                                    ::registration-post-office]))
 
 (s/def ::postal-address (s/keys :req [::registration-street-address
                                       ::registration-zip
-                                      ::registration-post-office
-                                      ::registration-city]))
+                                      ::registration-post-office]))
 
 (def hetu-regexp #"[\d]{6}[+\-A-Za-z][\d]{3}[\dA-Za-z]")
 (s/def ::hetu (s/and string? #(re-matches hetu-regexp %)))

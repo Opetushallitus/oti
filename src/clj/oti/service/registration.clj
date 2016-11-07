@@ -11,7 +11,8 @@
             [oti.boundary.payment :as payment-util]
             [oti.util.logging.audit :as audit]
             [oti.component.email-service :as email]
-            [clojure.set :as set])
+            [clojure.set :as set]
+            [oti.service.user-data :as user-data])
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]
            [java.util Locale]))
@@ -22,16 +23,12 @@
     (when (s/valid? ::os/postal-address addr)
       addr)))
 
-(defn- api-address-list [{::os/keys [registration-street-address registration-post-office registration-zip
-                                     registration-city]}]
-  [{:yhteystietoTyyppi "YHTEYSTIETO_KATUOSOITE"
-    :yhteystietoArvo registration-street-address}
-   {:yhteystietoTyyppi "YHTEYSTIETO_POSTINUMERO"
-    :yhteystietoArvo registration-zip}
-   {:yhteystietoTyyppi "YHTEYSTIETO_KUNTA" ; This seems to be used for mailing address
-    :yhteystietoArvo registration-post-office}
-   {:yhteystietoTyyppi "YHTEYSTIETO_KAUPUNKI"
-    :yhteystietoArvo registration-city}])
+(defn- api-address-list [registration-data]
+  (mapv (fn [[api-type key]]
+          (when-let [data (key registration-data)]
+            {:yhteystietoTyyppi api-type
+             :yhteystietoArvo data}))
+        user-data/address-mapping))
 
 (defn- existing-address [existing-person address-origin address-list]
   (let [addr-set (set address-list)]
@@ -48,10 +45,9 @@
   (if-let [existing-person (api/get-person-by-id api-client external-user-id)]
     (let [vtj-address (valid-address participant-data)
           address (or vtj-address (valid-address reg-data))
-          address-type (if vtj-address "yhteystietotyyppi4" "yhteystietotyyppi1")
-          address-origin (if vtj-address "alkupera1" "alkupera4")
+          {:keys [type origin]} (if vtj-address user-data/vtj-address-opts user-data/domestic-address-opts)
           address-list (api-address-list address)
-          existing-address-id (existing-address existing-person address-origin address-list)]
+          existing-address-id (existing-address existing-person origin address-list)]
       (when-not (or vtj-address address)
         (throw (Exception. (str "No valid postal address provided for user " external-user-id))))
       (if-not existing-address-id
@@ -59,8 +55,8 @@
                             external-user-id
                             (update existing-person
                                     :yhteystiedotRyhma
-                                    conj {:ryhmaAlkuperaTieto address-origin
-                                          :ryhmaKuvaus address-type
+                                    conj {:ryhmaAlkuperaTieto origin
+                                          :ryhmaKuvaus type
                                           :yhteystiedot address-list}))
         (info "Not storing address for user" external-user-id "because address already exists as id" existing-address-id)))
     (do (error "Could not retrieve user" external-user-id "from API for address update, cannot proceed")

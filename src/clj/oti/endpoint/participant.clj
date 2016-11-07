@@ -84,8 +84,7 @@
           {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
           {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
           address (when (= automatic-address "true")
-                    #::os{:registration-city           "Helsinki"
-                          :registration-post-office    "Helsinki"
+                    #::os{:registration-post-office    "Helsinki"
                           :registration-zip            "00100"
                           :registration-street-address "Testikatu 1"})]
       (when id

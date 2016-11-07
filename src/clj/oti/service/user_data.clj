@@ -16,6 +16,7 @@
 
 (def address-mapping {"YHTEYSTIETO_KATUOSOITE" ::os/registration-street-address
                       "YHTEYSTIETO_POSTINUMERO" ::os/registration-zip
+                      ; XXX: "KUNTA" seems to be used for post office in other places
                       "YHTEYSTIETO_KUNTA" ::os/registration-post-office})
 
 (defonce C (atom (cache/ttl-cache-factory {} :ttl cache-ttl)))
