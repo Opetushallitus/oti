@@ -2,7 +2,8 @@
   (:require [oti.component.cas :as cas-api]
             [cheshire.core :as json]
             [taoensso.timbre :refer [error info]]
-            [oti.component.api-client])
+            [oti.component.api-client]
+            [oti.component.url-helper :refer [url]])
   (:import [oti.component.api_client ApiClient]))
 
 (defprotocol ApiClientAccess
@@ -11,9 +12,6 @@
   (get-person-by-hetu [client hetu])
   (add-person! [client person])
   (update-person! [client external-user-id address]))
-
-(defn- request-map [{:keys [authentication-service-path cas]} & path-parts]
-  {:url (apply str (:virkailija-lb-uri cas) authentication-service-path path-parts)})
 
 (defn- parse [{:keys [status body] :as response}]
   (if (= status 200)
@@ -32,30 +30,30 @@
 
 (extend-protocol ApiClientAccess
   ApiClient
-  (get-persons [{:keys [authentication-service-path cas] :as client} ids]
+  (get-persons [{:keys [authentication-service cas url-helper]} ids]
     (info "Requesting user details for" (count ids) "user ids")
-    (->> (request-map client "/resources/henkilo/henkilotByHenkiloOidList")
+    (->> {:url (url url-helper "authentication-service.henkilot-by-oid-list")}
          (merge (json-req :post ids))
-         (cas-api/request cas authentication-service-path)
+         (cas-api/request cas authentication-service)
          parse))
-  (get-person-by-id [{:keys [authentication-service-path cas] :as client} external-user-id]
-    (->> (request-map client "/resources/henkilo/" external-user-id)
-         (cas-api/request cas authentication-service-path)
+  (get-person-by-id [{:keys [authentication-service cas url-helper]} external-user-id]
+    (->> {:url (url url-helper "authentication-service.henkilo-by-oid" [external-user-id])}
+         (cas-api/request cas authentication-service)
          parse))
-  (get-person-by-hetu [{:keys [authentication-service-path cas] :as client} hetu]
-    (->> (request-map client "/resources/henkilo?p=false&q=" hetu)
-         (cas-api/request cas authentication-service-path)
+  (get-person-by-hetu [{:keys [authentication-service cas url-helper]} hetu]
+    (->> {:url (url url-helper "authentication-service.henkilo-by-hetu") :query-params {:q hetu :p "false"}}
+         (cas-api/request cas authentication-service)
          parse
          :results
          first))
-  (add-person! [{:keys [authentication-service-path cas] :as client} person]
-    (->> (request-map client "/resources/henkilo")
+  (add-person! [{:keys [authentication-service cas url-helper]} person]
+    (->> {:url (url url-helper "authentication-service.henkilo")}
          (merge (json-req :post person))
-         (cas-api/request cas authentication-service-path)
+         (cas-api/request cas authentication-service)
          parse-oid))
-  (update-person! [{:keys [authentication-service-path cas] :as client} external-user-id address]
-    (let [{:keys [body status]} (->> (request-map client "/resources/henkilo/" external-user-id)
+  (update-person! [{:keys [authentication-service cas url-helper]} external-user-id address]
+    (let [{:keys [body status]} (->> {:url (url url-helper "authentication-service.henkilo-by-oid" [external-user-id])}
                                      (merge (json-req :put address))
-                                     (cas-api/request cas authentication-service-path))]
+                                     (cas-api/request cas authentication-service))]
       (when-not (= status 200)
         (throw (Exception. (str "Could not update person in API. HTTP status: " status ", message: " body)))))))

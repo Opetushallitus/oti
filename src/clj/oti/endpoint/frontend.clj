@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [ring.util.response :refer [resource-response content-type redirect header]]
             [oti.util.auth :as auth]
+            [oti.component.url-helper :refer [url]]
             [ring.util.mime-type :as mime]))
 
 (defn index-response [participant?]
@@ -14,7 +15,7 @@
     (content-type response mime-type)
     response))
 
-(defn frontend-endpoint [{:keys [authentication]}]
+(defn frontend-endpoint [{:keys [url-helper]}]
   (routes
     (GET "/" []
       (redirect "/oti/virkailija"))
@@ -23,7 +24,7 @@
         (redirect "/oti/virkailija"))
       (-> (GET "/virkailija*" []
             (index-response false))
-          (wrap-routes auth/wrap-authorization :redirect-uri (:oti-login-success-uri authentication)))
+          (wrap-routes auth/wrap-authorization :redirect-uri (url url-helper "oti.cas-auth")))
       (GET "/ilmoittaudu*" []
         (index-response true))
       (GET "/anmala*" []

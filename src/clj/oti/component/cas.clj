@@ -3,7 +3,8 @@
             [org.httpkit.client :as http]
             [clojure.string :as str]
             [clojure.xml :as xml]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [oti.component.url-helper :refer [url]]))
 
 (defrecord Cas []
   component/Lifecycle
@@ -35,8 +36,8 @@
       (error "Location header missing from TGT response"))
     (error (str "Invalid HTTP status " status " for TGT request"))))
 
-(defn- fetch-ticket-granting-ticket [{:keys [virkailija-lb-uri user]}]
-  (-> @(http/post (str virkailija-lb-uri "/cas/v1/tickets") {:form-params user})
+(defn- fetch-ticket-granting-ticket [{:keys [url-helper user]}]
+  (-> @(http/post (url url-helper "cas.tickets") {:form-params user})
       decode-tgt))
 
 (defn- fetch-service-ticket [service-uri tgt-uri]
@@ -59,8 +60,8 @@
                               :follow-redirects false})
       decode-jsession))
 
-(defn- fetch-cas-session [{:keys [virkailija-lb-uri] :as cas} service-path]
-  (let [service-uri (str virkailija-lb-uri service-path "/j_spring_cas_security_check")]
+(defn- fetch-cas-session [{:keys [url-helper] :as cas} service-path]
+  (let [service-uri (url url-helper "cas.service-uri" [service-path])]
     (->> (fetch-ticket-granting-ticket cas)
          (fetch-service-ticket service-uri)
          (fetch-jsessionid service-uri))))
@@ -91,9 +92,11 @@
         (do (update cas :sessions swap! dissoc service-path)
             (request cas service-path request-options))
         response)))
-  (username-from-valid-service-ticket [{:keys [virkailija-lb-uri]} service-uri ticket]
-    (let [uri (str virkailija-lb-uri "/cas/serviceValidate")
+  (username-from-valid-service-ticket [{:keys [url-helper]} service-uri ticket]
+    (let [uri (url url-helper "cas.service-validate")
           {:keys [status body]} @(http/get uri {:query-params {:ticket ticket :service service-uri}})]
+      (println status)
+      (println body)
       (when (= status 200)
         (with-open [in (io/input-stream (.getBytes body))]
           (let [parsed (xml/parse in)]

@@ -21,4 +21,5 @@
                    :ap "TESTIASIAKAS1"
                    :rcvid "TESTIASIAKAS11"}
   :email-service {:email-service-url "https://itest-virkailija.oph.ware.fi/ryhmasahkoposti-service/email/firewall"}
-  :url-helper {:host-virkailija "itest-virkailija.oph.ware.fi"}}}
+  :url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
+               :oti-host "http://localhost:3000"}}}

@@ -23,12 +23,15 @@
   :app  [:status :frontend :auth :virkailija :participant :payment]
   :ragtime [:db]
   :status [:db]
-  :auth [:authentication :cas :ldap]
+  :auth [:cas :ldap :url-helper]
   :virkailija [:db :api-client]
-  :frontend [:authentication]
+  :frontend [:url-helper]
+  :localisation [:url-helper]
+  :email-service [:url-helper]
   :participant [:db :payments :api-client :localisation :vetuma-payment]
   :payment [:vetuma-payment :db :api-client :email-service]
-  :api-client [:cas]
+  :cas [:url-helper]
+  :api-client [:cas :url-helper]
   :scheduler [:db :vetuma-payment :email-service]}
  :config
  {:app
@@ -59,4 +62,4 @@
   {:resource-path "oti/migrations"}
   :payments {:amounts {:full 212
                        :retry 87}}
-  :api-client {:authentication-service-path "/authentication-service"}}}
+  :api-client {:authentication-service "authentication-service"}}}

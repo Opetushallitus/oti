@@ -2,7 +2,8 @@
   (:require [com.stuartsierra.component :as component]
             [org.httpkit.client :as http]
             [cheshire.core :refer [parse-string]]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [oti.component.url-helper :refer [url]]))
 
 (defprotocol LocalisationQuery
   "Localisation query protocol"
@@ -17,9 +18,10 @@
                        {key (reduce (fn [ts t]
                                       (assoc ts (keyword (:locale t)) (:value t))) {} translation)})))))
 
-(defn- fetch-translations [uri parameters]
-  (log/debug "Fetching translations from:" uri "with query parameters:" parameters)
-  (let [{:keys [status body]} @(http/get uri {:query-params parameters})]
+(defn- fetch-translations [{:keys [url-helper default-parameters]}]
+  (let [uri (url url-helper "lokalisointi.base")
+        _ (log/debug "Fetching translations from:" uri "with query parameters:" default-parameters)
+        {:keys [status body]} @(http/get uri {:query-params default-parameters})]
     (if (= status 200)
       (try
         (parse-translations (parse-string body true))
@@ -30,8 +32,7 @@
 
 (defrecord Localisation [config]
   component/Lifecycle
-  (start [this] (assoc this :translations (atom (fetch-translations (:service-base-uri config)
-                                                                    (:default-parameters config)))
+  (start [this] (assoc this :translations (atom (fetch-translations this))
                             :translations-by-lang (atom {})))
   (stop [this] (assoc this :translations (atom {}) :translations-by-lang (atom {})))
 
@@ -45,9 +46,8 @@
              (into {})
              (swap! translations-by-lang assoc t-key)
              t-key))))
-  (refresh-translations [{:keys [translations translations-by-lang]}]
-    (when-let [new-translations (fetch-translations (:service-base-uri config)
-                                                    (:default-parameters config))]
+  (refresh-translations [{:keys [translations translations-by-lang] :as this}]
+    (when-let [new-translations (fetch-translations this)]
       (reset! translations-by-lang {})
       (reset! translations new-translations)))
   (t [this lang key]

@@ -6,16 +6,18 @@
             [oti.boundary.db-access :as dba]
             [clojure.java.jdbc :as jdbc]
             [clojure.spec :as s]
-            [oti.service.email-templates :as templates]))
+            [oti.service.email-templates :as templates]
+            [oti.component.url-helper :refer [url]]))
 
 (defprotocol EmailSender
   (send-email-to-participant! [this db params])
   (send-queued-mails! [this db]))
 
-(defn- send-email-via-service! [{:keys [email-service-url]} {:keys [recipients subject body]}]
+(defn- send-email-via-service! [{:keys [url-helper]} {:keys [recipients subject body]}]
   {:pre [(every? #(identity %) [recipients subject body]) (s/valid? :oti.spec/email (first recipients))]}
   (log/info "Trying to send email" subject "to" recipients)
   (let [wrapped-recipients (mapv (fn [rcp] {:email rcp}) recipients)
+        email-service-url (url url-helper "ryhmasahkoposti-service.email")
         {:keys [status]} @(http/post email-service-url {:headers {"content-type" "application/json"}
                                                         :body    (json/generate-string {:email     {:subject subject
                                                                                                     :isHtml  true
