@@ -26,6 +26,7 @@
         :participants
         (sort-by :last-name))))
 
+
 (rf/reg-sub
  :selected-participant
  (fn [db _ [exam-session-id]]

@@ -17,7 +17,8 @@
             [compojure.coercions :refer [as-int]]
             [oti.utils :as utils]
             [oti.service.diploma :as diploma]
-            [oti.service.payment :as payment])
+            [oti.service.payment :as payment]
+            [taoensso.timbre :as log])
   (:import [java.time LocalDate Instant LocalDateTime ZoneId]
            [java.security SecureRandom]
            [org.apache.commons.codec.digest DigestUtils]))
@@ -63,6 +64,7 @@
                    (LocalDate/of 9999 12 31))
         sessions (->> (dba/exam-sessions db start-date end-date)
                       (map c/convert-session-row))]
+    (log/info (count sessions))
     (response sessions)))
 
 (defn- exam-session [{:keys [db]} id]
@@ -147,10 +149,25 @@
     (response exam)
     (not-found {})))
 
-(defn- exam-sessions-full [{:keys [db]} lang]
-  (if-let [data (dba/exam-sessions-full db lang)]
-    (response data)
-    (not-found [])))
+(defn- enrich-participant-data [data p-data]
+  (map (fn [exam-session]
+         (update exam-session :participants (fn [ps]
+                                              (map (fn [p]
+                                                     (if-let [api-data (get p-data (:ext-reference-id p))]
+                                                       (assoc p
+                                                         :first-names (:etunimet api-data)
+                                                         :last-name (:sukunimi api-data)
+                                                         :display-name (:kutsumanimi api-data)
+                                                         :ssn (:hetu api-data))
+                                                       p)) ps)))) data))
+
+(defn- exam-sessions-full [{:keys [db api-client]} lang]
+  (let [data (dba/exam-sessions-full db lang)
+        participant-data (user-data/api-user-data-by-oid api-client (map :ext-reference-id (mapcat :participants data)))
+        enriched (enrich-participant-data data participant-data)]
+    (if (seq enriched)
+      (response enriched)
+      (not-found []))))
 
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
