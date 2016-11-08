@@ -17,10 +17,11 @@
   :auth oti.endpoint.auth/auth-endpoint
   :virkailija oti.endpoint.virkailija/virkailija-endpoint
   :participant oti.endpoint.participant/participant-endpoint
-  :payment oti.endpoint.payment/payment-endpoint}
+  :payment oti.endpoint.payment/payment-endpoint
+  :token-secured oti.endpoint.token-secured/token-secured-endpoint}
  :dependencies
  {:http [:app]
-  :app  [:status :frontend :auth :virkailija :participant :payment]
+  :app  [:status :token-secured :frontend :auth :virkailija :participant :payment]
   :ragtime [:db]
   :status [:db]
   :auth [:cas :ldap :url-helper]
@@ -32,7 +33,8 @@
   :payment [:vetuma-payment :db :api-client :email-service]
   :cas [:url-helper]
   :api-client [:cas :url-helper]
-  :scheduler [:db :vetuma-payment :email-service]}
+  :scheduler [:db :vetuma-payment :email-service]
+  :token-secured [:db :api-client]}
  :config
  {:app
   {:middleware

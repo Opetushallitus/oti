@@ -11,21 +11,11 @@
             [oti.service.user-data :as user-data]
             [oti.service.search :as search]
             [oti.service.accreditation :as accreditation]
+            [oti.service.registration :as registration]
             [clojure.string :as str]
             [oti.util.request :as req]
             [compojure.coercions :refer [as-int]])
   (:import [java.time LocalDate Instant LocalDateTime ZoneId]))
-
-(defn- fetch-registrations [{:keys [db api-client]} session-id]
-  (if-let [regs (seq (dba/registrations-for-session db session-id))]
-    (let [oids (map :external-user-id regs)
-          user-data-by-oid (user-data/api-user-data-by-oid api-client oids)]
-      (map (fn [{:keys [external-user-id] :as registration}]
-             (-> (get user-data-by-oid external-user-id)
-                 (select-keys [:etunimet :sukunimi])
-                 (merge registration)))
-           regs))
-    []))
 
 (defn- fetch-exam-session [db id]
   (->> (dba/exam-session db id)
@@ -106,7 +96,7 @@
       (not-found {}))))
 
 (defn- exam-session-registrations [config id]
-  (response (fetch-registrations config id)))
+  (response (registration/fetch-registrations config id)))
 
 (defn- frontend-config [{:keys [db]} {{:keys [identity]} :session}]
   (response {:section-and-module-names (dba/section-and-module-names db)
