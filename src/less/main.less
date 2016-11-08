@@ -8,6 +8,14 @@ html, body {
   &:after{ clear: both; }
 }
 
+.print(@rules) {
+  @media print { @rules(); }
+}
+
+.hide-for-print() {
+  @media print { display: none; }
+}
+
 @import "_forms";
 @import "_tables";
 @import "_flash";
@@ -205,6 +213,7 @@ input[type="button"] {
       padding: 0;
     }
   }
+  .hide-for-print();
 }
 
 #content-area{
@@ -212,6 +221,10 @@ input[type="button"] {
   margin-left: auto;
   margin-right: auto;
   padding-top: 2em;
+
+  .print({
+  padding: 0;
+  });
 }
 
 #nav-holder{
@@ -255,6 +268,8 @@ input[type="button"] {
     white-space: nowrap;
     line-height: 1.176em;
   }
+
+  .hide-for-print();
 }
 
 #main-nav{

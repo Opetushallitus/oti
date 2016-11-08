@@ -274,6 +274,20 @@ table {
   display: inline-block;
   width: 150px;
 }
+@media print {
+  .exam-session-selection select,
+  .exam-session-selection span.label {
+    display: none;
+  }
+}
+.exam-session-selection #exam-session-label {
+  display: none;
+}
+@media print {
+  .exam-session-selection #exam-session-label {
+    display: inline-block;
+  }
+}
 .authentication .automatic-address input {
   margin-right: 5px;
 }
@@ -539,6 +553,14 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 .registrations table {
   width: 100%;
+}
+@media print {
+  .registrations table {
+    font-size: 0.8rem;
+  }
+  .registrations table a {
+    color: #1b1b1b;
+  }
 }
 @keyframes loader {
   0% {
@@ -971,11 +993,21 @@ input[type="button"]:not(:first-child) {
 #header .user a {
   padding: 0;
 }
+@media print {
+  #header {
+    display: none;
+  }
+}
 #content-area {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
   padding-top: 2em;
+}
+@media print {
+  #content-area {
+    padding: 0;
+  }
 }
 #nav-holder {
   background-color: #efeeee;
@@ -1011,6 +1043,11 @@ input[type="button"]:not(:first-child) {
   padding: 0 0 0 1px;
   white-space: nowrap;
   line-height: 1.176em;
+}
+@media print {
+  #nav-holder {
+    display: none;
+  }
 }
 #main-nav {
   max-width: 940px;

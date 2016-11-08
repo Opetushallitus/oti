@@ -42,6 +42,10 @@
                     "Ruotsi"
                     "Suomi")]]))]])))
 
+(defn- session-title [{::os/keys [street-address city other-location-info session-date start-time end-time]}]
+  (str (unparse-date session-date) " " start-time " - " end-time " "
+       (:fi city) ", " (:fi street-address) ", " (:fi other-location-info)))
+
 (defn- panel [exam-sessions pre-selected-session-id]
   (let [session-id (r/atom pre-selected-session-id)
         registration-data (re-frame/subscribe [:registrations])]
@@ -57,10 +61,10 @@
                          (reset! session-id new-id)
                          (re-frame/dispatch [:load-registrations new-id])))}
          (doall
-           (for [{::os/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
+           (for [{::os/keys [id] :as session} exam-sessions]
              [:option {:value id :key id}
-              (str (unparse-date session-date) " " start-time " - " end-time " "
-                   (:fi city) ", " (:fi street-address) ", " (:fi other-location-info))]))]]
+              (session-title session)]))]
+        [:span#exam-session-label (session-title (->> exam-sessions (filter #(= @session-id (::os/id %))) first))]]
 
        [:div.registrations
         (let [registrations (get @registration-data @session-id)]
