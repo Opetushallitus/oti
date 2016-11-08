@@ -86,17 +86,18 @@
   (or (q/insert-exam-session<! exam-session {:connection tx})
       (throw (Exception. "Could not create new exam session."))))
 
-(defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state]
+(defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state existing-reg-id]
   (let [conn {:connection tx}]
     (q/insert-participant! {:external-user-id external-user-id :email email} conn)
     (doseq [[section-id _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
       (q/insert-section-accreditation! {:section-id section-id :external-user-id external-user-id} conn))
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
-        (if-let [reg-id (:id (q/insert-registration<! {:session-id session-id
-                                                       :external-user-id external-user-id
-                                                       :state state
-                                                       :language-code (name language-code)} conn))]
+        (if-let [reg-id (or existing-reg-id
+                            (:id (q/insert-registration<! {:session-id session-id
+                                                           :external-user-id external-user-id
+                                                           :state state
+                                                           :language-code (name language-code)} conn)))]
           (do
             (doseq [[section-id opts] registarable-sections]
               (let [params {:section-id       section-id
@@ -127,8 +128,9 @@
   (exam-session [db id])
   (sections-and-modules-available-for-user [db external-user-id])
   (valid-full-payments-for-user [db external-user-id])
-  (register! [db registration-data external-user-id state payment-data])
+  (register! [db registration-data external-user-id state payment-data existing-reg-id])
   (registrations-for-session [db exam-session])
+  (existing-registration-id [db exam-session-id external-user-id])
   (section-and-module-names [db])
   (participant-by-ext-id [db external-user-id])
   (participant-by-id [db id])
@@ -178,9 +180,9 @@
     (-> (q/select-valid-payment-count-for-user {:external-user-id external-user-id} {:connection spec})
         first
         :count))
-  (register! [{:keys [spec]} registration-data external-user-id state payment-data]
+  (register! [{:keys [spec]} registration-data external-user-id state payment-data existing-reg-id]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-      (let [reg-id (store-registration! tx registration-data external-user-id state)]
+      (let [reg-id (store-registration! tx registration-data external-user-id state existing-reg-id)]
         (when payment-data
           (-> (assoc payment-data :registration-id reg-id)
               (q/insert-payment! {:connection tx})))
@@ -199,6 +201,10 @@
                    :participant-id participant_id
                    :external-user-id ext_reference_id
                    :sections sections})))))
+  (existing-registration-id [{:keys [spec]} exam-session-id external-user-id]
+    (-> (q/select-existing-registration-id {:external-user-id external-user-id :exam-session-id exam-session-id} {:connection spec})
+        first
+        :id))
   (section-and-module-names [{:keys [spec]}]
     (->> (q/select-section-and-module-names {} {:connection spec})
          (reduce (fn [names {:keys [section_id section_name module_id module_name]}]

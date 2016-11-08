@@ -172,7 +172,10 @@
                   payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
                   msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
                   status (if (pos? amount) :pending :success)
-                  registration-id (dba/register! db conformed external-user-id reg-state db-pmt)]
+                  ; If the participant has registered to this session before, we fetch the existing reg id and add the
+                  ; additional sections / modules to it
+                  existing-registration-id (dba/existing-registration-id db (::os/session-id conformed) external-user-id)
+                  registration-id (dba/register! db conformed external-user-id reg-state db-pmt existing-registration-id)]
               (audit/log :app :participant
                          :who external-user-id
                          :op :create

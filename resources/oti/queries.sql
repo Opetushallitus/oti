@@ -184,6 +184,8 @@ WHERE id = :id AND lang = 'fi';
 SELECT * FROM all_participant_data
 WHERE order_number = :order-number AND lang = :lang;
 
+-- REGISTRATION
+
 -- name: insert-registration<!
 WITH pp AS (
     SELECT id FROM participant WHERE ext_reference_id = :external-user-id
@@ -224,6 +226,11 @@ ORDER BY r.id, recs.section_id, recm.module_id;
 -- name: select-registration-state-by-id
 SELECT state FROM registration WHERE id = :id;
 
+-- name: select-existing-registration-id
+SELECT r.id FROM registration r
+JOIN participant p ON r.participant_id = p.id
+WHERE p.ext_reference_id = :external-user-id AND r.exam_session_id = :exam-session-id;
+
 -- name: select-section-and-module-names
 SELECT st.section_id, st.name AS section_name, mt.module_id, mt.name AS module_name
 FROM section s
@@ -232,6 +239,8 @@ FROM section s
   LEFT JOIN module_translation mt ON mt.module_id = m.id AND mt.language_code = 'fi'
 WHERE st.language_code = 'fi' AND s.exam_id = 1
 ORDER BY section_id, module_id;
+
+-- PAYMENT
 
 -- name: insert-payment!
 INSERT INTO payment (created, state, type, participant_id, registration_id, amount, reference, order_number, paym_call_id)
