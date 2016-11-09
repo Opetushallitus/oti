@@ -152,7 +152,8 @@
   (accreditation-types [db])
   (update-accreditations! [db params])
   (add-token-to-exam-session! [db id token])
-  (access-token-for-exam-session [db id]))
+  (access-token-for-exam-session [db id])
+  (access-token-matches-session? [db id token]))
 
 (extend-type HikariCP
   DbAccess
@@ -272,4 +273,9 @@
   (access-token-for-exam-session [{:keys [spec]} id]
     (-> (q/select-exam-session-access-token {:id id} {:connection spec})
         first
-        :access_token)))
+        :access_token))
+  (access-token-matches-session? [{:keys [spec]} id token]
+    (-> (q/select-exam-session-matching-token {:id id :token token} {:connection spec})
+        first
+        :id
+        (= id))))

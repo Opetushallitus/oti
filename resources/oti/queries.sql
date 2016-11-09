@@ -64,6 +64,9 @@ ORDER BY es.session_date, es.start_time;
 -- name: select-exam-session-access-token
 SELECT access_token FROM exam_session WHERE id = :id;
 
+-- name: select-exam-session-matching-token
+SELECT id FROM exam_session WHERE id = :id AND access_token IS NOT NULL AND access_token = :token;
+
 -- name: insert-exam-session<!
 INSERT INTO exam_session (
   session_date,

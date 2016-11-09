@@ -66,12 +66,14 @@
             [:span "Ei ilmoittautumisia"])]])
       (hiccup/html)))
 
-(defn- registration-page [config str-id]
+(defn- registration-page [{:keys [db] :as config} str-id token]
   (when-let [id (utils/parse-int str-id)]
-    (-> (str/replace base-html "PAGE_CONTENT" (registrations-markup config id))
-        (resp/response)
-        (resp/header "Content-Type" "text/html; charset=utf-8"))))
+    (if (and (not (str/blank? token)) (dba/access-token-matches-session? db id token))
+      (-> (str/replace base-html "PAGE_CONTENT" (registrations-markup config id))
+          (resp/response)
+          (resp/header "Content-Type" "text/html; charset=utf-8"))
+      {:status 404 :body "Sivua ei löydy" :headers {"Content-Type" "text/plain; charset=utf-8"}})))
 
 (defn token-secured-endpoint [config]
-  (GET "/oti/ext/ilmoittautumiset/:id" [id]
-    (registration-page config id)))
+  (GET "/oti/ext/ilmoittautumiset/:id" [id token]
+    (registration-page config id token)))
