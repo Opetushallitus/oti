@@ -38,7 +38,7 @@
 
   LocalisationQuery
   (translations-by-lang [{:keys [translations translations-by-lang]} lang]
-    (let [t-key (keyword lang)]
+    (when-let [t-key (keyword lang)]
       (if-let [t-map (t-key @translations-by-lang)]
         t-map
         (->> @translations

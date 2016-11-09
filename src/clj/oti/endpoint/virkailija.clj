@@ -14,7 +14,9 @@
             [oti.service.registration :as registration]
             [clojure.string :as str]
             [oti.util.request :as req]
-            [compojure.coercions :refer [as-int]])
+            [compojure.coercions :refer [as-int]]
+            [oti.utils :as utils]
+            [oti.service.diploma :as diploma])
   (:import [java.time LocalDate Instant LocalDateTime ZoneId]
            [java.security SecureRandom]
            [org.apache.commons.codec.digest DigestUtils]))
@@ -141,6 +143,12 @@
 (defn- participant-routes [config]
   (routes
    (GET "/participant-search"   [q filter] (search-participant config q filter))
+   (GET "/diplomas" [id signer]
+     (let [ids (if (sequential? id) id [id])
+           id-set (->> (map utils/parse-int ids) (remove nil?) set)]
+       (if-not (or (empty? id-set) (str/blank? signer))
+         (diploma/generate-diplomas config id-set signer)
+         {:status 400 :body {:error "Invalid parameters"}})))
    (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))
      (POST "/accreditations" {params :params session :session}

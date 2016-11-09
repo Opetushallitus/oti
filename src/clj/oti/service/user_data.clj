@@ -24,13 +24,15 @@
 (defn- api-fetch-required? [user-oid]
   (not (cache/has? @C user-oid)))
 
-(def interesting-user-data-keys [:etunimet :sukunimi :kutsumanimi :hetu :oidHenkilo])
+(defn- format-user-data [user]
+  (-> (select-keys user [:etunimet :sukunimi :kutsumanimi :hetu :oidHenkilo])
+      (assoc :asiointikieli (get-in user [:asiointiKieli :kieliKoodi]))))
 
 (defn- fetch-oids! [api-client oids]
   (when (seq oids)
     (let [users (api/get-persons api-client oids)]
       (doseq [{:keys [oidHenkilo] :as user} users]
-        (let [cache-user (select-keys user interesting-user-data-keys)]
+        (let [cache-user (format-user-data user)]
           (swap! C cache/miss oidHenkilo cache-user))))))
 
 (defn api-user-data-by-oid [api-client user-oids]
@@ -59,7 +61,7 @@
          (remove nil?)
          first
          api-address->map
-         (assoc (select-keys user interesting-user-data-keys) :address))))
+         (assoc (format-user-data user) :address))))
 
 (defn- make-kw [prefix suffix]
   (keyword (str prefix "_" suffix)))
@@ -105,6 +107,8 @@
                       :registration-state registration_state}))))))
        (remove nil?)))
 
+
+
 (defn- group-by-section [participant-rows]
   (->> (partition-by :section_id participant-rows)
        (map
@@ -120,7 +124,7 @@
                                             sessions)
                                     (sort-by :id))]
              (-> (sec-or-mod-props "section" section-rows)
-                 (select-keys [:id :name :accreditation-requested? :accreditation-date :accreditation-type])
+                 (select-keys [:id :name :accreditation-requested? :accreditation-date :accreditation-type :accepted])
                  (assoc :sessions sessions
                         :accredited-modules accredited-modules
                         :module-titles module-titles)))))))
@@ -137,14 +141,27 @@
                 :created payment_created}))))
        (remove nil?)))
 
-(defn- merge-db-and-api-data [{:keys [api-client]} db-data]
+(defn user-status-filter [db sections]
+  (let [completed-sections (->> sections
+                                (filter #(or (:accepted %) (:accreditation-date %)))
+                                (map :id)
+                                set)
+        required-sections (->> (dba/section-and-module-names db) :sections keys set)]
+    (cond
+      (= completed-sections required-sections) :complete
+      :else :incomplete)))
+
+(defn- merge-db-and-api-data [{:keys [db api-client]} db-data]
   (when (seq db-data)
     (let [external-user-id (:ext_reference_id (first db-data))
-          api-data (user-data-with-address api-client external-user-id)]
+          api-data (user-data-with-address api-client external-user-id)
+          sections (group-by-section db-data)]
       (merge
         api-data
         (select-keys (first db-data) [:id :email])
         {:sections (group-by-section db-data)
+         :filter (user-status-filter db sections)
+         :language (or (->> db-data (sort-by :registration_id) last :registration_language) (:asiointikieli api-data))
          :payments (payments db-data)}))))
 
 (defn participant-data

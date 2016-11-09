@@ -20,19 +20,11 @@
        (map
          (fn [participant-rows]
            (let [sections (group-by-section participant-rows)
-                 completed-sections (->> sections
-                                         (filter #(or (:accepted %) (:accreditation-date %)))
-                                         (map :id)
-                                         set)
-                 required-sections (->> (dba/section-and-module-names db) :sections keys set)
-                 assigned-filter (cond
-                                   (= completed-sections required-sections) :complete
-                                   :else :incomplete)
                  {:keys [id ext_reference_id email]} (first participant-rows)]
              {:id id
               :external-user-id ext_reference_id
               :email email
-              :filter assigned-filter
+              :filter (user-data/user-status-filter db sections)
               :sections (->> sections (map (fn [{:keys [id] :as data}] [id data])) (into {}))})))
        (filter #(or (= filter-kw :all) (= (:filter %) filter-kw)))))
 

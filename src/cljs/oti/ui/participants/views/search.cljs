@@ -5,7 +5,14 @@
             [oti.filters :as filters]
             [oti.ui.views.common :refer [small-loader]]
             [oti.routing :as routing]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [clojure.string :as s]
+            [clojure.string :as str]))
+
+(defn- open-diploma-window! [ids signer]
+  (let [id-params (->> (map #(str "id=" %) ids)
+                       (str/join "&"))]
+    (.open js/window (routing/v-a-route "/diplomas?" id-params "&signer=" signer) "Todistukset" "resizable,scrollbars")))
 
 (defn- section-status [{:keys [sections]} section-id]
   (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]
@@ -65,9 +72,9 @@
         search-results (re-frame/subscribe [:participant-search-results])
         sm-names (re-frame/subscribe [:section-and-module-names])
         loading? (re-frame/subscribe [:loading?])
-        selected-ids (r/atom #{})]
+        selected-ids (r/atom #{})
+        signer-name (r/atom nil)]
     (fn []
-      (println @selected-ids)
       [:div.search
        [:form.search-form {:on-submit (fn [e]
                                         (.preventDefault e)
@@ -95,4 +102,13 @@
          [:button.button-primary {:type "submit"} "Hae"]]
         (if @loading?
           [small-loader]
-          [search-result-list @search-results @sm-names selected-ids])]])))
+          [search-result-list @search-results @sm-names selected-ids])]
+       [:div.buttons
+        [:div.diploma-printing
+         [:input {:type "text"
+                  :value @signer-name
+                  :placeholder "Todistuksen allekirjoittajan nimi"
+                  :on-change #(reset! signer-name (-> % .-target .-value))}]
+         [:button {:on-click #(open-diploma-window! @selected-ids @signer-name) ; Can't use dispatch as pop-up blocking would prevent opening the diploma window
+                   :disabled (or (empty? @selected-ids) (s/blank? @signer-name))}
+          "Tulosta todistukset"]]]])))

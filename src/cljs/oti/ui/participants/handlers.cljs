@@ -67,3 +67,9 @@
   (fn [_ [participant-id]]
     {:show-flash [:success "Tallennettu"]
      :http-xhrio (participant-load-xhrio participant-id)}))
+
+(re-frame/reg-event-fx
+  :print-diplomas
+  [re-frame/trim-v]
+  (fn [_ [selected-ids signer-name]]
+    (.open js/window "/oti/virkailija" "Todistukset" "resizable,scrollbars")))
