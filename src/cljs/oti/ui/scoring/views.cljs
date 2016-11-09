@@ -159,7 +159,7 @@
      [button "Tallenna"
       (fn [e]
         (.preventDefault e)
-        (println "tallenna"))
+        (rf/dispatch [:save-participant-scores]))
       :primary true
       :disabled (not has-changes?)]]))
 

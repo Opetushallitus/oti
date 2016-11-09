@@ -64,7 +64,6 @@
                    (LocalDate/of 9999 12 31))
         sessions (->> (dba/exam-sessions db start-date end-date)
                       (map c/convert-session-row))]
-    (log/info (count sessions))
     (response sessions)))
 
 (defn- exam-session [{:keys [db]} id]
@@ -169,7 +168,29 @@
       (response enriched)
       (not-found []))))
 
-(defn- upsert-module-score)
+(defn- upsert-scores [{:keys [db]} request participant-id]
+  (let [scores (get-in request [:params :scores])
+        exam-session-id (get-in request [:params :exam-session-id])
+        evaluator (get-in request [:session :identity :username])
+        upserted-scores (into {} (mapv (fn [[section-id {:keys [section-accepted] :as section}]]
+                                         (let [upserted-section (dba/upsert-section-score db {:evaluator evaluator
+                                                                                              :section-accepted section-accepted
+                                                                                              :section-id section-id
+                                                                                              :participant-id participant-id
+                                                                                              :exam-session-id exam-session-id})
+                                               upserted-modules (into {} (mapv (fn [[module-id {:keys [module-points
+                                                                                                       module-accepted] :as module}]]
+                                                                                 (let [upserted-module (dba/upsert-module-score db {:evaluator evaluator
+                                                                                                                                    :module-points module-points
+                                                                                                                                    :module-id module-id
+                                                                                                                                    :module-accepted (or module-accepted true) ;; if module-accepted is nil, assume the module isn't accepted separately and make it true
+                                                                                                                                    :section-score-id (:section-score-id upserted-section)})]
+                                                                                   [module-id upserted-module])) (:modules section)))]
+                                           [section-id (assoc upserted-section :modules upserted-modules)])) scores))]
+    (if (seq upserted-scores)
+      (response {:scores upserted-scores})
+      {:status 400
+       :body {:errors [:upsert-failed]}})))
 
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
@@ -204,8 +225,8 @@
       (if (registration/cancel-registration! config id session)
         (response {:success true})
         (not-found {:error "Registration not found"})))
-    (POST "/scores/module" request
-          (upsert-module-score config request))))
+    (POST "/scores" request
+          (upsert-scores config request id))))
 
 (defn- exam-routes [config]
   (routes

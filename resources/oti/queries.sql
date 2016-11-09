@@ -245,23 +245,27 @@ WHERE id = :id AND diploma_date IS NULL;
 SELECT COUNT(id) AS count FROM participant
 WHERE diploma_date >= :start-date AND diploma_date <= :end-date;
 
--- name: insert-participant-section-score!
+-- name: upsert-participant-section-score<!
 INSERT INTO section_score (evaluator, accepted, section_id, participant_id, exam_session_id) VALUES (
   :evaluator,
   :section-accepted,
   :section-id,
   :participant-id,
   :exam-session-id
-);
+) ON CONFLICT (section_id, exam_session_id, participant_id)
+DO UPDATE SET accepted = :section-accepted, evaluator = :evaluator, updated = current_timestamp
+RETURNING id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id;
 
--- name: insert-participant-module-score!
-INSERT INTO section_score (evaluator, accepted, points, module_id, section_score_id) VALUES (
+-- name: upsert-participant-module-score<!
+INSERT INTO module_score (evaluator, accepted, points, module_id, section_score_id) VALUES (
   :evaluator,
   :module-accepted,
   :module-points,
   :module-id,
   :section-score-id
-);
+) ON CONFLICT (module_id, section_score_id)
+DO UPDATE SET accepted = :module-accepted, points = :module-points, evaluator = :evaluator, updated = current_timestamp
+RETURNING id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id;
 
 -- REGISTRATION
 

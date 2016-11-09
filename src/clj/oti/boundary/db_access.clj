@@ -3,7 +3,6 @@
             [clojure.java.jdbc :as jdbc]
             [duct.component.hikaricp]
             [oti.spec :as spec]
-            [oti.service.user-data :as user-data]
             [clojure.set :as cs]
             [clojure.string :as str]
             [taoensso.timbre :as log :refer [error]]
@@ -153,7 +152,7 @@
                                                                               {:connection spec})
                                 (filter #(= (:exam_session_id %) exam-session-id))
                                 (map snake-keys))
-                    p-data (participant-by-ext-id db p-ext)
+                    p-data (q/select-participant {:external-user-id p-ext} {:connection spec})
                     accreditations (accreditations-from-participant-data-by-exam-session exam-session-id p-data)]
                 {:id (:id (first p-data))
                  :ext-reference-id (:ext_reference_id (first p-data))
@@ -201,7 +200,9 @@
   (access-token-matches-session? [db id token])
   (update-participant-diploma-data! [db update-params])
   (diploma-count [db start-date end-date])
-  (exam-by-lang [db lang]))
+  (exam-by-lang [db lang])
+  (upsert-section-score [db section-score])
+  (upsert-module-score [db module-score]))
 
 (extend-type HikariCP
   DbAccess
@@ -376,4 +377,8 @@
                                                         :section-id (:section_id m)
                                                         :accepted-separately? (:module_accepted_separately m)}))
                             section
-                            section-seq))))))))
+                            section-seq)))))))
+  (upsert-section-score [{:keys [spec]} section-score]
+    (snake-keys (q/upsert-participant-section-score<! section-score {:connection spec})))
+  (upsert-module-score [{:keys [spec]} module-score]
+    (snake-keys (q/upsert-participant-module-score<! module-score {:connection spec}))))
