@@ -65,7 +65,9 @@ ORDER BY es.session_date, es.start_time;
 SELECT access_token FROM exam_session WHERE id = :id;
 
 -- name: select-exam-session-matching-token
-SELECT id FROM exam_session WHERE id = :id AND access_token IS NOT NULL AND access_token = :token;
+SELECT id FROM exam_session
+WHERE id = :id AND access_token IS NOT NULL AND access_token = :token
+      AND session_date >= (SELECT current_date - interval '7 days');
 
 -- name: insert-exam-session<!
 INSERT INTO exam_session (
