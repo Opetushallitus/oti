@@ -26,9 +26,7 @@
     [{:keys [db]} [key response]]
     {:db (if (= :root key)
            (merge db response)
-           (if (vector? key)
-             (assoc-in db key response)
-             (assoc db key response)))
+           (assoc db key response))
      :loader false}))
 
 (defn redirect-to-auth []

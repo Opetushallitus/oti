@@ -365,14 +365,15 @@
       (->> (group-by :section_id section-module-sequence)
            vals
            (mapv (fn [section-seq]
-                   (let [section {:id (:section_id (first section-seq))
-                                  :name (:section_name (first section-seq))
-                                  :executed-as-whole? (:section_executed_as_whole (first section-seq))
-                                  :modules []}]
-                     (reduce (fn [ss m]
-                               (update ss :modules conj {:id (:module_id m)
-                                                         :name (:module_name m)
-                                                         :points? (:module_points m)
-                                                         :accepted-separately? (:module_accepted_separately m)}))
-                             section
-                             section-seq))))))))
+                  (let [section {:id (:section_id (first section-seq))
+                                 :name (:section_name (first section-seq))
+                                 :executed-as-whole? (:section_executed_as_whole (first section-seq))
+                                 :modules []}]
+                    (reduce (fn [ss m]
+                              (update ss :modules conj {:id (:module_id m)
+                                                        :name (:module_name m)
+                                                        :points? (:module_points m)
+                                                        :section-id (:section_id m)
+                                                        :accepted-separately? (:module_accepted_separately m)}))
+                            section
+                            section-seq))))))))

@@ -169,6 +169,8 @@
       (response enriched)
       (not-found []))))
 
+(defn- upsert-module-score)
+
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
     (POST "/"    request               (new-exam-session config request))
@@ -201,7 +203,9 @@
     (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session}]
       (if (registration/cancel-registration! config id session)
         (response {:success true})
-        (not-found {:error "Registration not found"})))))
+        (not-found {:error "Registration not found"})))
+    (POST "/scores/module" request
+          (upsert-module-score config request))))
 
 (defn- exam-routes [config]
   (routes

@@ -245,6 +245,24 @@ WHERE id = :id AND diploma_date IS NULL;
 SELECT COUNT(id) AS count FROM participant
 WHERE diploma_date >= :start-date AND diploma_date <= :end-date;
 
+-- name: insert-participant-section-score!
+INSERT INTO section_score (evaluator, accepted, section_id, participant_id, exam_session_id) VALUES (
+  :evaluator,
+  :section-accepted,
+  :section-id,
+  :participant-id,
+  :exam-session-id
+);
+
+-- name: insert-participant-module-score!
+INSERT INTO section_score (evaluator, accepted, points, module_id, section_score_id) VALUES (
+  :evaluator,
+  :module-accepted,
+  :module-points,
+  :module-id,
+  :section-score-id
+);
+
 -- REGISTRATION
 
 -- name: insert-registration<!
