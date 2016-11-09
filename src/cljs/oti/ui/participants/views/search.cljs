@@ -4,7 +4,8 @@
             [oti.ui.participants.subs]
             [oti.filters :as filters]
             [oti.ui.views.common :refer [small-loader]]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [reagent.core :as r]))
 
 (defn- section-status [{:keys [sections]} section-id]
   (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]
@@ -17,13 +18,22 @@
       (seq accredited-modules) "Osakorv. vahvistettava"
       :else "Puuttuu")))
 
-(defn search-result-list [search-results {:keys [sections]}]
+(defn- select-all [results selected-ids event]
+  (let [new-val (if (-> event .-target .-checked)
+                  (->> results
+                       (filter #(not= :incomplete (:filter %)))
+                       (map :id)
+                       set)
+                  #{})]
+    (reset! selected-ids new-val)))
+
+(defn search-result-list [search-results {:keys [sections]} selected-ids]
   [:div.results
    (if (seq search-results)
      [:table
       [:thead
        [:tr
-        [:th [:input {:type "checkbox"}]]
+        [:th [:input {:type "checkbox" :on-change (partial select-all search-results selected-ids)}]]
         [:th "Nimi"]
         [:th "Henkilötunnus"]
         (doall
@@ -34,7 +44,13 @@
        (doall
          (for [{:keys [id etunimet sukunimi hetu] filter-kw :filter :as result} search-results]
            [:tr {:key id}
-            [:td (when (= filter-kw :complete) [:input {:type "checkbox"}])]
+            [:td
+             (when (not= filter-kw :incomplete)
+               [:input {:type "checkbox"
+                        :checked (@selected-ids id)
+                        :on-change (fn [e]
+                                     (let [op (if (-> e .-target .-checked) conj disj)]
+                                       (swap! selected-ids op id)))}])]
             [:td [:a {:href (routing/v-route "/henkilot/" id)} (str etunimet " " sukunimi)]]
             [:td hetu]
             (doall
@@ -48,11 +64,14 @@
   (let [search-query (re-frame/subscribe [:participant-search-query])
         search-results (re-frame/subscribe [:participant-search-results])
         sm-names (re-frame/subscribe [:section-and-module-names])
-        loading? (re-frame/subscribe [:loading?])]
+        loading? (re-frame/subscribe [:loading?])
+        selected-ids (r/atom #{})]
     (fn []
+      (println @selected-ids)
       [:div.search
        [:form.search-form {:on-submit (fn [e]
                                         (.preventDefault e)
+                                        (reset! selected-ids #{})
                                         (re-frame/dispatch [:do-participant-search]))}
         [:div.search-fields
          [:div.half
@@ -76,4 +95,4 @@
          [:button.button-primary {:type "submit"} "Hae"]]
         (if @loading?
           [small-loader]
-          [search-result-list @search-results @sm-names])]])))
+          [search-result-list @search-results @sm-names selected-ids])]])))
