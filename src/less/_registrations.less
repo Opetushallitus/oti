@@ -2,5 +2,18 @@
   margin-top: 2em;
   table {
     width: 100%;
+    .print({
+      font-size: 0.8rem;
+      a {
+        color: @default-font-color;
+      }
+    });
   }
+}
+
+.ext-link {
+  a, p {
+    font-size: 0.9rem;
+  }
+  .hide-for-print();
 }

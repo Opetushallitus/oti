@@ -11,21 +11,13 @@
             [oti.service.user-data :as user-data]
             [oti.service.search :as search]
             [oti.service.accreditation :as accreditation]
+            [oti.service.registration :as registration]
             [clojure.string :as str]
             [oti.util.request :as req]
             [compojure.coercions :refer [as-int]])
-  (:import [java.time LocalDate Instant LocalDateTime ZoneId]))
-
-(defn- fetch-registrations [{:keys [db api-client]} session-id]
-  (if-let [regs (seq (dba/registrations-for-session db session-id))]
-    (let [oids (map :external-user-id regs)
-          user-data-by-oid (user-data/api-user-data-by-oid api-client oids)]
-      (map (fn [{:keys [external-user-id] :as registration}]
-             (-> (get user-data-by-oid external-user-id)
-                 (select-keys [:etunimet :sukunimi])
-                 (merge registration)))
-           regs))
-    []))
+  (:import [java.time LocalDate Instant LocalDateTime ZoneId]
+           [java.security SecureRandom]
+           [org.apache.commons.codec.digest DigestUtils]))
 
 (defn- fetch-exam-session [db id]
   (->> (dba/exam-session db id)
@@ -105,8 +97,9 @@
           (response {:success true}))
       (not-found {}))))
 
-(defn- exam-session-registrations [config id]
-  (response (fetch-registrations config id)))
+(defn- exam-session-registrations [{:keys [db] :as config} id]
+  (response {:registrations (registration/fetch-registrations config id)
+             :access-token (dba/access-token-for-exam-session db id)}))
 
 (defn- frontend-config [{:keys [db]} {{:keys [identity]} :session}]
   (response {:section-and-module-names (dba/section-and-module-names db)
@@ -124,6 +117,15 @@
     (response data)
     (not-found {})))
 
+(def secure-random (SecureRandom.))
+
+(defn- generate-access-token-for-registrations! [{:keys [db]} session-id]
+  (let [bytes (byte-array 20)
+        _ (.nextBytes secure-random bytes)
+        token (DigestUtils/sha256Hex bytes)]
+    (dba/add-token-to-exam-session! db session-id token)
+    (response {:access-token token})))
+
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
     (POST "/" request (new-exam-session config request))
@@ -133,7 +135,8 @@
       (GET "/"              []      (exam-session config id))
       (PUT "/"              request (update-exam-session config request id))
       (DELETE "/"           request (delete-exam-session config request id))
-      (GET "/registrations" []      (exam-session-registrations config id)))))
+      (GET "/registrations" []      (exam-session-registrations config id))
+      (POST "/token"        []      (generate-access-token-for-registrations! config id)))))
 
 (defn- participant-routes [config]
   (routes

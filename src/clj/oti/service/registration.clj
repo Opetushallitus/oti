@@ -243,3 +243,14 @@
                     :template-id :registration-success
                     :template-values values}]
     (email/send-email-to-participant! email-service db email-data)))
+
+(defn fetch-registrations [{:keys [db api-client]} session-id]
+  (if-let [regs (seq (dba/registrations-for-session db session-id))]
+    (let [oids (map :external-user-id regs)
+          user-data-by-oid (user-data/api-user-data-by-oid api-client oids)]
+      (map (fn [{:keys [external-user-id] :as registration}]
+             (-> (get user-data-by-oid external-user-id)
+                 (select-keys [:etunimet :sukunimi])
+                 (merge registration)))
+           regs))
+    []))

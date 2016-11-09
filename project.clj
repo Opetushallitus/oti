@@ -31,6 +31,7 @@
                  [ring-logger "0.7.6"]
                  [org.clojure/core.cache "0.6.5"]
                  [overtone/at-at "1.2.0"]
+                 [hiccup "1.0.5"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.293"]

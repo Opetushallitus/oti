@@ -29,6 +29,9 @@
 (defn p-a-route [& path-parts]
   (apply str participant-api-root path-parts))
 
+(defn ext-route [& path-parts]
+  (apply str app-root "/ext" path-parts))
+
 (defn img [file]
   (str app-root "/img/" file))
 

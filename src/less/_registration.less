@@ -68,6 +68,15 @@
     display: inline-block;
     width: @label-width;
   }
+  select, span.label {
+    .hide-for-print();
+  }
+  #exam-session-label {
+    display: none;
+    .print({
+    display: inline-block;
+    });
+  }
 }
 
 .authentication {
