@@ -46,6 +46,12 @@
   (str (unparse-date session-date) " " start-time " - " end-time " "
        (:fi city) ", " (:fi street-address) ", " (:fi other-location-info)))
 
+(defn- ext-link [id token]
+  (let [location (-> js/window .-location)
+        host (.-host location)
+        protocol (.-protocol location)]
+    (str protocol "//" host (routing/ext-route "/ilmoittautumiset/" id "?token=" token))))
+
 (defn- panel [exam-sessions pre-selected-session-id]
   (let [session-id (r/atom pre-selected-session-id)
         registration-data (re-frame/subscribe [:registrations])]
@@ -67,11 +73,20 @@
         [:span#exam-session-label (session-title (->> exam-sessions (filter #(= @session-id (::os/id %))) first))]]
 
        [:div.registrations
-        (let [registrations (get @registration-data @session-id)]
+        (let [registrations (get-in @registration-data [@session-id :registrations])]
           (cond
             (nil? registrations) [small-loader]
             (seq registrations) [registrations-table registrations]
-            :else [:span "Ei ilmoittautumisia"]))]])))
+            :else [:span "Ei ilmoittautumisia"]))]
+       [:div.buttons
+        (if-let [token (get-in @registration-data [@session-id :access-token])]
+          [:div.ext-link
+           [:h4 "Linkki ilmoittautumislistan tarkastelua varten ilman kirjautumista"]
+           [:a {:href (ext-link @session-id token)} (ext-link @session-id token)]
+           [:p "Linkki on voimassa koetilaisuuteen ja seitsemän päivää sen jälkeen."]]
+          [:button.ext-link
+           {:on-click #(re-frame/dispatch [:generate-registrations-access-token @session-id])}
+           "Luo linkki ilmoittautumislistan tarkastelua varten"])]])))
 
 (defn reg-list-panel [pre-selected-session-id]
   (re-frame/dispatch [:load-exam-sessions])

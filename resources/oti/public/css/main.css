@@ -562,6 +562,15 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     color: #1b1b1b;
   }
 }
+.ext-link a,
+.ext-link p {
+  font-size: 0.9rem;
+}
+@media print {
+  .ext-link {
+    display: none;
+  }
+}
 @keyframes loader {
   0% {
     color: #1b1b1b;

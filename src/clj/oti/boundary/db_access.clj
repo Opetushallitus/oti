@@ -150,7 +150,9 @@
   (set-email-sent! [db tx email-id])
   (health-check [db])
   (accreditation-types [db])
-  (update-accreditations! [db params]))
+  (update-accreditations! [db params])
+  (add-token-to-exam-session! [db id token])
+  (access-token-for-exam-session [db id]))
 
 (extend-type HikariCP
   DbAccess
@@ -264,4 +266,10 @@
       (doseq [section (:sections params)]
         (q/update-section-accreditation! section {:connection tx}))
       (doseq [module (:modules params)]
-        (q/update-module-accreditation! module {:connection tx})))))
+        (q/update-module-accreditation! module {:connection tx}))))
+  (add-token-to-exam-session! [{:keys [spec]} id token]
+    (q/update-exam-session-with-token! {:id id :token token} {:connection spec}))
+  (access-token-for-exam-session [{:keys [spec]} id]
+    (-> (q/select-exam-session-access-token {:id id} {:connection spec})
+        first
+        :access_token)))

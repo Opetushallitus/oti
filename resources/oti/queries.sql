@@ -61,6 +61,9 @@ GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants
 HAVING (es.max_participants - COUNT(r.id)) > 0
 ORDER BY es.session_date, es.start_time;
 
+-- name: select-exam-session-access-token
+SELECT access_token FROM exam_session WHERE id = :id;
+
 -- name: insert-exam-session<!
 INSERT INTO exam_session (
   session_date,
@@ -109,6 +112,9 @@ UPDATE exam_session_translation SET
   city = :city,
   other_location_info = :other-location-info
 WHERE language_code = :language-code AND exam_session_id = :exam-session-id;
+
+-- name: update-exam-session-with-token!
+UPDATE exam_session SET access_token = :token WHERE id = :id;
 
 -- name: delete-exam-session!
 DELETE FROM exam_session WHERE id = :exam-session-id;
