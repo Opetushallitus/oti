@@ -1,0 +1,62 @@
+@page {
+  size: 21cm 29.7cm;
+  margin: 45mm 15mm 25mm 25mm;
+}
+
+div.diploma {
+  page-break-after: always;
+}
+
+body {
+  font-family: "Times New Roman", serif;
+  font-size: 12pt;
+}
+
+h1 {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 18pt;
+}
+
+h2 {
+  font-style: italic;
+  font-family: "Arial", sans-serif;
+  font-size: 18pt;
+  margin-top: 36pt;
+}
+
+.participant {
+  font-style: italic;
+  font-family: "Arial", sans-serif;
+  font-weight: bold;
+  font-size: 16pt;
+  margin: 40pt 0;
+  text-align: center;
+}
+
+.hetu {
+  margin-left: 5px;
+}
+
+.content {
+  margin-top: 40pt;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.place-and-date {
+  margin-top: 40pt;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.date {
+  margin-left: 5px;
+}
+
+.signature {
+  margin-top: 48pt;
+  font-style: italic;
+  font-weight: bold;
+}
+
