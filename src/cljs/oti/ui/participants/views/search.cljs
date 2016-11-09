@@ -11,8 +11,9 @@
 
 (defn- open-diploma-window! [ids signer]
   (let [id-params (->> (map #(str "id=" %) ids)
-                       (str/join "&"))]
-    (.open js/window (routing/v-a-route "/diplomas?" id-params "&signer=" signer) "Todistukset" "resizable,scrollbars")))
+                       (str/join "&"))
+        url (routing/v-a-route "/diplomas?" id-params "&signer=" signer)]
+    (.open js/window url "Todistukset" "width=800,height=800,left=100,top=100,resizable,scrollbars")))
 
 (defn- section-status [{:keys [sections]} section-id]
   (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]
