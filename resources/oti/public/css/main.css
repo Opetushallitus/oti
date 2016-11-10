@@ -229,6 +229,12 @@ table {
 .reporting input {
   margin-left: 10px;
 }
+.reporting .result {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 38px;
+  margin-left: 15px;
+}
 .registration .section {
   margin-bottom: 1em;
 }
