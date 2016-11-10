@@ -645,6 +645,9 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .search .results table {
   width: 100%;
 }
+.search .diploma-printing {
+  margin-top: 2em;
+}
 .search .diploma-printing input {
   width: 300px;
 }
