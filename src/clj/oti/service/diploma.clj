@@ -48,7 +48,7 @@
 
 (defn- write-audit-log! [user signer authority]
   (let [audit-data (select-keys user [:id :diploma])
-        new-diploma {:date (today-as-str) :signer signer}]
+        new-diploma {:date (str (LocalDate/now)) :signer signer}]
     (audit/log :app :admin
                :who authority
                :op :update
