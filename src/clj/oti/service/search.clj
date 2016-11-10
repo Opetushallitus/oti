@@ -20,11 +20,11 @@
        (map
          (fn [participant-rows]
            (let [sections (group-by-section participant-rows)
-                 {:keys [id ext_reference_id email]} (first participant-rows)]
+                 {:keys [id ext_reference_id email diploma_date]} (first participant-rows)]
              {:id id
               :external-user-id ext_reference_id
               :email email
-              :filter (user-data/user-status-filter db sections)
+              :filter (user-data/user-status-filter db sections diploma_date)
               :sections (->> sections (map (fn [{:keys [id] :as data}] [id data])) (into {}))})))
        (filter #(or (= filter-kw :all) (= (:filter %) filter-kw)))))
 

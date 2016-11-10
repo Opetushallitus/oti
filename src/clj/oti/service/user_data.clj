@@ -141,26 +141,27 @@
                 :created payment_created}))))
        (remove nil?)))
 
-(defn user-status-filter [db sections]
+(defn user-status-filter [db sections diploma-delivered?]
   (let [completed-sections (->> sections
                                 (filter #(or (:accepted %) (:accreditation-date %)))
                                 (map :id)
                                 set)
         required-sections (->> (dba/section-and-module-names db) :sections keys set)]
     (cond
+      diploma-delivered? :diploma-delivered
       (= completed-sections required-sections) :complete
       :else :incomplete)))
 
 (defn- merge-db-and-api-data [{:keys [db api-client]} db-data]
-  (when (seq db-data)
-    (let [external-user-id (:ext_reference_id (first db-data))
-          api-data (user-data-with-address api-client external-user-id)
+  (when-let [{:keys [ext_reference_id id email diploma_date]} (first db-data)]
+    (let [api-data (user-data-with-address api-client ext_reference_id)
           sections (group-by-section db-data)]
       (merge
         api-data
-        (select-keys (first db-data) [:id :email])
-        {:sections (group-by-section db-data)
-         :filter (user-status-filter db sections)
+        {:id id
+         :email email
+         :sections (group-by-section db-data)
+         :filter (user-status-filter db sections diploma_date)
          :language (or (->> db-data (sort-by :registration_id) last :registration_language) (:asiointikieli api-data))
          :payments (payments db-data)}))))
 
