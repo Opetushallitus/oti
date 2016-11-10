@@ -202,6 +202,10 @@ WHERE order_number = :order-number AND lang = :lang;
 UPDATE participant SET diploma_date = current_date, diploma_signer = :signer
 WHERE id IN (:ids);
 
+-- name: select-diploma-count
+SELECT COUNT(id) AS count FROM participant
+WHERE diploma_date >= :start-date AND diploma_date <= :end-date;
+
 -- REGISTRATION
 
 -- name: insert-registration<!
