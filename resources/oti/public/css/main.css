@@ -214,6 +214,21 @@ table {
   opacity: 0.7;
   pointer-events: none;
 }
+.reporting {
+  margin-top: 3em;
+}
+.reporting input,
+.reporting button,
+.reporting select {
+  height: 38px;
+  vertical-align: top;
+}
+.reporting .month-option {
+  width: 200px;
+}
+.reporting input {
+  margin-left: 10px;
+}
 .registration .section {
   margin-bottom: 1em;
 }
