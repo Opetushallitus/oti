@@ -153,7 +153,8 @@
   (update-accreditations! [db params])
   (add-token-to-exam-session! [db id token])
   (access-token-for-exam-session [db id])
-  (access-token-matches-session? [db id token]))
+  (access-token-matches-session? [db id token])
+  (update-participant-diploma-data! [db participant-ids signer]))
 
 (extend-type HikariCP
   DbAccess
@@ -278,4 +279,6 @@
     (-> (q/select-exam-session-matching-token {:id id :token token} {:connection spec})
         first
         :id
-        (= id))))
+        (= id)))
+  (update-participant-diploma-data! [{:keys [spec]} participant-ids signer]
+    (q/update-participant-diploma! {:ids participant-ids :signer signer} {:connection spec})))

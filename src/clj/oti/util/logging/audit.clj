@@ -3,10 +3,12 @@
            (fi.vm.sade.auditlog Audit ApplicationType))
   (:require [clojure.data :as data]
             [cheshire.core :as json]
-            [taoensso.timbre :as log]))
+            [cheshire.generate :as gen]))
 
 (def ^:private ParticipantAudit (Audit. "oti" ApplicationType/OPISKELIJA))
 (def ^:private AdminAudit       (Audit. "oti" ApplicationType/VIRKAILIJA))
+
+(gen/add-encoder java.time.LocalDate gen/encode-str)
 
 (defn log
   "Audit log function complying to OPH standards.
@@ -42,6 +44,7 @@
              :registration  OTIResource/REGISTRATION
              :payment       OTIResource/PAYMENT
              :accreditation OTIResource/ACCREDITATION
+             :diploma       OTIResource/DIPLOMA
              (throw (IllegalArgumentException. "Unknown or missing resource type.")))
         msg (.build (doto (LogMessage/builder)
                       (.id who)
