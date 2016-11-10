@@ -107,9 +107,13 @@
        [:div.buttons
         [:div.diploma-printing
          [:input {:type "text"
+                  :name "diploma-signer"
                   :value @signer-name
                   :placeholder "Todistuksen allekirjoittajan nimi"
                   :on-change #(reset! signer-name (-> % .-target .-value))}]
-         [:button {:on-click #(open-diploma-window! @selected-ids @signer-name) ; Can't use dispatch as pop-up blocking would prevent opening the diploma window
+         [:button {:on-click (fn [_]
+                               ; Can't use dispatch as pop-up blocking would prevent opening the diploma window
+                               (open-diploma-window! @selected-ids @signer-name)
+                               (re-frame/dispatch [:set-participant-diplomas-delivered @selected-ids]))
                    :disabled (or (empty? @selected-ids) (s/blank? @signer-name))}
           "Tulosta todistukset"]]]])))

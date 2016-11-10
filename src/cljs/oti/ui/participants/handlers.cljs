@@ -46,8 +46,7 @@
   :reset-search
   (fn
     [db _]
-    (assoc db  :participant-search-query {:query "" :filter :all}
-               :participant-search-results nil)))
+    (assoc db :participant-search-query {:query "" :filter :all} :participant-search-results nil)))
 
 (re-frame/reg-event-fx
   :save-accreditation-data
@@ -68,8 +67,12 @@
     {:show-flash [:success "Tallennettu"]
      :http-xhrio (participant-load-xhrio participant-id)}))
 
-(re-frame/reg-event-fx
-  :print-diplomas
+(re-frame/reg-event-db
+  :set-participant-diplomas-delivered
   [re-frame/trim-v]
-  (fn [_ [selected-ids signer-name]]
-    (.open js/window "/oti/virkailija" "Todistukset" "resizable,scrollbars")))
+  (fn [db [ids]]
+    (update db :participant-search-results #(map (fn [{:keys [id] :as result}]
+                                                  (if (ids id)
+                                                    (assoc result :filter :diploma-delivered)
+                                                    result))
+                                                 %))))
