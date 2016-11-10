@@ -4,7 +4,8 @@
             [oti.service.user-data :as user-data]
             [oti.component.localisation :refer [t]]
             [clojure.string :as str]
-            [ring.util.response :as resp])
+            [ring.util.response :as resp]
+            [oti.boundary.db-access :as dba])
   (:import [java.time LocalDate]
            [java.time.format DateTimeFormatter]))
 
@@ -41,13 +42,16 @@
          (diploma localisation user signer))]
       hiccup/html))
 
-(defn generate-diplomas [config ids signer]
+(defn generate-diplomas [{:keys [db] :as config} ids signer]
   (let [users (->> (map #(user-data/participant-data config %) ids)
                    (remove nil?)
-                   (filter #(not= (:filter %) :incomplete)))]
+                   (filter #(not= (:filter %) :incomplete)))
+        diploma-markup (diplomas config users signer)
+        valid-ids (map :id users)]
     (if (seq users)
-      (-> (str/replace base-html "PAGE_CONTENT" (diplomas config users signer))
-          (resp/response)
-          (resp/header "Content-Type" "text/html; charset=utf-8"))
+      (do (dba/update-participant-diploma-data! db valid-ids signer)
+          (-> (str/replace base-html "PAGE_CONTENT" diploma-markup)
+              (resp/response)
+              (resp/header "Content-Type" "text/html; charset=utf-8")))
       (-> (resp/not-found "Käyttäjää ei löydy tai tutkintoa ei ole suoritettu.")
           (resp/header "Content-Type" "text/plain; charset=utf-8")))))

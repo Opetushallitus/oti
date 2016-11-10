@@ -195,6 +195,10 @@ WHERE id = :id AND lang = 'fi';
 SELECT * FROM all_participant_data
 WHERE order_number = :order-number AND lang = :lang;
 
+-- name: update-participant-diploma!
+UPDATE participant SET diploma_date = current_date, diploma_signer = :signer
+WHERE id IN (:ids);
+
 -- REGISTRATION
 
 -- name: insert-registration<!
