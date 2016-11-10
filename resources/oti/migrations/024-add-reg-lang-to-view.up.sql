@@ -11,7 +11,7 @@ CREATE OR REPLACE VIEW all_participant_data AS
     recm.id AS module_registration, r.state AS registration_state,
     est.city, est.street_address, est.other_location_info, st.language_code AS lang,
     pm.created AS payment_created, pm.id AS payment_id, pm.amount, pm.state AS payment_state, pm.order_number,
-    r.id AS registration_id, r.language_code AS registration_language, p.diploma_date
+    r.id AS registration_id, r.language_code AS registration_language, p.diploma_date, p.diploma_signer
   FROM participant p
     LEFT JOIN section s ON s.exam_id = 1
     LEFT JOIN section_translation st ON s.id = st.section_id

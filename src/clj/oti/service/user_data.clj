@@ -153,13 +153,14 @@
       :else :incomplete)))
 
 (defn- merge-db-and-api-data [{:keys [db api-client]} db-data]
-  (when-let [{:keys [ext_reference_id id email diploma_date]} (first db-data)]
+  (when-let [{:keys [ext_reference_id id email diploma_date diploma_signer]} (first db-data)]
     (let [api-data (user-data-with-address api-client ext_reference_id)
           sections (group-by-section db-data)]
       (merge
         api-data
         {:id id
          :email email
+         :diploma {:date (when diploma_date (.toLocalDate diploma_date)) :signer diploma_signer}
          :sections (group-by-section db-data)
          :filter (user-status-filter db sections diploma_date)
          :language (or (->> db-data (sort-by :registration_id) last :registration_language) (:asiointikieli api-data))
