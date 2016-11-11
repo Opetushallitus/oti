@@ -1,7 +1,8 @@
 (ns oti.ui.participants.handlers
   (:require [ajax.core :as ajax]
             [oti.routing :as routing]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [clojure.string :as str]))
 
 (re-frame/reg-event-fx
   :do-participant-search
@@ -67,12 +68,21 @@
     {:show-flash [:success "Tallennettu"]
      :http-xhrio (participant-load-xhrio participant-id)}))
 
-(re-frame/reg-event-db
-  :set-participant-diplomas-delivered
+(re-frame/reg-event-fx
+  :print-diplomas
   [re-frame/trim-v]
-  (fn [db [ids]]
-    (update db :participant-search-results #(map (fn [{:keys [id] :as result}]
-                                                  (if (ids id)
-                                                    (assoc result :filter :diploma-delivered)
-                                                    result))
-                                                 %))))
+  (fn [{:keys [db]} [ids signer]]
+    ; The pop-up window must be opened here so that it is counted as a result of user interaction
+    (let [window-handle (.open js/window "" "Todistukset" "width=800,height=800,left=100,top=100,resizable,scrollbars")]
+      (ajax/PUT (routing/v-a-route "/diplomas")
+                {:params          {:ids ids :signer signer}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/text-response-format)
+                 :handler         (fn [markup]
+                                    (-> (.-document window-handle) (.write markup)))
+                 :error-handler   #(re-frame/dispatch [:bad-response])}))
+    {:db (update db :participant-search-results #(map (fn [{:keys [id] :as result}]
+                                                        (if (ids id)
+                                                          (assoc result :filter :diploma-delivered)
+                                                          result))
+                                                      %))}))

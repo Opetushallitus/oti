@@ -6,14 +6,7 @@
             [oti.ui.views.common :refer [small-loader]]
             [oti.routing :as routing]
             [reagent.core :as r]
-            [clojure.string :as s]
             [clojure.string :as str]))
-
-(defn- open-diploma-window! [ids signer]
-  (let [id-params (->> (map #(str "id=" %) ids)
-                       (str/join "&"))
-        url (routing/v-a-route "/diplomas?" id-params "&signer=" signer)]
-    (.open js/window url "Todistukset" "width=800,height=800,left=100,top=100,resizable,scrollbars")))
 
 (defn- section-status [{:keys [sections]} section-id]
   (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]
@@ -112,8 +105,6 @@
                    :placeholder "Todistuksen allekirjoittajan nimi"
                    :on-change #(reset! signer-name (-> % .-target .-value))}]
           [:button {:on-click (fn [_]
-                                ; Can't use dispatch as pop-up blocking would prevent opening the diploma window
-                                (open-diploma-window! @selected-ids @signer-name)
-                                (re-frame/dispatch [:set-participant-diplomas-delivered @selected-ids]))
-                    :disabled (or (empty? @selected-ids) (s/blank? @signer-name))}
+                                (re-frame/dispatch-sync [:print-diplomas @selected-ids @signer-name]))
+                    :disabled (or (empty? @selected-ids) (str/blank? @signer-name))}
            "Tulosta todistukset"]])])))

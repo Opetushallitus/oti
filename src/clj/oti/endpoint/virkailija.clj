@@ -29,7 +29,7 @@
 (defn- user-info [{{:keys [identity]} :session}]
   (response (select-keys identity [:username])))
 
-(defn- new-exam-session [{:keys [db]} {params :params session :session}]
+(defn- new-exam-session [{:keys [db]} {params :params session :session :as request}]
   (let [conformed (s/conform ::os/exam-session params)
         new-exam-session (when-not (s/invalid? conformed)
                            (fetch-exam-session db (:id (dba/add-exam-session! db conformed))))]
@@ -128,12 +128,10 @@
     (dba/add-token-to-exam-session! db session-id token)
     (response {:access-token token})))
 
-(defn- generate-diplomas! [config {{:keys [id signer]} :params session :session}]
-  (let [ids (if (sequential? id) id [id])
-        id-set (->> (map utils/parse-int ids) (remove nil?) set)]
-    (if-not (or (empty? id-set) (str/blank? signer))
-      (diploma/generate-diplomas config id-set signer session)
-      {:status 400 :body {:error "Invalid parameters"}})))
+(defn- generate-diplomas! [config {{:keys [ids signer]} :body-params session :session}]
+  (if (and (set? ids) (every? pos-int? ids) (not (str/blank? signer)))
+    (diploma/generate-diplomas config ids signer session)
+    {:status 400 :body {:error "Invalid parameters"}}))
 
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
@@ -150,7 +148,7 @@
 (defn- participant-routes [config]
   (routes
    (GET "/participant-search"          [q filter] (search-participant config q filter))
-   (GET "/diplomas"                    []         (partial generate-diplomas! config))
+   (PUT "/diplomas"                    []         (partial generate-diplomas! config))
    (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))
      (POST "/accreditations" {params :params session :session}
