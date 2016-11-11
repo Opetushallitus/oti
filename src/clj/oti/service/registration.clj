@@ -150,7 +150,7 @@
      :retry (-> payments :amounts :retry)}))
 
 (defn register! [{:keys [db api-client vetuma-payment] :as config}
-                 {old-session :session {:keys [registration-data ui-lang]} :params}]
+                 {old-session :session {:keys [registration-data ui-lang]} :body-params}]
   (let [conformed (s/conform ::os/registration registration-data)]
     (if-not (s/invalid? conformed)
       (let [lang (::os/language-code conformed)

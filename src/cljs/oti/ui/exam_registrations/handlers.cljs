@@ -24,7 +24,7 @@
   :generate-registrations-access-token
   [re-frame/trim-v]
   (fn [_ [exam-session-id]]
-    {:http-xhrio {:method          :post
+    {:http-xhrio {:method          :put
                   :uri             (routing/v-a-route "/exam-sessions/" exam-session-id "/token")
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)

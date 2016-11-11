@@ -29,7 +29,7 @@
 (defn- user-info [{{:keys [identity]} :session}]
   (response (select-keys identity [:username])))
 
-(defn- new-exam-session [{:keys [db]} {params :params session :session :as request}]
+(defn- new-exam-session [{:keys [db]} {params :body-params session :session}]
   (let [conformed (s/conform ::os/exam-session params)
         new-exam-session (when-not (s/invalid? conformed)
                            (fetch-exam-session db (:id (dba/add-exam-session! db conformed))))]
@@ -106,7 +106,7 @@
 (defn- frontend-config [{:keys [db]} {{:keys [identity]} :session}]
   (response {:section-and-module-names (dba/section-and-module-names db)
              :accreditation-types (dba/accreditation-types db)
-             :user (select-keys identity [:username :given-name :surname])}))
+             :user (select-keys identity [:given-name :surname])}))
 
 (defn- search-participant [config q filter]
   (let [filter-kw (if (str/blank? filter) :all (keyword filter))
@@ -143,7 +143,7 @@
       (PUT "/"              request (update-exam-session config request id))
       (DELETE "/"           request (delete-exam-session config request id))
       (GET "/registrations" []      (exam-session-registrations config id))
-      (POST "/token"        []      (generate-access-token-for-registrations! config id)))))
+      (PUT "/token"         []      (generate-access-token-for-registrations! config id)))))
 
 (defn- participant-routes [config]
   (routes
@@ -151,8 +151,10 @@
    (PUT "/diplomas"                    []         (partial generate-diplomas! config))
    (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))
-     (POST "/accreditations" {params :params session :session}
-       (accreditation/approve-accreditations! config id params session)))))
+     (POST "/accreditations" {params :body-params session :session :as request}
+       (try (accreditation/approve-accreditations! config id params session)
+            (catch AssertionError _
+              {:status 400 :body {:error "Invalid parameters"}}))))))
 
 (defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []
