@@ -200,7 +200,7 @@ WHERE order_number = :order-number AND lang = :lang;
 
 -- name: update-participant-diploma!
 UPDATE participant SET diploma_date = current_date, diploma_signer = :signer
-WHERE id IN (:ids);
+WHERE id IN (:ids) AND diploma_date IS NULL;
 
 -- name: select-diploma-count
 SELECT COUNT(id) AS count FROM participant

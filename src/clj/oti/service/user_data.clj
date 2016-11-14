@@ -160,7 +160,7 @@
         api-data
         {:id id
          :email email
-         :diploma {:date (when diploma_date (str (.toLocalDate diploma_date))) :signer diploma_signer}
+         :diploma {:date diploma_date :signer diploma_signer}
          :sections (group-by-section db-data)
          :filter (user-status-filter db sections diploma_date)
          :language (or (->> db-data (sort-by :registration_id) last :registration_language) (:asiointikieli api-data))

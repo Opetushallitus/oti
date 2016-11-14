@@ -15,10 +15,10 @@
 (def base-html (->> (io/resource "oti/html-templates/diploma.html")
                     slurp))
 
-(defn- today-as-str []
-  (-> (LocalDate/now) (.format formatter)))
+(defn- db-date->str [date]
+  (-> date (.toLocalDate) (.format formatter)))
 
-(defn- diploma [localisation {:keys [etunimet sukunimi hetu language]} signer]
+(defn- diploma [localisation {:keys [etunimet sukunimi hetu language diploma]}]
   [:div.diploma
    [:h1 (t localisation language "diploma")]
    [:h2 (t localisation language "of-ot")]
@@ -33,41 +33,43 @@
        [:li (t localisation language (str "diploma-module-" id))])]]
    [:div.place-and-date
     [:span.place (t localisation language "in-helsinki")]
-    [:span.date (today-as-str)]]
+    [:span.date (db-date->str (:date diploma))]]
    [:div.signature
     [:div.signer
-     signer]
+     (:signer diploma)]
     [:div.signer-title
      (t localisation language "diploma-signer-title")]]])
 
-(defn- diplomas [{:keys [localisation]} users signer]
+(defn- diplomas [{:keys [localisation]} users]
   (-> [:div.diplomas
        (for [user users]
-         (diploma localisation user signer))]
+         (diploma localisation user))]
       hiccup/html))
 
-(defn- write-audit-log! [user signer authority]
-  (let [audit-data (select-keys user [:id :diploma])
-        new-diploma {:date (str (LocalDate/now)) :signer signer}]
+(defn- write-audit-log! [old-user authority new-users-by-id]
+  (let [old-data (select-keys old-user [:id :diploma])
+        new-data (-> (get new-users-by-id (:id old-user))
+                     (select-keys [:id :diploma]))]
     (audit/log :app :admin
                :who authority
                :op :update
                :on :diploma
-               :before audit-data
-               :after (assoc audit-data :diploma new-diploma)
+               :before old-data
+               :after new-data
                :msg "Generating participant diploma.")))
 
 (defn generate-diplomas [{:keys [db] :as config} ids signer {{authority :username} :identity}]
   (let [users (->> (map #(user-data/participant-data config %) ids)
                    (remove nil?)
                    (filter #(not= (:filter %) :incomplete)))
-        diploma-markup (diplomas config users signer)
         valid-ids (map :id users)]
     (if (seq users)
       (do (dba/update-participant-diploma-data! db valid-ids signer)
-          (dorun (map #(write-audit-log! % signer authority) users))
-          (-> (str/replace base-html "PAGE_CONTENT" diploma-markup)
-              (resp/response)
-              (resp/header "Content-Type" "text/html; charset=utf-8")))
+          (let [updated-users (map #(user-data/participant-data config %) valid-ids)
+                users-by-id (reduce #(assoc %1 (:id %2) %2) {} updated-users)]
+            (dorun (map #(write-audit-log! % authority users-by-id) users))
+            (-> (str/replace base-html "PAGE_CONTENT" (diplomas config updated-users))
+                (resp/response)
+                (resp/header "Content-Type" "text/html; charset=utf-8"))))
       (-> (resp/not-found "Käyttäjää ei löydy tai tutkintoa ei ole suoritettu.")
           (resp/header "Content-Type" "text/plain; charset=utf-8")))))
