@@ -9,11 +9,13 @@
 
 (def email-poll-interval-minutes 10)
 
+(def cc-payment-poll-interval-minutes 1440)
+
 (defrecord Scheduler [options]
   component/Lifecycle
   (start [this]
     (let [pool (at/mk-pool :cpu-count 1)]
-      (timbre/info "Running payment status poller with an interval of" payment-poll-interval-minutes "minutes.")
+      (timbre/info "Running unpaid payment status poller with an interval of" payment-poll-interval-minutes "minutes.")
       (at/every
         (* payment-poll-interval-minutes 60000)
         #(payment/check-and-process-unpaid-payments! (select-keys this [:db :vetuma-payment]))
@@ -27,6 +29,13 @@
         pool
         :desc "Email queue poller"
         :initial-delay 30000)
+      (timbre/info "Running credit card payment status poller with an interval of" cc-payment-poll-interval-minutes "minutes.")
+      (at/every
+        (* cc-payment-poll-interval-minutes 60000)
+        #(payment/check-and-process-cc-payments! (select-keys this [:db :vetuma-payment]))
+        pool
+        :desc "Credit card payment status poller"
+        :initial-delay 60000)
       (assoc this :pool pool)))
   (stop [{:keys [pool] :as this}]
     (when pool
