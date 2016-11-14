@@ -69,6 +69,14 @@
     (response exam-session)
     (not-found {})))
 
+(defn- diploma-count [{:keys [db]} start-ts end-ts]
+  (let [sts (as-int start-ts)
+        ets (as-int end-ts)]
+    (if (and sts ets)
+      (-> (dba/diploma-count db (ts->local-date sts) (ts->local-date ets))
+          (response))
+      {:status 400 :body {:error "Invalid start or end time"}})))
+
 (defn- update-exam-session [{:keys [db]} {params :params session :session} id]
   (let [conformed (s/conform ::os/exam-session (assoc params ::os/id id))
         exam-session (fetch-exam-session db id)
@@ -147,8 +155,10 @@
 
 (defn- participant-routes [config]
   (routes
-   (GET "/participant-search"          [q filter] (search-participant config q filter))
-   (PUT "/diplomas"                    []         (partial generate-diplomas! config))
+   (GET "/participant-search" [q filter] (search-participant config q filter))
+   (context "/diplomas" []
+     (PUT "/" [] (partial generate-diplomas! config))
+     (GET "/count" [start-date end-date] (diploma-count config start-date end-date)))
    (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))
      (POST "/accreditations" {params :body-params session :session :as request}

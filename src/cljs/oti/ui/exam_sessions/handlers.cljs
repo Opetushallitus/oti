@@ -75,3 +75,14 @@
                   :response-format (ajax/transit-response-format)
                   :on-success      [:exam-session-deleted]
                   :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
+  :load-diploma-count
+  [re-frame/trim-v]
+  (fn [_ [dates]]
+    {:http-xhrio {:method          :get
+                  :uri             (routing/v-a-route "/diplomas/count")
+                  :params          dates
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:store-response-to-db :diploma-count]
+                  :on-failure      [:bad-response]}}))

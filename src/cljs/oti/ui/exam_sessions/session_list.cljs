@@ -8,7 +8,8 @@
             [oti.routing :as routing]
             [oti.ui.i18n :as i18n]
             [cljs-pikaday.reagent :as pikaday]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [oti.ui.exam-sessions.reporting :as reporting]))
 
 (defn- exam-session-table [exam-sessions]
   [:table
@@ -83,4 +84,5 @@
         (cond
           (or @loading? (nil? @exam-sessions)) [small-loader]
           (seq @exam-sessions) [exam-session-table @exam-sessions]
-          :else [:div.no-results "Ei tutkintotapahtumia aikavälillä"])]])))
+          :else [:div.no-results "Ei tutkintotapahtumia aikavälillä"])]
+       [reporting/reporting]])))
