@@ -83,7 +83,7 @@
           [:div.ext-link
            [:h4 "Linkki ilmoittautumislistan tarkastelua varten ilman kirjautumista"]
            [:a {:href (ext-link @session-id token)} (ext-link @session-id token)]
-           [:p "Linkki on voimassa koetilaisuuteen ja seitsemän päivää sen jälkeen."]]
+           [:p "Linkki on voimassa seitsemän päivää koetilaisuudesta."]]
           [:button.ext-link
            {:on-click #(re-frame/dispatch [:generate-registrations-access-token @session-id])}
            "Luo linkki ilmoittautumislistan tarkastelua varten"])]])))
