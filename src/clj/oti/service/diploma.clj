@@ -7,8 +7,7 @@
             [ring.util.response :as resp]
             [oti.boundary.db-access :as dba]
             [oti.util.logging.audit :as audit])
-  (:import [java.time LocalDate]
-           [java.time.format DateTimeFormatter]))
+  (:import [java.time.format DateTimeFormatter]))
 
 (def formatter (DateTimeFormatter/ofPattern "d.M.yyyy"))
 
