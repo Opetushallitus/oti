@@ -946,6 +946,46 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .confirmation .buttons {
   margin-top: 2em;
 }
+.personal-details .personal-details-group:not(:first-child) {
+  margin-top: 10px;
+}
+.personal-details .personal-details-group label {
+  width: 175px;
+  display: inline-block;
+}
+.scoring-form .accepted-radio-group .radio {
+  display: inline-block;
+}
+.scoring-form .accepted-radio-group .radio:not(:first-child) {
+  margin-left: 20px;
+}
+.scoring-form .accepted-radio-group .radio span {
+  margin-left: 10px;
+}
+.scoring-form .modules {
+  margin-top: 10px;
+}
+.scoring-form .modules .module {
+  margin-top: 10px;
+  line-height: 32px;
+}
+.scoring-form .modules .module label {
+  display: inline-block;
+  min-width: 155px;
+}
+.scoring-form .modules .module .accepted-radio-group {
+  display: inline-block;
+}
+.scoring-form .modules .module .module-points-input {
+  margin-left: 20px;
+  display: inline-block;
+}
+.scoring-form .modules .module .module-points-input input {
+  margin-right: 20px;
+}
+.button-bar {
+  margin-top: 30px;
+}
 .left {
   float: left;
 }
