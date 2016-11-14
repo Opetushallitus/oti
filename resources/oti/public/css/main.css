@@ -599,10 +599,13 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .ext-link .link-input input {
   width: 100%;
 }
-.ext-link .link-input button {
-  margin: 0;
+.ext-link .link-input .copy-button {
   width: 175px;
   float: right;
+}
+.ext-link .link-input .copy-button button {
+  width: 100%;
+  margin: 0;
 }
 @keyframes loader {
   0% {
