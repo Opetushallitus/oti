@@ -28,17 +28,24 @@
 (defn- module-accreditation-date [m fd]
   (accreditation-date :module m fd))
 
-(defn personal-details [participants exam-sessions]
+(defn assoc-when [pred map & keys]
+  (if pred
+    (apply (partial assoc map) keys)
+    map))
+
+(defn personal-details [selected-participant-id participants exam-sessions]
   [:div.personal-details
    [:h3 "Henkilötiedot"]
    (when (seq participants)
      [:div.personal-details-group
       [:label "Henkilö"]
-      [:select {:on-change (fn [e]
-                             (when-let [id (try
-                                             (js/parseInt (.. e -target -value))
-                                             (catch js/Error _))]
-                               (rf/dispatch [:select-participant id])))}
+      [:select (assoc-when (not (nil? selected-participant-id))
+                           {:on-change (fn [e]
+                                         (when-let [id (try
+                                                         (js/parseInt (.. e -target -value))
+                                                         (catch js/Error _))]
+                                           (rf/dispatch [:select-participant id])))}
+                           :value selected-participant-id)
        (doall
         (for [{:keys [id ssn display-name last-name]} participants]
           [:option {:value id :key (str id last-name)}
@@ -138,30 +145,37 @@
      (when (seq form-data)
        [sections exam form-data])]))
 
-(defn button [text handle-click & {:keys [primary disabled]}]
-  [:button {:class (when primary "button-primary")
+(defn button [text class handle-click & {:keys [primary disabled]}]
+  [:button {:class (str class " " (when primary "button-primary"))
             :disabled disabled
             :type "submit"
             :on-click handle-click} text])
 
-(defn link-button [uri text]
-  [:a.button {:href uri} text])
+(defn link-button [uri text class]
+  [:a.button {:href uri
+              :class class} text])
 
-(defn button-bar [form-data initial-form-data]
-  (let [has-changes? (not= form-data initial-form-data)]
+(defn button-bar [form-data initial-form-data participants]
+  (let [changes? (not= form-data initial-form-data)
+        more-than-one-participant? (>= (count participants) 1)]
     [:div.button-bar
-     [link-button "/" "Peruuta"]
-     [button "Tallenna ja hae seuraava henkilö"
+     [link-button "/" "Peruuta" "abort-button"]
+     [button (if changes?
+               "Tallenna ja hae seuraava henkilö"
+               "Hae seuraava henkilö")
+      "save-and-next-button"
       (fn [e]
         (.preventDefault e)
-        (println "tallenna ja hae seuraava"))
-      :disabled (not has-changes?)]
-     [button "Tallenna"
+        (if changes?
+          (rf/dispatch [:save-participant-scores-and-select-next])
+          (rf/dispatch [:select-next-participant])))
+      :disabled (not more-than-one-participant?)]
+     [button "Tallenna" "save-button"
       (fn [e]
         (.preventDefault e)
         (rf/dispatch [:save-participant-scores]))
       :primary true
-      :disabled (not has-changes?)]]))
+      :disabled (not changes?)]]))
 
 (defn scoring-panel []
   (rf/dispatch [:load-exam])
@@ -176,6 +190,6 @@
         initial-form-data     (rf/subscribe [:initial-form-data] [selected-exam-session selected-participant])]
     (fn []
       [:div.scoring-panel
-       [personal-details @participants @exam-sessions]
+       [personal-details @selected-participant @participants @exam-sessions]
        [scoring-form @exam @form-data]
-       [button-bar @form-data @initial-form-data]])))
+       [button-bar @form-data @initial-form-data @participants]])))

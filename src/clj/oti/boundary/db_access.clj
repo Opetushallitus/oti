@@ -143,7 +143,8 @@
   (let [vals (vals p)
         keys (keys p)
         new-keys (map #(-> (str/replace (name %) "_" "-") keyword) keys)]
-    (zipmap new-keys vals)))
+    (when (and (seq vals) (seq keys))
+      (zipmap new-keys vals))))
 
 (defn- participant-scores-and-accreditations-by-exam-session [{:keys [spec] :as db} exam-sessions exam-session-id]
   (->> (map :participant_ext_reference exam-sessions)
@@ -202,7 +203,9 @@
   (diploma-count [db start-date end-date])
   (exam-by-lang [db lang])
   (upsert-section-score [db section-score])
-  (upsert-module-score [db module-score]))
+  (upsert-module-score [db module-score])
+  (module-score [db params])
+  (section-score [db params]))
 
 (extend-type HikariCP
   DbAccess
@@ -381,4 +384,8 @@
   (upsert-section-score [{:keys [spec]} section-score]
     (snake-keys (q/upsert-participant-section-score<! section-score {:connection spec})))
   (upsert-module-score [{:keys [spec]} module-score]
-    (snake-keys (q/upsert-participant-module-score<! module-score {:connection spec}))))
+    (snake-keys (q/upsert-participant-module-score<! module-score {:connection spec})))
+  (section-score [{:keys [spec]} params]
+    (snake-keys (first (q/select-section-score params {:connection spec}))))
+  (module-score [{:keys [spec]} params]
+    (snake-keys (first (q/select-module-score params {:connection spec})))))

@@ -224,3 +224,38 @@
                  selected-participant
                  current-scores
                  initial-scores]})))
+
+(defn- positions [pred coll]
+  (keep-indexed (fn [idx x]
+                  (when (pred x)
+                    idx))
+                coll))
+
+(defn- next-participant-id [db]
+  (let [selected-exam-session-id (get-in db [:scoring :selected-exam-session])
+        selected-participant-id (get-in db [:scoring :selected-participant])
+        participants (->> (get-in db [:scoring :exam-sessions])
+                          (filter #(= (:id %) selected-exam-session-id))
+                          first
+                          :participants
+                          (sort-by :last-name))
+        current-participant-index (first (positions #(= (:id %) selected-participant-id) participants))]
+    (-> (nth participants (if (= current-participant-index (dec (count participants)))
+                            0
+                            (if (nil? current-participant-index)
+                              0
+                              (inc current-participant-index))))
+        :id)))
+
+(rf/reg-event-fx
+ :save-participant-scores-and-select-next
+ [trim-v]
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:scoring :selected-participant] (next-participant-id db))
+    :dispatch [:save-participant-scores]}))
+
+(rf/reg-event-db
+ :select-next-participant
+ [trim-v]
+ (fn [db _]
+   (assoc-in db [:scoring :selected-participant] (next-participant-id db))))

@@ -20,12 +20,11 @@
 (rf/reg-sub
  :participants
  (fn [db _ [exam-session-id]]
-   (->> (get-in db [:scoring :exam-sessions])
+  (->> (get-in db [:scoring :exam-sessions])
         (filter #(= (:id %) exam-session-id))
         first
         :participants
         (sort-by :last-name))))
-
 
 (rf/reg-sub
  :selected-participant
