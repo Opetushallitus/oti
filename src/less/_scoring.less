@@ -1,0 +1,54 @@
+@scoring-row-whitespace: 10px;
+@scoring-column-whitespace: 20px;
+@scoring-label-width: 175px;
+
+.personal-details {
+  .personal-details-group {
+    &:not(:first-child) {
+      margin-top: @scoring-row-whitespace;
+    }
+    label {
+      width: @scoring-label-width;
+      display: inline-block;
+    }
+  }
+}
+
+.scoring-form {
+  .accepted-radio-group {
+    .radio {
+      &:not(:first-child) {
+        margin-left: @scoring-column-whitespace;
+      }
+      display: inline-block;
+      span {
+        margin-left: @scoring-column-whitespace / 2;
+      }
+    }
+  }
+  .modules {
+    margin-top: @scoring-row-whitespace;
+    .module {
+      margin-top: @scoring-row-whitespace;
+      line-height: 32px;
+      label {
+        display: inline-block;
+        min-width: @scoring-label-width - @scoring-column-whitespace;
+      }
+      .accepted-radio-group {
+        display: inline-block;
+      }
+      .module-points-input {
+        margin-left: @scoring-column-whitespace;
+        display: inline-block;
+        input {
+          margin-right: @scoring-column-whitespace;
+        }
+      }
+    }
+  }
+}
+
+.button-bar {
+  margin-top: @scoring-row-whitespace * 3;
+}
