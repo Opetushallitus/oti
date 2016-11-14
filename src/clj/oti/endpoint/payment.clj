@@ -18,19 +18,7 @@
 (defn- confirm-payment [config {:keys [params session]}]
   (let [{lang :LG payment-id :PAYID} params]
     (if (payment-service/confirm-payment! config params)
-      ;; FIX: Not entirely sure how this should be audited
-      (do (audit/log :app :participant
-                     :who "SYSTEM"
-                     :on :payment
-                     :op :update
-                     :before {:id (when-not (str/blank? payment-id)
-                                    payment-id)
-                              :state "UNPAID"}
-                     :after {:id (when-not (str/blank? payment-id)
-                                   payment-id)
-                             :state "OK"}
-                     :msg "Payment state is confirmed.")
-          (registration-response :success "registration-complete" session lang))
+      (registration-response :success "registration-complete" session lang)
       (registration-response :error "registration-payment-error" session))))
 
 (defn- cancel-payment [config {:keys [params session]} cancellation?]

@@ -144,6 +144,7 @@
   (unpaid-payments-by-participant [db external-user-id])
   (unpaid-payment-by-registration [db registration-id])
   (update-payment-order-number-and-ts! [db params])
+  (paid-credit-card-payments [db])
   (registration-state-by-id [db id])
   (add-email-by-participant-id! [db params])
   (unsent-emails-for-update [db tx])
@@ -247,6 +248,8 @@
         first))
   (update-payment-order-number-and-ts! [{:keys [spec]} params]
     (q/update-payment-order-and-timestamp! params {:connection spec}))
+  (paid-credit-card-payments [{:keys [spec]}]
+    (q/select-credit-card-payments {} {:connection spec}))
   (registration-state-by-id [{:keys [spec]} id]
     (-> (q/select-registration-state-by-id {:id id} {:connection spec})
         first

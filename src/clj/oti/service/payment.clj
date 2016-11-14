@@ -5,7 +5,8 @@
             [org.httpkit.client :as http]
             [clojure.string :as str]
             [oti.service.user-data :as user-data]
-            [oti.service.registration :as registration])
+            [oti.service.registration :as registration]
+            [oti.util.logging.audit :as audit])
   (:import [java.time LocalDateTime]
            [java.net URLEncoder URLDecoder]))
 
@@ -31,6 +32,15 @@
 
 (defn confirm-payment! [config form-data]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)
+    (audit/log :app :participant
+               :who "SYSTEM"
+               :on :payment
+               :op :update
+               :before {:order-number (:ORDNR form-data)
+                        :state "UNPAID"}
+               :after {:order-number (:ORDNR form-data)
+                       :state "OK"}
+               :msg "Payment has been confirmed.")
     (try
       (send-confirmation-email! config form-data)
       (catch Throwable t
@@ -39,9 +49,31 @@
 
 (defn cancel-payment! [config form-data]
   (when (process-response! config form-data dba/cancel-registration-and-payment!)
+    (audit/log :app :participant
+               :who "SYSTEM"
+               :on :payment
+               :op :update
+               :before {:order-number (:ORDNR form-data)
+                        :state "UNPAID"}
+               :after {:order-number (:ORDNR form-data)
+                       :state "ERROR"}
+               :msg "Payment has been cancelled.")
     :cancelled))
 
-(defn- check-and-process-unpaid-payment! [{:keys [db vetuma-payment] :as config} {:keys [paym_call_id created order_number]} delete-limit-minutes]
+(defn- cancel-payment-by-order-number! [db {:keys [state order_number]}]
+  (audit/log :app :participant
+             :who "SYSTEM"
+             :on :payment
+             :op :update
+             :before {:order-number order_number
+                      :state state}
+             :after {:order-number order_number
+                     :state "ERROR"}
+             :msg "Payment has been cancelled.")
+  (dba/cancel-registration-and-unknown-payment! db order_number)
+  :cancelled)
+
+(defn- check-payment-from-vetuma! [{:keys [vetuma-payment]} paym_call_id]
   (let [params {:timestamp (LocalDateTime/now)
                 :payment-id paym_call_id}
         {:oti.spec/keys [uri payment-query-params]} (payment-util/payment-query-data vetuma-payment params)
@@ -61,9 +93,7 @@
                                                                       (let [[k v] (str/split kv #"=")]
                                                                         [(keyword k)
                                                                          (URLDecoder/decode (or v "") "ISO-8859-1")])))
-                                                               (into {}))
-            deletion-limit (-> (LocalDateTime/now) (.minusMinutes delete-limit-minutes))
-            delete? (-> (.toLocalDateTime created) (.isBefore deletion-limit))]
+                                                               (into {}))]
         (cond
           (not= "SUCCESSFUL" STATUS)
           (error "Payment query response has error status. Response data:" payment-data)
@@ -72,20 +102,24 @@
           (error "Could not verify MAC for payment query response:" form-data)
 
           (= PAYM_STATUS "OK_VERIFIED")
-          (confirm-payment! config payment-data)
+          {:status :confirmed :data payment-data}
 
           (= PAYM_STATUS "CANCELLED_OR_REJECTED")
-          (do (dba/cancel-registration-and-unknown-payment! db order_number)
-              :cancelled)
-
-          delete?
-          (do (dba/cancel-registration-and-unknown-payment! db order_number)
-              :expired)
+          {:status :cancelled :data payment-data}
 
           :else
-          (do (info "Payment" order_number "remains unverified, will check again")
-              :unpaid)))
+          {:status :unknown :data payment-data}))
       (error "Querying for payment" paym_call_id "resulted in HTTP error status" status))))
+
+(defn- check-and-process-unpaid-payment! [{:keys [db] :as config} {:keys [paym_call_id created order_number] :as pmt} delete-limit-minutes]
+  (let [{:keys [status data]} (check-payment-from-vetuma! config paym_call_id)
+        deletion-limit (-> (LocalDateTime/now) (.minusMinutes delete-limit-minutes))
+        delete? (-> (.toLocalDateTime created) (.isBefore deletion-limit))]
+    (condp = status
+      :confirmed (confirm-payment! config data)
+      :cancelled (cancel-payment-by-order-number! db pmt)
+      :unknown   (if delete? (do (cancel-payment-by-order-number! db pmt) :expired))
+      :else      (do (info "Payment" order_number "remains unverified, will check again") :unpaid))))
 
 (defn process-unpaid-payments-of-participant!
   "Returns a map of results of processing the participant's unpaid payments
@@ -110,4 +144,13 @@
       (info "Checking" (count payments) "unpaid payments")
       (doseq [pmt payments]
         (check-and-process-unpaid-payment! config pmt 30))
+      (info "Payments checked."))))
+
+(defn check-and-process-cc-payments! [{:keys [db] :as config}]
+  (let [payments (dba/paid-credit-card-payments db)]
+    (when (pos? (count payments))
+      (info "Checking" (count payments) "credit card payments")
+      (doseq [{:keys [paym_call_id] :as pmt} payments]
+        (when (= (:status (check-payment-from-vetuma! config paym_call_id)) :cancelled)
+          (cancel-payment-by-order-number! db pmt)))
       (info "Payments checked."))))

@@ -295,19 +295,25 @@ WHERE registration.id = p.registration_id  AND p.order_number = :order-number;
 SELECT nextval('payment_order_number_seq');
 
 -- name: select-unpaid-payments
-SELECT id, paym_call_id, order_number, created FROM payment WHERE state = 'UNPAID'::payment_state;
+SELECT id, paym_call_id, order_number, created, state FROM payment WHERE state = 'UNPAID'::payment_state;
 
 -- name: select-unpaid-payments-by-participant
-SELECT p.id, p.paym_call_id, p.order_number, p.created, r.id as registration_id
+SELECT p.id, p.paym_call_id, p.order_number, p.created, r.id as registration_id, p.state
 FROM payment p
   JOIN registration r ON p.registration_id = r.id
   JOIN participant pp ON r.participant_id = pp.id
 WHERE p.state = 'UNPAID'::payment_state AND pp.ext_reference_id = :external-user-id;
 
 -- name: select-unpaid-payment-by-registration-id
-SELECT p.id, p.paym_call_id, p.order_number, p.created, p.amount, p.reference
+SELECT p.id, p.paym_call_id, p.order_number, p.created, p.amount, p.reference, p.state
 FROM payment p
 WHERE p.state = 'UNPAID'::payment_state AND p.registration_id = :registration-id;
+
+-- name: select-credit-card-payments
+SELECT id, paym_call_id, order_number, created, state FROM payment
+WHERE state = 'OK'::payment_state
+      AND created >= (SELECT current_date - interval '60 days')
+      AND payment_method LIKE 'L%';
 
 -- EMAIL
 
