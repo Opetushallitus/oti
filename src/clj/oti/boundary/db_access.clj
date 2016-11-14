@@ -147,18 +147,20 @@
       (zipmap new-keys vals))))
 
 (defn- participant-scores-and-accreditations-by-exam-session [{:keys [spec]} exam-sessions exam-session-id]
-  (->> (map :participant_ext_reference exam-sessions)
-       (map (fn [p-ext]
-              (let [scores (->> (q/select-participant-scores-by-ext-reference {:ext-reference-id p-ext}
-                                                                              {:connection spec})
-                                (filter #(= (:exam_session_id %) exam-session-id))
-                                (map snake-keys))
-                    p-data (q/select-participant {:external-user-id p-ext} {:connection spec})
-                    accreditations (accreditations-from-participant-data-by-exam-session exam-session-id p-data)]
-                {:id (:id (first p-data))
-                 :ext-reference-id (:ext_reference_id (first p-data))
-                 :scores scores
-                 :accreditations accreditations})))))
+  (let [ext-ids (map :participant_ext_reference exam-sessions)
+        scores-by-id (->> (q/select-participant-scores-by-ext-reference {:ext-reference-ids ext-ids
+                                                                         :exam-session-id exam-session-id}
+                                                                        {:connection spec})
+                          (map snake-keys)
+                          (group-by :participant-ext-reference-id))]
+    (->> (map :participant_ext_reference exam-sessions)
+         (map (fn [p-ext]
+                (let [p-data (q/select-participant {:external-user-id p-ext} {:connection spec})
+                      accreditations (accreditations-from-participant-data-by-exam-session exam-session-id p-data)]
+                  {:id (:id (first p-data))
+                   :ext-reference-id (:ext_reference_id (first p-data))
+                   :scores (get scores-by-id p-ext)
+                   :accreditations accreditations}))))))
 
 
 (defprotocol DbAccess

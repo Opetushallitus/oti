@@ -202,7 +202,7 @@ WHERE ext_reference_id = :external-user-id AND lang = 'fi'
 ORDER BY id;
 
 -- name: select-participant-scores-by-ext-reference
-SELECT DISTINCT es.id AS exam_session_id,
+SELECT es.id AS exam_session_id,
        s.id AS section_id,
        ss.id AS section_score_id,
        ss.accepted AS section_score_accepted,
@@ -210,18 +210,20 @@ SELECT DISTINCT es.id AS exam_session_id,
        ms.id AS module_score_id,
        ms.accepted AS module_score_accepted,
        ms.points AS module_score_points,
-       (SELECT :ext-reference-id) AS participant_ext_reference_id,
+       p.ext_reference_id AS participant_ext_reference_id,
        ss.participant_id AS participant_id,
        ss.evaluator AS section_score_evaluator,
        ms.evaluator AS module_score_evaluator
 FROM exam_session es
-JOIN section_score ss ON ss.exam_session_id = es.id
-JOIN section s ON s.id = ss.section_id
-JOIN section_translation st ON st.section_id = s.id
-LEFT JOIN module_score ms ON ms.section_score_id = ss.id
-LEFT JOIN module m ON m.id = ms.module_id
-LEFT JOIN module_translation mt ON mt.module_id = m.id
-WHERE st.language_code = 'fi' AND ss.participant_id = (SELECT id FROM participant WHERE ext_reference_id = :ext-reference-id);
+  JOIN section_score ss ON ss.exam_session_id = es.id
+  JOIN participant p ON ss.participant_id = p.id
+  JOIN section s ON s.id = ss.section_id
+  JOIN section_translation st ON st.section_id = s.id
+  LEFT JOIN module_score ms ON ms.section_score_id = ss.id
+  LEFT JOIN module m ON m.id = ms.module_id
+  LEFT JOIN module_translation mt ON mt.module_id = m.id
+WHERE es.id = :exam-session-id AND st.language_code = 'fi' AND p.ext_reference_id IN (:ext-reference-ids)
+ORDER BY ext_reference_id;
 
 -- name: select-all-participants
 SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
