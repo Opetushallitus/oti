@@ -52,6 +52,11 @@
         protocol (.-protocol location)]
     (str protocol "//" host (routing/ext-route "/ilmoittautumiset/" id "?token=" token))))
 
+(defn- copy-to-clipboard []
+  (let [elem (.getElementById js/document "ext-list-link")]
+    (.select elem)
+    (.execCommand js/document "copy")))
+
 (defn- panel [exam-sessions pre-selected-session-id]
   (let [session-id (r/atom pre-selected-session-id)
         registration-data (re-frame/subscribe [:registrations])]
@@ -82,7 +87,11 @@
         (if-let [token (get-in @registration-data [@session-id :access-token])]
           [:div.ext-link
            [:h4 "Linkki ilmoittautumislistan tarkastelua varten ilman kirjautumista"]
-           [:a {:href (ext-link @session-id token)} (ext-link @session-id token)]
+           [:div.link-input
+            [:div.copy-button
+             [:button {:on-click copy-to-clipboard} "Kopioi leikepöydälle"]]
+            [:div.link-text
+             [:input {:id "ext-list-link" :type "text" :value (ext-link @session-id token) :read-only true}]]]
            [:p "Linkki on voimassa seitsemän päivää koetilaisuudesta."]]
           [:button.ext-link
            {:on-click #(re-frame/dispatch [:generate-registrations-access-token @session-id])}
