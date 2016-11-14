@@ -217,12 +217,6 @@ table {
 .reporting {
   margin-top: 3em;
 }
-.reporting input,
-.reporting button,
-.reporting select {
-  height: 38px;
-  vertical-align: top;
-}
 .reporting .month-option {
   width: 200px;
 }
@@ -686,11 +680,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 .search .diploma-printing input {
   width: 300px;
-}
-.search .diploma-printing input,
-.search .diploma-printing button {
-  height: 38px;
-  vertical-align: top;
 }
 .participant-details span {
   display: inline-block;
