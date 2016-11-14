@@ -146,7 +146,7 @@
     (when (and (seq vals) (seq keys))
       (zipmap new-keys vals))))
 
-(defn- participant-scores-and-accreditations-by-exam-session [{:keys [spec] :as db} exam-sessions exam-session-id]
+(defn- participant-scores-and-accreditations-by-exam-session [{:keys [spec]} exam-sessions exam-session-id]
   (->> (map :participant_ext_reference exam-sessions)
        (map (fn [p-ext]
               (let [scores (->> (q/select-participant-scores-by-ext-reference {:ext-reference-id p-ext}

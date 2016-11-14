@@ -140,9 +140,11 @@ SELECT es.id AS exam_session_id,
        est.other_location_info AS exam_session_other_location_info
 FROM exam_session es
 JOIN exam_session_translation est ON es.id = est.exam_session_id
-LEFT JOIN registration r ON es.id = r.exam_session_id
-LEFT JOIN participant p ON r.participant_id = p.id
-WHERE est.language_code = :lang;
+JOIN registration r ON es.id = r.exam_session_id
+JOIN participant p ON r.participant_id = p.id
+WHERE est.language_code = :lang
+AND es.session_date <= current_date
+ORDER BY es.id;
 
 -- name: select-modules-available-for-user
 SELECT
