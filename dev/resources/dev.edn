@@ -16,4 +16,5 @@
                    :ap "TESTIASIAKAS1"
                    :rcvid "TESTIASIAKAS11"}
   :url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
+               :tunnistus-host "tunnistus-testi.opintopolku.fi"
                :oti-host "http://localhost:3000"}}}

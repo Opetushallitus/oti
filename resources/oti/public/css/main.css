@@ -303,6 +303,11 @@ table {
     display: inline-block;
   }
 }
+.authentication .dummy-auth {
+  margin-top: 40px;
+  padding: 5px 10px 15px 10px;
+  background-color: #ecedf1;
+}
 .authentication .automatic-address input {
   margin-right: 5px;
 }

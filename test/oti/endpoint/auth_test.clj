@@ -33,7 +33,8 @@
             (= ticket ticket-for-wrong-user) invalid-user))))
 
 (def url-helper (->> (uh/url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
-                                :oti-host "http://localhost:3000"})
+                                     :oti-host "http://localhost:3000"
+                                     :tunnistus-host "tunnistus-testi.opintopolku.fi"})
                      (component/start)))
 
 (def path

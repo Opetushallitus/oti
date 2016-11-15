@@ -13,7 +13,8 @@
             [oti.service.payment :as payment]
             [oti.spec :as os]
             [clojure.spec :as s]
-            [oti.util.request :as req]))
+            [oti.util.request :as req]
+            [oti.component.url-helper :refer [url]]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -103,10 +104,25 @@
                                           address)})))
     {:status 400 :body {:error "Missing callback uri"}}))
 
+(defn- redirect-response [lang]
+  (redirect (if (= lang "sv")
+              "/oti/anmala"
+              "/oti/ilmoittaudu")))
+
+(defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers] :as request}]
+  (info "Authentication request received")
+  (info headers)
+  (info query-params)
+  (response {:request-map request}))
+
+(defn- init-authentication [{:keys [url-helper]} lang]
+  (let [url-key (if (and lang (= "sv" lang))
+                  "tunnistus.url.sv"
+                  "tunnistus.url.fi")]
+    (redirect (url url-helper url-key))))
+
 (defn- abort [lang]
-  (-> (redirect (if (= lang "fi")
-                  "/oti/ilmoittaudu"
-                  "/oti/anmala"))
+  (-> (redirect-response lang)
       (assoc :session {})))
 
 (defn- translations [{:keys [localisation]} lang]
@@ -137,11 +153,13 @@
 (defn participant-endpoint [config]
   (routes
     (GET "/oti/abort" [lang] (abort lang))
+    (GET "/oti/initsession" request (header-authentication config request))
     (context routing/participant-api-root []
       (GET "/translations"         [lang] (translations config lang))
       (GET "/translations/refresh" []     (refresh-translations config))
+      (GET "/authenticate"         [lang] (init-authentication config lang))
       ;; FIXME: This is a dummy route
-      (GET "/authenticate"         [callback hetu automatic-address] (authenticate config callback hetu automatic-address))
+      (GET "/dummy-authenticate"   [callback hetu automatic-address] (authenticate config callback hetu automatic-address))
       (GET "/exam-sessions"        []         (exam-sessions config))
       (-> (context "/authenticated" {session :session}
            (GET "/participant-data"     []      (participant-data config session))

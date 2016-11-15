@@ -23,4 +23,5 @@
                    :ap "{{oti_vetuma_shared_ap}}"
                    :rcvid "{{oti_vetuma_shared_rcvid}}"}
   :url-helper {:virkailija-host "{{host_virkailija}}"
+               :tunnistus-host "{{host_tunnistus}}"
                :oti-host "{{oti_host}}"}}}
