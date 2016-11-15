@@ -5,7 +5,8 @@
     :applied   ^:replace [:not-found :restful-format :ring-defaults :stacktrace :session]
     :arguments {:session {:key "soroRfgsbxRTsnXc" :cookie-attrs {:max-age 28800
                                                                  :http-only true
-                                                                 :secure false}}}}}
+                                                                 :secure false
+                                                                 :path "/oti"}}}}}
   :http {:port 3000}
   :db {:uri "jdbc:postgresql://localhost/oti"}
   :localisation {:default-parameters {:category "oti"}}

@@ -1,8 +1,11 @@
 ; Configuration template for remote deployments
 {:config
- {:app {:middleware {:arguments {:session {:key "{{oti_session_cookie_key}}" :cookie-attrs {:max-age 28800
-                                                                                            :http-only true
-                                                                                            :secure true}}}}}
+ {:app {:middleware {:arguments {:session {:key "{{oti_session_cookie_key}}"
+                                           :cookie-attrs {:max-age 28800
+                                                          :http-only true
+                                                          :secure true
+                                                          :domain "{{oti_cookie_domain}}"
+                                                          :path "/oti"}}}}}
   :db {:uri "{{oti_db_uri}}"
        :username "{{oti_db_username}}"
        :password "{{oti_db_password}}"
