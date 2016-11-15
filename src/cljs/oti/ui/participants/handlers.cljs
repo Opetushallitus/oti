@@ -86,3 +86,14 @@
                                                           (assoc result :filter :diploma-delivered)
                                                           result))
                                                       %))}))
+
+(re-frame/reg-event-fx
+  :confirm-payment
+  [re-frame/trim-v]
+  (fn [_ [order-number participant-id lang]]
+    {:http-xhrio {:method          :put
+                  :uri             (routing/v-a-route "/payment/" order-number "/approve?lang=" lang)
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:load-participant-details participant-id]
+                  :on-failure      [:bad-response]}}))

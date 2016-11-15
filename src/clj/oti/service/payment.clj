@@ -32,7 +32,7 @@
 
 (defn confirm-payment! [config form-data]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)
-    (audit/log :app :participant
+    (audit/log :app :admin
                :who "SYSTEM"
                :on :payment
                :op :update
@@ -49,7 +49,7 @@
 
 (defn cancel-payment! [config form-data]
   (when (process-response! config form-data dba/cancel-registration-and-payment!)
-    (audit/log :app :participant
+    (audit/log :app :admin
                :who "SYSTEM"
                :on :payment
                :op :update
@@ -61,7 +61,7 @@
     :cancelled))
 
 (defn- cancel-payment-by-order-number! [db {:keys [state order_number]}]
-  (audit/log :app :participant
+  (audit/log :app :admin
              :who "SYSTEM"
              :on :payment
              :op :update
@@ -70,7 +70,7 @@
              :after {:order-number order_number
                      :state "ERROR"}
              :msg "Payment has been cancelled.")
-  (dba/cancel-registration-and-unknown-payment! db order_number)
+  (dba/cancel-registration-and-payment! db {:order-number order_number})
   :cancelled)
 
 (defn- check-payment-from-vetuma! [{:keys [vetuma-payment]} paym_call_id]
@@ -118,8 +118,10 @@
     (condp = status
       :confirmed (confirm-payment! config data)
       :cancelled (cancel-payment-by-order-number! db pmt)
-      :unknown   (if delete? (do (cancel-payment-by-order-number! db pmt) :expired))
-      :else      (do (info "Payment" order_number "remains unverified, will check again") :unpaid))))
+      :unknown   (if delete?
+                   (do (cancel-payment-by-order-number! db pmt) :expired)
+                   (do (info "Payment" order_number "remains unverified, will check again") :unpaid))
+      :else      (error "Payment" order_number "could not be checked"))))
 
 (defn process-unpaid-payments-of-participant!
   "Returns a map of results of processing the participant's unpaid payments
@@ -150,7 +152,32 @@
   (let [payments (dba/paid-credit-card-payments db)]
     (when (pos? (count payments))
       (info "Checking" (count payments) "credit card payments")
-      (doseq [{:keys [paym_call_id] :as pmt} payments]
+      (doseq [{:keys [paym_call_id order_number state]} payments]
         (when (= (:status (check-payment-from-vetuma! config paym_call_id)) :cancelled)
-          (cancel-payment-by-order-number! db pmt)))
+          (audit/log :app :admin
+                     :who "SYSTEM"
+                     :on :payment
+                     :op :update
+                     :before {:order-number order_number
+                              :state state}
+                     :after {:order-number order_number
+                             :state "ERROR"}
+                     :msg "Payment has been cancelled and related registration set as incomplete.")
+          (dba/cancel-payment-set-reg-incomplete! db {:order-number order_number})))
       (info "Payments checked."))))
+
+(defn confirm-payment-manually! [{:keys [db] :as config} order-number user-lang {{authority :username} :identity}]
+  {:pre [order-number user-lang]}
+  (audit/log :app :admin
+             :who authority
+             :on :payment
+             :op :update
+             :before {:order-number order-number
+                      :state "ERROR"}
+             :after {:order-number order-number
+                     :state "OK"}
+             :msg "Payment and related registration has been approved.")
+  (when (= 1 (dba/confirm-registration-and-payment! db {:order-number order-number}))
+    (some->> (user-data/participant-data config order-number user-lang)
+             (registration/send-confirmation-email! config user-lang))
+    true))

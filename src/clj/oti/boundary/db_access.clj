@@ -116,8 +116,9 @@
 
 (defn- update-payment-and-registration-state! [spec params payment-state registration-state]
   (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-    (q/update-payment! (assoc params :state payment-state) {:connection tx})
-    (q/update-registration-state-by-payment-order! (assoc params :state registration-state) {:connection tx})))
+    (let [q-fn (if (:pay-id params) q/update-payment! q/update-payment-state!)]
+      (q-fn (assoc params :state payment-state) {:connection tx})
+      (q/update-registration-state-by-payment-order! (assoc params :state registration-state) {:connection tx}))))
 
 (defprotocol DbAccess
   (exam-sessions [db start-date end-date])
@@ -138,7 +139,7 @@
   (all-participants [db])
   (confirm-registration-and-payment! [db params])
   (cancel-registration-and-payment! [db params])
-  (cancel-registration-and-unknown-payment! [db order-number])
+  (cancel-payment-set-reg-incomplete! [db params])
   (next-order-number! [db])
   (unpaid-payments [db])
   (unpaid-payments-by-participant [db external-user-id])
@@ -229,12 +230,8 @@
     (update-payment-and-registration-state! spec params "OK" "OK"))
   (cancel-registration-and-payment! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params "ERROR" "ERROR"))
-  (cancel-registration-and-unknown-payment! [{:keys [spec]} order-number]
-    (let [params {:order-number order-number
-                  :state "ERROR"}]
-      (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-        (q/update-payment-state! params {:connection tx})
-        (q/update-registration-state-by-payment-order! params {:connection tx}))))
+  (cancel-payment-set-reg-incomplete! [{:keys [spec]} params]
+    (update-payment-and-registration-state! spec params "ERROR" "INCOMPLETE"))
   (next-order-number! [{:keys [spec]}]
     (-> (q/select-next-order-number-suffix {} {:connection spec})
         first

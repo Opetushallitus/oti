@@ -16,7 +16,8 @@
             [oti.util.request :as req]
             [compojure.coercions :refer [as-int]]
             [oti.utils :as utils]
-            [oti.service.diploma :as diploma])
+            [oti.service.diploma :as diploma]
+            [oti.service.payment :as payment])
   (:import [java.time LocalDate Instant LocalDateTime ZoneId]
            [java.security SecureRandom]
            [org.apache.commons.codec.digest DigestUtils]))
@@ -155,16 +156,20 @@
 
 (defn- participant-routes [config]
   (routes
-   (GET "/participant-search" [q filter] (search-participant config q filter))
-   (context "/diplomas" []
+    (GET "/participant-search" [q filter] (search-participant config q filter))
+    (context "/diplomas" []
      (PUT "/" [] (partial generate-diplomas! config))
      (GET "/count" [start-date end-date] (diploma-count config start-date end-date)))
-   (context "/participant/:id{[0-9]+}" [id :<< as-int]
+    (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))
      (POST "/accreditations" {params :body-params session :session :as request}
        (try (accreditation/approve-accreditations! config id params session)
             (catch AssertionError _
-              {:status 400 :body {:error "Invalid parameters"}}))))))
+              {:status 400 :body {:error "Invalid parameters"}}))))
+    (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]
+      (if (payment/confirm-payment-manually! config order-number lang session)
+        (response {:success true})
+        {:status 404 :body {:error "Payment not found"}}))))
 
 (defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []

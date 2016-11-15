@@ -25,7 +25,7 @@
   :ragtime [:db]
   :status [:db]
   :auth [:cas :ldap :url-helper]
-  :virkailija [:db :api-client :localisation]
+  :virkailija [:db :api-client :localisation :email-service]
   :frontend [:url-helper]
   :localisation [:url-helper]
   :email-service [:url-helper]

@@ -49,7 +49,7 @@
            [:td.date
             (when (not= "OK" registration-state)
               [:i.icon-attention {:class (if (= "INCOMPLETE" registration-state) "warn" "error")
-                                  :title (if (= "INCOMPLETE" registration-state) "Ilmoittautuminen kesken" "Ilmoittautuminen peruuntunut")}])
+                                  :title (if (= "INCOMPLETE" registration-state) "Ilmoittautuminen maksamatta" "Ilmoittautuminen peruutettu")}])
             [:span (str (unparse-date session-date) " " start-time " - " end-time)]]
            [:td.location (str city ", " street-address)]
            [:td.section-result (exam-label score-ts accepted?)]
@@ -57,7 +57,7 @@
              [:td.score {:key id :title name} (or (get-in modules [id :points]) "\u2014")])]))]]
     [:div "Ei ilmoittautumisia"]))
 
-(defn payment-section [payments]
+(defn payment-section [payments participant-id language]
   [:div.section.payments
    [:h3 "Maksutiedot"]
    (if (seq payments)
@@ -66,14 +66,20 @@
        [:tr
         [:th "Maksupäivä"]
         [:th "Summa"]
-        [:th "Maksun tila"]]]
+        [:th "Maksun tila"]
+        [:th "Toiminnot"]]]
       [:tbody
        (doall
-         (for [{:keys [id created amount state]} payments]
+         (for [{:keys [id created amount state order-number]} payments]
            [:tr {:key id}
             [:td (unparse-date created)]
             [:td (format-price amount)]
-            [:td (format-state state)]]))]]
+            [:td (format-state state)]
+            [:td
+             (when (= state "ERROR")
+               [:button.button-small
+                {:on-click #(re-frame/dispatch [:confirm-payment order-number participant-id language])}
+                "Merkitse maksetuksi"])]]))]]
      [:div "Ei maksutietoja"])])
 
 (defn accreditation-map [accreditation-types items]
@@ -142,7 +148,7 @@
     (str registration-street-address ", " registration-zip " " registration-post-office)))
 
 (defn participant-main-component [participant-data initial-form-data accreditation-types]
-  (let [{:keys [id etunimet sukunimi hetu email sections payments address]} participant-data
+  (let [{:keys [id etunimet sukunimi hetu email sections payments address language]} participant-data
         form-data (r/atom initial-form-data)]
     (fn [participant-data initial-form-data]
       [:div.participant-details
@@ -161,7 +167,7 @@
          [:span.label "Sähköpostiosoite"]
          [:span.value email]]]
        [participation-section sections accreditation-types form-data]
-       [payment-section payments]
+       [payment-section payments id language]
        [:div.buttons
         [:div.left
          [:button {:on-click #(-> js/window .-history .back)} "Peruuta"]]
