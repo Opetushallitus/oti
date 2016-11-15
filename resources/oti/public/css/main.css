@@ -982,6 +982,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 .scoring-form .modules .module .module-points-input input {
   margin-right: 20px;
+  width: 100px;
 }
 .button-bar {
   margin-top: 30px;
