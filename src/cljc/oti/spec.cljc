@@ -15,6 +15,9 @@
 
 (s/def ::time (s/and string? #(re-matches time-regexp %)))
 
+(s/def ::boolean #?(:clj #(instance? Boolean %)
+                    :cljs #(= (type %) js/Boolean)))
+
 (defn date-conformer [x]
   #?(:clj (cond
             (instance? java.time.LocalDate x)
@@ -242,3 +245,75 @@
 (s/def ::diploma-data (s/keys :req [::participant-ids
                                     ::signer
                                     ::signer-title]))
+
+(s/def ::module-score-id ::id)
+(s/def ::module-id ::id)
+(s/def ::module-score-points (s/nilable number?))
+(s/def ::module-score-accepted (s/nilable boolean?))
+
+(s/def ::module-score (s/keys :req [::module-score-id
+                                    ::module-id
+                                    ::module-score-points
+                                    ::module-score-accepted]))
+(s/def ::section-score-id ::id)
+(s/def ::section-id ::id)
+(s/def ::section-score-accepted ::boolean)
+(s/def ::exam-session-id ::id)
+(s/def ::ext-reference-id ::non-blank-string)
+(s/def ::participant-id ::id)
+
+(s/def ::section-score (s/keys :req [::section-score-id
+                                     ::section-id
+                                     ::section-score-accepted
+                                     ::exam-session-id
+                                     ::participant-id
+                                     ::ext-reference-id]))
+
+(s/def ::section-accreditation-date (s/nilable date-time?))
+(s/def ::module-accreditation-date (s/nilable date-time?))
+
+(s/def ::module-accreditation (s/keys :req [::section-id
+                                            ::section-accreditation-date
+                                            ::module-id
+                                            ::module-accreditation-date]))
+
+(s/def ::module-accreditation-conformer
+  (s/conformer (fn [{:keys [section_accreditation
+                            section_accreditation_date
+                            module_accreditation
+                            module_accreditation_date]}]
+                 (let [module-accreditation {::section-id section_accreditation
+                                             ::section-accreditation-date section_accreditation_date
+                                             ::module-id module_accreditation
+                                             ::module-accreditation-date module_accreditation_date}]
+                   (if (s/valid? ::module-accreditation module-accreditation)
+                     module-accreditation
+                     ::s/invalid)))))
+
+(s/def ::module-score-conformer
+  (s/conformer (fn [{:keys [module_score_id module_id module_score_points
+                            module_score_accepted]}]
+                 (let [module-score {::module-score-id module_score_id
+                                     ::module-id module_id
+                                     ::module-score-points module_score_points
+                                     ::module-score-accepted module_score_accepted}]
+                   (if (s/valid? ::module-score module-score)
+                     module-score
+                     ::s/invalid)))))
+
+(s/def ::section-score-conformer
+  (s/conformer (fn [{:keys [section_score_id
+                            section_id
+                            section_score_accepted
+                            exam_session_id
+                            id
+                            ext_reference_id]}]
+                 (let [section-score {::section-score-id section_score_id
+                                      ::section-id section_id
+                                      ::section-score-accepted section_score_accepted
+                                      ::exam-session-id exam_session_id
+                                      ::participant-id id
+                                      ::ext-reference-id ext_reference_id}]
+                   (if (s/valid? ::section-score section-score)
+                     section-score
+                     ::s/invalid)))))
