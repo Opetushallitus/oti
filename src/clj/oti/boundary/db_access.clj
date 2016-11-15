@@ -162,7 +162,6 @@
                    :scores (get scores-by-id p-ext)
                    :accreditations accreditations}))))))
 
-
 (defprotocol DbAccess
   (exam-sessions [db start-date end-date])
   (add-exam-session! [db exam-session])
@@ -245,8 +244,8 @@
                                  exam_session_other_location_info]} (first exam-sessions)]
                      {:id es-id
                       :date exam_session_date
-                      :start-time exam_session_start_time
-                      :end-time exam_session_end_time
+                      :start-time (str (.toLocalTime exam_session_start_time))
+                      :end-time (str (.toLocalTime exam_session_end_time))
                       :max-participants exam_session_max_participants
                       :published exam_session_published
                       :street-address exam_session_street_address
