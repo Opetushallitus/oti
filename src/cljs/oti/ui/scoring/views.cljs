@@ -28,12 +28,12 @@
 (defn- module-accreditation-date [m fd]
   (accreditation-date :module m fd))
 
-(defn assoc-when [pred map & keys]
+(defn- assoc-when [pred map & keys]
   (if pred
     (apply (partial assoc map) keys)
     map))
 
-(defn personal-details [selected-participant-id participants exam-sessions]
+(defn personal-details [selected-exam-session-id selected-participant-id participants exam-sessions]
   [:div.personal-details
    [:h3 "Henkilötiedot"]
    (when (seq participants)
@@ -53,11 +53,13 @@
    (when (seq exam-sessions)
      [:div.personal-details-group
       [:label "Tutkintotapahtuma"]
-      [:select {:on-change (fn [e]
-                             (when-let [id (try
-                                             (js/parseInt (.. e -target -value))
-                                             (catch js/Error _))]
-                               (rf/dispatch [:select-exam-session id])))}
+      [:select (assoc-when (not (nil? selected-exam-session-id))
+                           {:on-change (fn [e]
+                                         (when-let [id (try
+                                                         (js/parseInt (.. e -target -value))
+                                                         (catch js/Error _))]
+                                           (rf/dispatch [:select-exam-session id])))}
+                           :value selected-exam-session-id)
        (doall
         (for [{:keys [id
                       street-address
@@ -68,7 +70,10 @@
                       end-time]} exam-sessions]
           [:option {:value id :key id}
            (str (unparse-date date) " " start-time " - " end-time " "
-                (:fi city) ", " (:fi street-address) ", " (:fi other-location-info))]))]])])
+                (:fi city) ", " (:fi street-address) ", " (:fi other-location-info))]))]])
+   [:div.personal-details-group
+    [:div.attendance
+     [:input {:type "checkbox"}] [:label "Ei osallistunut kokeeseen"]]]])
 
 (defn radio [{:keys [name value checked on-change]} text]
   [:div.radio
@@ -116,7 +121,7 @@
      (when (:points? m)
        [module-points-input m form-data])]
     [:div.module
-     [:label (str (:name m) " korvaavuus myönnetty " (module-accreditation-date m form-data))]]))
+     [:label (str (:name m) ", korvaavuus myönnetty " (unparse-date (module-accreditation-date m form-data)))]]))
 
 (defn modules [section form-data]
   [:div.modules
@@ -131,7 +136,7 @@
      [accepted-radio :section section form-data]
      [modules section form-data]]
     [:div.section
-     [:h3 (str "OSIO " (:name section) " korvaavuus myönnetty " (section-accreditation-date section form-data))]]))
+     [:h3 (str "OSIO " (:name section) ", korvaavuus myönnetty " (unparse-date (section-accreditation-date section form-data)))]]))
 
 (defn sections [exam form-data]
   [:div.sections
@@ -177,19 +182,27 @@
       :primary true
       :disabled (not changes?)]]))
 
-(defn scoring-panel []
+(defn scoring-panel [pre-selected-exam-session]
   (rf/dispatch [:load-exam])
   (rf/dispatch [:load-exam-sessions-full])
+  (rf/dispatch [:select-exam-session pre-selected-exam-session])
   (let [exam                  (rf/subscribe [:exam])
         exam-sessions         (rf/subscribe [:exam-sessions-full])
         selected-exam-session (rf/subscribe [:selected-exam-session])
         participants          (rf/subscribe [:participants] [selected-exam-session])
         selected-participant  (rf/subscribe [:selected-participant] [selected-exam-session])
-        participant           (rf/subscribe [:participant] [selected-exam-session selected-participant])
         form-data             (rf/subscribe [:scoring-form-data] [selected-exam-session selected-participant])
         initial-form-data     (rf/subscribe [:initial-form-data] [selected-exam-session selected-participant])]
     (fn []
-      [:div.scoring-panel
-       [personal-details @selected-participant @participants @exam-sessions]
-       [scoring-form @exam @form-data]
-       [button-bar @form-data @initial-form-data @participants]])))
+      (if (seq @exam-sessions)
+        [:div.scoring-panel
+         [personal-details @selected-exam-session
+                           @selected-participant
+                           @participants
+                           @exam-sessions]
+         [scoring-form @exam @form-data]
+         [button-bar @form-data @initial-form-data @participants]]
+        (if (not (nil? @exam-sessions))
+          [:div.scoring-panel
+           [:h1 "Ei arvioitavia tutkintotapahtumia"]]
+          [:div.scoring-panel])))))

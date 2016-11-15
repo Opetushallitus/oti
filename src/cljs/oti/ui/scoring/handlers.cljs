@@ -108,13 +108,15 @@
  :select-exam-session
  [trim-v]
  (fn [db [id]]
-   (rf/dispatch [:select-participant (->> (get-in db [:scoring :exam-sessions])
-                                          (filter #(= (:id %) id))
-                                          first
-                                          :participants
-                                          first
-                                          :id)])
-   (assoc-in db [:scoring :selected-exam-session] id)))
+   (if id
+     (do (rf/dispatch [:select-participant (->> (get-in db [:scoring :exam-sessions])
+                                              (filter #(= (:id %) id))
+                                              first
+                                              :participants
+                                              first
+                                              :id)])
+         (assoc-in db [:scoring :selected-exam-session] id))
+     db)))
 
 
 (rf/reg-event-db
@@ -132,10 +134,16 @@
      (if (seq form-data) ;; Already inited
        db
        (if (seq existing-data)
-         (let [first-exam-session (-> (get-in db [:scoring :exam-sessions]) first :id)
-               first-participant (-> (get-in db [:scoring :exam-sessions]) first :participants first :id)
+         (let [pre-selected-exam-session (get-in db [:scoring :selected-exam-session])
+               exam-session (or pre-selected-exam-session (-> (get-in db [:scoring :exam-sessions]) first :id))
+               first-participant (->> (get-in db [:scoring :exam-sessions])
+                                      (filter #(= (:id %) exam-session))
+                                      first
+                                      :participants
+                                      first
+                                      :id)
                prepared-db (-> (prepare-form-data db existing-data)
-                               (assoc-in [:scoring :selected-exam-session] first-exam-session)
+                               (assoc-in [:scoring :selected-exam-session] exam-session)
                                (assoc-in [:scoring :selected-participant] first-participant))]
            (assoc-in prepared-db [:scoring :initial-form-data] (get-in prepared-db [:scoring :form-data])))
          db)))))
