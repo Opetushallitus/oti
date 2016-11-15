@@ -54,4 +54,4 @@
     (get (translations-by-lang this lang) key key)))
 
 (defn localisation [config]
-  (->Localisation config))
+  (map->Localisation config))
