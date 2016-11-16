@@ -113,7 +113,8 @@
 (def localhost-ips #{"127.0.0.1" "0:0:0:0:0:0:0:1"})
 
 (defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers remote-addr]}]
-  (info "initsession remote address: " remote-addr)
+  (info "initsession remote address:" remote-addr)
+  (info "headers:" headers)
   (if true #_(localhost-ips remote-addr)
     (let [lang (or (some-> (:lang query-params) str/lower-case) "fi")
           {:strs [vakinainenkotimainenlahiosoites
