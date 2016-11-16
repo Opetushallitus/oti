@@ -150,21 +150,28 @@
     (not-found {})))
 
 (defn- enrich-participant-data [data p-data]
-  (map (fn [exam-session]
-         (update exam-session :participants (fn [ps]
-                                              (map (fn [p]
+  (->> (map (fn [[exam-session-id exam-session]]
+              [exam-session-id (update exam-session :participants
+                                       (fn [ps]
+                                         (->> (map (fn [[p-id p]]
                                                      (if-let [api-data (get p-data (:ext-reference-id p))]
-                                                       (assoc p
-                                                         :first-names (:etunimet api-data)
-                                                         :last-name (:sukunimi api-data)
-                                                         :display-name (:kutsumanimi api-data)
-                                                         :ssn (:hetu api-data))
-                                                       p)) ps)))) data))
+                                                       [p-id (assoc p
+                                                                    :first-names (:etunimet api-data)
+                                                                    :last-name (:sukunimi api-data)
+                                                                    :display-name (:kutsumanimi api-data)
+                                                                    :ssn (:hetu api-data))]
+                                                       [p-id p])) ps)
+                                              (into {}))))]) data)
+       (into {})))
 
 (defn- exam-sessions-full [{:keys [db api-client]} lang]
-  (let [data (dba/exam-sessions-full db lang)
-        participant-data (user-data/api-user-data-by-oid api-client (map :ext-reference-id (mapcat :participants data)))
-        enriched (enrich-participant-data data participant-data)]
+  (let [scoring-data (scoring/exam-sessions-full db lang)
+        ext-references (map :ext-reference-id
+                            (mapcat (fn [[_ es]]
+                                      (-> (:participants es)
+                                          vals)) scoring-data))
+        external-data (user-data/api-user-data-by-oid api-client ext-references)
+        enriched (enrich-participant-data scoring-data external-data)]
     (response enriched)))
 
 (defn- exam-session-routes [config]

@@ -1,16 +1,19 @@
 (ns oti.service.scoring
   (:require [oti.boundary.db-access :as dba]
             [oti.util.logging.audit :as audit]
+            [clojure.spec :as s]
+            [taoensso.timbre :as log]
+            [oti.spec :as spec]
             [ring.util.response :refer [response]]))
 
-(defn- upsert-module-scores [db evaluator upserted-section [module-id {:keys [module-points
-                                                                              module-accepted] :as module}]]
+(defn- upsert-module-scores [db evaluator upserted-section [module-id {::spec/keys [module-score-points
+                                                                                    module-score-accepted] :as module}]]
   (let [old-module (dba/module-score db {:module-id module-id
                                          :section-score-id (:section-score-id upserted-section)})
         upserted-module (dba/upsert-module-score db {:evaluator evaluator
-                                                     :module-points module-points
+                                                     :module-points module-score-points
                                                      :module-id module-id
-                                                     :module-accepted (if (nil? module-accepted) true module-accepted) ;; if module-accepted is nil, assume the module isn't accepted separately and make it true
+                                                     :module-accepted (if (nil? module-score-accepted) true module-score-accepted) ;; if module-accepted is nil, assume the module isn't accepted separately and make it true
                                                      :section-score-id (:section-score-id upserted-section)})]
     (when (not= old-module upserted-module)
       (audit/log :app :admin
@@ -23,12 +26,12 @@
     (when upserted-module
       [module-id upserted-module])))
 
-(defn- upsert-section-and-module-scores [db evaluator participant-id exam-session-id [section-id {:keys [section-accepted] :as section}]]
+(defn- upsert-section-and-module-scores [db evaluator participant-id exam-session-id [section-id {::spec/keys [section-score-accepted] :as section}]]
   (let [old-section (dba/section-score db {:section-id section-id
                                            :exam-session-id exam-session-id
                                            :participant-id participant-id})
         upserted-section (dba/upsert-section-score db {:evaluator evaluator
-                                                       :section-accepted section-accepted
+                                                       :section-accepted section-score-accepted
                                                        :section-id section-id
                                                        :participant-id participant-id
                                                        :exam-session-id exam-session-id})
@@ -60,3 +63,94 @@
       (response {:scores upserted-scores})
       {:status 400
        :body {:errors [:upsert-failed]}})))
+
+(defn- as-participants [[ext-reference-id participant-data]]
+  (let [{:keys [id exam_session_id]} (first participant-data)]
+    {:ext-reference-id ext-reference-id
+     :id id
+     :exam-session-id exam_session_id
+     :data participant-data}))
+
+(defn- conforms-filter
+  "Returns distinct elements that conforms to spec."
+  [spec data]
+  (->> (map #(s/conform spec %) data)
+       (remove #(= :clojure.spec/invalid %))
+       (distinct)))
+
+(defn- section-scores [participant-data]
+  (conforms-filter ::spec/section-score-conformer participant-data))
+
+(defn- module-scores [participant-data]
+  (conforms-filter ::spec/module-score-conformer participant-data))
+
+(defn- section-accreditations [participant-data]
+  (conforms-filter ::spec/section-accreditation-conformer participant-data))
+
+(defn- module-accreditations [participant-data]
+  (conforms-filter ::spec/module-accreditation-conformer participant-data))
+
+(defn- relational-by
+  "Returns a map where key points to the data in a semi relational manner.
+  Assumes key is unique."
+  [key data]
+  (->> data
+       (group-by key)
+       (map (fn [[x y]]
+              [x (first y)]))
+       (into {})))
+
+(defn- module-scores-under-section-scores [ss ms]
+  (map (fn [s]
+         (let [module-scores (filter #(= (::spec/section-score-id s)
+                                         (::spec/section-score-id %)) ms)]
+           (assoc s :modules (relational-by ::spec/module-id module-scores)))) ss))
+
+(defn- set-scores [participant]
+  (let [section-scores (section-scores (:data participant))
+        module-scores (module-scores (:data participant))
+        merged-scores (module-scores-under-section-scores section-scores module-scores)]
+    (assoc participant :scores (relational-by ::spec/section-id merged-scores))))
+
+
+(defn- set-accreditations [participant]
+  (let [section-accreditations (section-accreditations (:data participant))
+        module-accreditations (module-accreditations (:data participant))]
+    (-> (assoc-in participant [:accreditations :sections] section-accreditations)
+        (assoc-in [:accreditations :modules] module-accreditations))))
+
+(defn- participants-by-exam-session [participant-data exam-session-id]
+  (->> (filter #(= (:exam_session_id %) exam-session-id) participant-data)
+       (group-by :ext_reference_id)
+       (map as-participants)
+       (map set-scores)
+       (map set-accreditations)
+       (map #(dissoc % :data))
+       (relational-by :id)))
+
+(defn exam-sessions-full [{:keys [spec] :as db} lang]
+  (let [exam-session-data (dba/exam-sessions-full db lang)
+        participant-ext-ids (into [] (distinct (map :participant_ext_reference exam-session-data)))
+        participant-data (dba/all-participants-by-ext-references db participant-ext-ids)]
+      (->> exam-session-data
+           (group-by :exam_session_id)
+           (mapv (fn [[es-id exam-sessions]]
+                   (let [{:keys [exam_session_date
+                                 exam_session_start_time
+                                 exam_session_end_time
+                                 exam_session_max_participants
+                                 exam_session_published
+                                 exam_session_street_address
+                                 exam_session_city
+                                 exam_session_other_location_info]} (first exam-sessions)]
+                     {:id es-id
+                      :date exam_session_date
+                      :start-time (str (.toLocalTime exam_session_start_time))
+                      :end-time (str (.toLocalTime exam_session_end_time))
+                      :max-participants exam_session_max_participants
+                      :published exam_session_published
+                      :street-address exam_session_street_address
+                      :city exam_session_city
+                      :other-location-info exam_session_other_location_info
+                      :participants (participants-by-exam-session participant-data es-id)})))
+           (relational-by :id))))

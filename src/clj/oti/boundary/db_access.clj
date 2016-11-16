@@ -3,6 +3,7 @@
             [clojure.java.jdbc :as jdbc]
             [duct.component.hikaricp]
             [oti.spec :as spec]
+            [clojure.spec :as s]
             [clojure.set :as cs]
             [clojure.string :as str]
             [taoensso.timbre :as log :refer [error]]
@@ -121,46 +122,12 @@
       (q-fn (assoc params :state payment-state) {:connection tx})
       (q/update-registration-state-by-payment-order! (assoc params :state registration-state) {:connection tx}))))
 
-(defn- accreditations-from-participant-data-by-exam-session [es-id p-data]
-  (->> p-data
-       (filter #(= (:exam_session_id %) es-id))
-       (map (fn [{:keys [section_accreditation
-                         section_accreditation_date
-                         module_accreditation
-                         module_accreditation_date]}]
-              (when (or section_accreditation
-                        section_accreditation_date
-                        module_accreditation
-                        module_accreditation_date)
-                {:section-id section_accreditation
-                 :section-accreditation-date section_accreditation_date
-                 :module-id module_accreditation
-                 :module-accreditation-date module_accreditation_date})))
-       (filter seq)
-       (distinct)))
-
 (defn- snake-keys [p]
   (let [vals (vals p)
         keys (keys p)
         new-keys (map #(-> (str/replace (name %) "_" "-") keyword) keys)]
     (when (and (seq vals) (seq keys))
       (zipmap new-keys vals))))
-
-(defn- participant-scores-and-accreditations-by-exam-session [{:keys [spec]} exam-sessions exam-session-id]
-  (let [ext-ids (map :participant_ext_reference exam-sessions)
-        scores-by-id (->> (q/select-participant-scores-by-ext-reference {:ext-reference-ids ext-ids
-                                                                         :exam-session-id exam-session-id}
-                                                                        {:connection spec})
-                          (map snake-keys)
-                          (group-by :participant-ext-reference-id))]
-    (->> (map :participant_ext_reference exam-sessions)
-         (map (fn [p-ext]
-                (let [p-data (q/select-participant {:external-user-id p-ext} {:connection spec})
-                      accreditations (accreditations-from-participant-data-by-exam-session exam-session-id p-data)]
-                  {:id (:id (first p-data))
-                   :ext-reference-id (:ext_reference_id (first p-data))
-                   :scores (get scores-by-id p-ext)
-                   :accreditations accreditations}))))))
 
 (defprotocol DbAccess
   (exam-sessions [db start-date end-date])
@@ -180,6 +147,7 @@
   (participant-by-id [db id])
   (participant-by-order-number [db order-number lang])
   (all-participants [db])
+  (all-participants-by-ext-references [db ext-references])
   (confirm-registration-and-payment! [db params])
   (cancel-registration-and-payment! [db params])
   (cancel-payment-set-reg-incomplete! [db params])
@@ -231,27 +199,7 @@
     (q/delete-exam-session! {:exam-session-id id} {:connection spec}))
 
   (exam-sessions-full [{:keys [spec] :as db} lang]
-    (->> (q/exam-sessions-full {:lang lang} {:connection spec})
-         (group-by :exam_session_id)
-         (mapv (fn [[es-id exam-sessions]]
-                   (let [{:keys [exam_session_date
-                                 exam_session_start_time
-                                 exam_session_end_time
-                                 exam_session_max_participants
-                                 exam_session_published
-                                 exam_session_street_address
-                                 exam_session_city
-                                 exam_session_other_location_info]} (first exam-sessions)]
-                     {:id es-id
-                      :date exam_session_date
-                      :start-time (str (.toLocalTime exam_session_start_time))
-                      :end-time (str (.toLocalTime exam_session_end_time))
-                      :max-participants exam_session_max_participants
-                      :published exam_session_published
-                      :street-address exam_session_street_address
-                      :city exam_session_city
-                      :other-location-info exam_session_other_location_info
-                      :participants (participant-scores-and-accreditations-by-exam-session db exam-sessions es-id)})))))
+    (q/exam-sessions-full {:lang lang} {:connection spec}))
 
   (sections-and-modules-available-for-user [{:keys [spec]} external-user-id]
     (->> (q/select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
@@ -300,6 +248,9 @@
     (q/select-participant-by-payment-order-number {:order-number order-number :lang lang} {:connection spec}))
   (all-participants [{:keys [spec]}]
     (q/select-all-participants {} {:connection spec}))
+  (all-participants-by-ext-references [{:keys [spec]} ext-ids]
+    (q/select-all-participants-by-ext-references {:ext-reference-ids ext-ids}
+                                                 {:connection spec}))
   (confirm-registration-and-payment! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params "OK" "OK"))
   (cancel-registration-and-payment! [{:keys [spec]} params]

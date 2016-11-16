@@ -8,8 +8,8 @@
 
 (defn- accredited? [type o fd]
   (condp = type
-    :section (seq (filter #(= (:section-id %) (:id o)) (:accreditations fd)))
-    :module (seq (filter #(= (:module-id %) (:id o)) (:accreditations fd)))))
+    :section (seq (filter #(= (::spec/section-id %) (:id o)) (:accreditations fd)))
+    :module (seq (filter #(= (::spec/module-id %) (:id o)) (:accreditations fd)))))
 
 (defn- accredited-module? [m fd]
   (accredited? :module m fd))
@@ -19,8 +19,8 @@
 
 (defn- accreditation-date [type o fd]
   (condp = type
-    :section (:section-accreditation-date (first (filter #(= (:section-id %) (:id o)) (:accreditations fd))))
-    :module (:module-accreditation-date (first (filter #(= (:module-id %) (:id o)) (:accreditations fd))))))
+    :section (::spec/section-accreditation-date (first (filter #(= (::spec/section-id %) (:id o)) (:accreditations fd))))
+    :module (::spec/module-accreditation-date (first (filter #(= (::spec/module-id %) (:id o)) (:accreditations fd))))))
 
 (defn- section-accreditation-date [s fd]
   (accreditation-date :section s fd))
@@ -87,9 +87,9 @@
 (defn accepted-radio [type obj form-data]
   (let [{:keys [name value]} (condp = type
                                :section {:name (str "accepted-section-" (:id obj))
-                                         :value (get-in form-data [:scores (:id obj) :section-accepted])}
+                                         :value (get-in form-data [:scores (:id obj) ::spec/section-score-accepted])}
                                :module {:name (str "accepted-module-" (:id obj))
-                                        :value (get-in form-data [:scores (:section-id obj) :modules (:id obj) :module-accepted])})
+                                        :value (get-in form-data [:scores (:section-id obj) :modules (:id obj) ::spec/module-score-accepted])})
         on-change #(rf/dispatch [:set-radio-value type obj (.. % -target -value)])]
     [:div.accepted-radio-group
      [radio {:name name
@@ -107,7 +107,7 @@
            :on-change on-change}])
 
 (defn module-points-input [{:keys [id section-id] :as m} form-data]
-  (let [value (get-in form-data [:scores section-id :modules id :module-points])]
+  (let [value (get-in form-data [:scores section-id :modules id ::spec/module-score-points])]
     [:div.module-points-input
      [input "text" value #(rf/dispatch [:set-input-value :module m (.. % -target -value)])]
      "pistettä"]))

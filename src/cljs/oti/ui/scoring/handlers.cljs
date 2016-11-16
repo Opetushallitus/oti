@@ -3,6 +3,7 @@
             [cognitect.transit :as transit]
             [clojure.string :as str]
             [oti.routing :as routing]
+            [oti.spec :as spec]
             [ajax.core :as ajax]))
 
 ;; HELPER FUNCTIONS
@@ -23,64 +24,71 @@
       s
       (apply str (butlast s)))))
 
-(defn- prepare-modules [rows]
-  (->> (group-by :module-id rows)
-       (reduce (fn [modules [module-id module-rows]]
-                 (if module-id
-                   (assoc modules module-id {:module-id module-id
-                                             :module-accepted (:module-score-accepted (first module-rows))
-                                             :module-points (bigdec->str (:module-score-points (first module-rows)))})
-                   modules)) {})))
-
-(defn- prepare-existing-scores [existing-scores]
-  (when existing-scores
-    (->> (group-by :section-id existing-scores)
-         (reduce (fn [sections [section-id section-rows]]
-                   (assoc sections section-id {:section-id section-id
-                                               :section-accepted (:section-score-accepted (first section-rows))
-                                               :section-score-id (:section-score-id (first section-rows))
-                                               :modules (prepare-modules section-rows)})) {}))))
-
 (defn- prepare-updated-modules [modules]
   (into {} (mapv (fn [[module-id {:keys [module-id module-score-accepted module-score-points]}]]
-                   [module-id {:module-id module-id
-                               :module-accepted module-score-accepted
-                               :module-points (bigdec->str module-score-points)}]) modules)))
+                   [module-id {::spec/module-id module-id
+                               ::spec/module-score-accepted module-score-accepted
+                               ::spec/module-score-points (bigdec->str module-score-points)}]) modules)))
 
 (defn- prepare-updated-scores [updated-scores]
   (when updated-scores
     (into {} (mapv (fn [[section-id {:keys [section-id section-score-accepted section-score-id modules]}]]
                      [section-id
-                      (update {:section-id section-id
-                               :section-accepted section-score-accepted
-                               :section-score-id section-score-id
+                      (update {::spec/section-id section-id
+                               ::spec/section-score-accepted section-score-accepted
+                               ::spec/section-score-id section-score-id
                                :modules modules} :modules prepare-updated-modules)]) updated-scores))))
 
-(defn- prepare-participant [participants participant]
-  (let [scores (prepare-existing-scores (:scores participant))
-        accreditations (into [] (:accreditations participant))
-        data {:scores scores
-              :accreditations accreditations}]
-    (if (seq data)
-      (assoc participants (:id participant) data)
-      (assoc participants (:id participant) {:scores []
-                                             :accreditations []}))))
+(defn- format-module-scores [section-score]
+  (let [updated-module-scores (->> (map (fn [[id m]]
+                                          [id (update m ::spec/module-score-points bigdec->str)]) (:modules section-score))
+                                   (into {}))]
+    (assoc section-score :modules updated-module-scores)))
 
-(defn- prepare-exam-session [exam-sessions exam-session]
-  (assoc exam-sessions
-         (:id exam-session)
-         (reduce prepare-participant {} (:participants exam-session))))
+(defn- format-section-scores [participant]
+  (assoc participant :scores (->> (map (fn [[id s]]
+                                         [id (format-module-scores s)]) (:scores participant))
+                                  (into {}))))
 
-(defn- prepare-form-data [db existing-data]
-  (assoc-in db [:scoring :form-data] (reduce prepare-exam-session {} existing-data)))
+(defn- prepare-participants [participants]
+  (->> (map (fn [[id p]]
+              [id (format-section-scores p)]) participants)
+       (into {})))
+
+(defn- as-form-data [existing-data]
+  (->> (map (fn [[id es]]
+              [id (prepare-participants (:participants es))]) existing-data)
+       (into {})))
 
 (defn- module-points-to-bigdecs [scores]
   (into {} (map (fn [[section-id section-score]]
                   (let [modules (into {} (map (fn [[module-id module-score]]
-                                                [module-id (update module-score :module-points (fn [points]
-                                                                                                 (when points
-                                                                                                   (transit/bigdec points))))]) (:modules section-score)))]
+                                                [module-id (update module-score ::spec/module-score-points (fn [points]
+                                                                                                             (when points
+                                                                                                               (transit/bigdec points))))]) (:modules section-score)))]
                     [section-id (assoc section-score :modules modules)])) scores)))
+
+
+(defn- positions [pred coll]
+  (keep-indexed (fn [idx x]
+                  (when (pred x)
+                    idx))
+                coll))
+
+(defn- next-participant-id [db]
+  (let [selected-exam-session-id (get-in db [:scoring :selected-exam-session])
+        selected-participant-id (get-in db [:scoring :selected-participant])
+        participants (->> (get-in db [:scoring :exam-sessions selected-exam-session-id])
+                          :participants
+                          vals
+                          (sort-by :last-name))
+        current-participant-index (first (positions #(= (:id %) selected-participant-id) participants))]
+    (-> (nth participants (if (= current-participant-index (dec (count participants)))
+                            0
+                            (if (nil? current-participant-index)
+                              0
+                              (inc current-participant-index))))
+        :id)))
 
 
 ;; HANDLERS
@@ -109,12 +117,11 @@
  [trim-v]
  (fn [db [id]]
    (if id
-     (do (rf/dispatch [:select-participant (->> (get-in db [:scoring :exam-sessions])
-                                              (filter #(= (:id %) id))
-                                              first
-                                              :participants
-                                              first
-                                              :id)])
+     (do (rf/dispatch [:select-participant (->> (get-in db [:scoring :exam-sessions id])
+                                                :participants
+                                                first
+                                                second
+                                                :id)])
          (assoc-in db [:scoring :selected-exam-session] id))
      db)))
 
@@ -135,17 +142,17 @@
        db
        (if (seq existing-data)
          (let [pre-selected-exam-session (get-in db [:scoring :selected-exam-session])
-               exam-session (or pre-selected-exam-session (-> (get-in db [:scoring :exam-sessions]) first :id))
-               first-participant (->> (get-in db [:scoring :exam-sessions])
-                                      (filter #(= (:id %) exam-session))
-                                      first
+               exam-session (or pre-selected-exam-session (-> (get-in db [:scoring :exam-sessions]) first second :id))
+               first-participant (->> (get-in db [:scoring :exam-sessions exam-session])
                                       :participants
                                       first
+                                      second
                                       :id)
-               prepared-db (-> (prepare-form-data db existing-data)
+               form-data (as-form-data existing-data)
+               prepared-db (-> (assoc-in db [:scoring :form-data] form-data)
                                (assoc-in [:scoring :selected-exam-session] exam-session)
                                (assoc-in [:scoring :selected-participant] first-participant))]
-           (assoc-in prepared-db [:scoring :initial-form-data] (get-in prepared-db [:scoring :form-data])))
+           (assoc-in prepared-db [:scoring :initial-form-data] form-data))
          db)))))
 
 (rf/reg-event-db
@@ -164,10 +171,10 @@
      (condp = type
        :section (update-in db [:scoring :form-data exam-session-id participant-id :scores]
                            (fn [scores]
-                             (assoc-in scores [id :section-accepted] (str->boolean value))))
+                             (assoc-in scores [id ::spec/section-score-accepted] (str->boolean value))))
        :module (update-in db [:scoring :form-data exam-session-id participant-id :scores]
                           (fn [scores]
-                            (assoc-in scores [section-id :modules id :module-accepted] (str->boolean value))))))))
+                            (assoc-in scores [section-id :modules id ::spec/module-score-accepted] (str->boolean value))))))))
 
 
 (rf/reg-event-db
@@ -184,7 +191,7 @@
                (throw (js/Error. "Sections aren't scored as whole. Check your dispatch type."))
        :module (update-in db [:scoring :form-data exam-session-id participant-id :scores]
                           (fn [scores]
-                            (assoc-in scores [section-id :modules id :module-points] (filter-chars value))))))))
+                            (assoc-in scores [section-id :modules id ::spec/module-score-points] (filter-chars value))))))))
 
 (rf/reg-event-fx
  :persist-scores
@@ -232,28 +239,6 @@
                  selected-participant
                  current-scores
                  initial-scores]})))
-
-(defn- positions [pred coll]
-  (keep-indexed (fn [idx x]
-                  (when (pred x)
-                    idx))
-                coll))
-
-(defn- next-participant-id [db]
-  (let [selected-exam-session-id (get-in db [:scoring :selected-exam-session])
-        selected-participant-id (get-in db [:scoring :selected-participant])
-        participants (->> (get-in db [:scoring :exam-sessions])
-                          (filter #(= (:id %) selected-exam-session-id))
-                          first
-                          :participants
-                          (sort-by :last-name))
-        current-participant-index (first (positions #(= (:id %) selected-participant-id) participants))]
-    (-> (nth participants (if (= current-participant-index (dec (count participants)))
-                            0
-                            (if (nil? current-participant-index)
-                              0
-                              (inc current-participant-index))))
-        :id)))
 
 (rf/reg-event-fx
  :save-participant-scores-and-select-next

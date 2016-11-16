@@ -261,7 +261,6 @@
 (s/def ::exam-session-id ::id)
 (s/def ::ext-reference-id ::non-blank-string)
 (s/def ::participant-id ::id)
-
 (s/def ::section-score (s/keys :req [::section-score-id
                                      ::section-id
                                      ::section-score-accepted
@@ -269,22 +268,28 @@
                                      ::participant-id
                                      ::ext-reference-id]))
 
-(s/def ::section-accreditation-date (s/nilable date-time?))
-(s/def ::module-accreditation-date (s/nilable date-time?))
-
-(s/def ::module-accreditation (s/keys :req [::section-id
-                                            ::section-accreditation-date
-                                            ::module-id
+(s/def ::section-accreditation-date date-conformer)
+(s/def ::module-accreditation-date date-conformer)
+(s/def ::module-accreditation (s/keys :req [::module-id
                                             ::module-accreditation-date]))
+(s/def ::section-accreditation (s/keys :req [::section-id
+                                             ::section-accreditation-date]))
+
+(s/def ::section-accreditation-conformer
+  (s/conformer (fn [{:keys [section_accreditation_section_id
+                            section_accreditation_date]}]
+                 (let [section-accreditation {::section-id section_accreditation_section_id
+                                              ::section-accreditation-date section_accreditation_date}]
+                   (if (s/valid? ::section-accreditation section-accreditation)
+                     section-accreditation
+                     ::s/invalid)))))
 
 (s/def ::module-accreditation-conformer
-  (s/conformer (fn [{:keys [section_accreditation
+  (s/conformer (fn [{:keys [section_accreditation_section_id
                             section_accreditation_date
-                            module_accreditation
+                            module_accreditation_module_id
                             module_accreditation_date]}]
-                 (let [module-accreditation {::section-id section_accreditation
-                                             ::section-accreditation-date section_accreditation_date
-                                             ::module-id module_accreditation
+                 (let [module-accreditation {::module-id module_accreditation_module_id
                                              ::module-accreditation-date module_accreditation_date}]
                    (if (s/valid? ::module-accreditation module-accreditation)
                      module-accreditation
@@ -292,11 +297,12 @@
 
 (s/def ::module-score-conformer
   (s/conformer (fn [{:keys [module_score_id module_id module_score_points
-                            module_score_accepted]}]
+                            module_score_accepted section_score_id]}]
                  (let [module-score {::module-score-id module_score_id
                                      ::module-id module_id
                                      ::module-score-points module_score_points
-                                     ::module-score-accepted module_score_accepted}]
+                                     ::module-score-accepted module_score_accepted
+                                     ::section-score-id section_score_id}]
                    (if (s/valid? ::module-score module-score)
                      module-score
                      ::s/invalid)))))

@@ -4,7 +4,7 @@
 (rf/reg-sub
  :exam-sessions-full
  (fn [db _]
-   (get-in db [:scoring :exam-sessions])))
+   (vals (get-in db [:scoring :exam-sessions]))))
 
 (rf/reg-sub
  :selected-exam-session
@@ -13,6 +13,7 @@
      (if (nil? selected)
        (or (->> (get-in db [:scoring :exam-sessions])
                 first
+                second
                 :id)
            nil) ;; if no exam-sessions choose none
        selected))))
@@ -20,11 +21,10 @@
 (rf/reg-sub
  :participants
  (fn [db _ [exam-session-id]]
-  (->> (get-in db [:scoring :exam-sessions])
-        (filter #(= (:id %) exam-session-id))
-        first
-        :participants
-        (sort-by :last-name))))
+  (->> (get-in db [:scoring :exam-sessions exam-session-id])
+       :participants
+       vals
+       (sort-by :last-name))))
 
 (rf/reg-sub
  :selected-participant
