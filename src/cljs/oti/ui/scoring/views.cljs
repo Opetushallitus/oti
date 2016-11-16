@@ -70,7 +70,7 @@
                       end-time]} exam-sessions]
           [:option {:value id :key id}
            (str (unparse-date date) " " start-time " - " end-time " "
-                (:fi city) ", " (:fi street-address) ", " (:fi other-location-info))]))]])
+                city ", " street-address ", " other-location-info)]))]])
    [:div.personal-details-group
     [:div.attendance
      [:input {:type "checkbox"}] [:label "Ei osallistunut kokeeseen"]]]])
