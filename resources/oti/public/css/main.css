@@ -953,6 +953,11 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   width: 175px;
   display: inline-block;
 }
+.personal-details .personal-details-group select {
+  font-weight: bold;
+  width: 70%;
+  max-width: 600px;
+}
 .scoring-form .accepted-radio-group .radio {
   display: inline-block;
 }
