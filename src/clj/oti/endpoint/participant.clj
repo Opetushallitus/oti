@@ -109,11 +109,33 @@
               "/oti/anmala"
               "/oti/ilmoittaudu")))
 
-(defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers] :as request}]
-  (info "Authentication request received")
-  (info headers)
-  (info query-params)
-  (response {:request-map request}))
+(defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers]}]
+  (let [lang (or (some-> (:lang query-params) str/lower-case) "fi")
+        {:strs [vakinainenkotimainenlahiosoites
+                vakinainenkotimainenlahiosoitepostitoimipaikkas
+                vakinainenkotimainenlahiosoitepostinumero
+                sn firstname nationalidentificationnumber]} headers
+        {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client nationalidentificationnumber)
+        {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
+        address #::os{:registration-post-office    vakinainenkotimainenlahiosoitepostitoimipaikkas
+                      :registration-zip            vakinainenkotimainenlahiosoitepostinumero
+                      :registration-street-address vakinainenkotimainenlahiosoites}]
+    (when id
+      ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
+      (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
+    (if (and sn firstname (s/valid? ::os/hetu nationalidentificationnumber))
+      (-> (redirect-response lang)
+          (assoc :session {:participant (merge
+                                          {:etunimet         (if etunimet
+                                                               (str/split etunimet #" ")
+                                                               (str/split firstname #" "))
+                                           :sukunimi         (or sukunimi sn)
+                                           :kutsumanimi      kutsumanimi
+                                           :hetu             nationalidentificationnumber
+                                           :external-user-id oidHenkilo
+                                           ::os/email        email}
+                                          address)}))
+      {:status 400 :body {:error "Missing critical authentication data"}})))
 
 (defn- init-authentication [{:keys [url-helper]} lang]
   (let [url-key (if (and lang (= "sv" lang))
