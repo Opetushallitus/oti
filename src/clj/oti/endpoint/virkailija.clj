@@ -18,6 +18,7 @@
             [oti.utils :as utils]
             [oti.service.diploma :as diploma]
             [oti.service.payment :as payment]
+            [oti.service.scoring :as scoring]
             [taoensso.timbre :as log])
   (:import [java.time LocalDate Instant LocalDateTime ZoneId]
            [java.security SecureRandom]
@@ -190,7 +191,9 @@
      (POST "/accreditations" {params :body-params session :session :as request}
        (try (accreditation/approve-accreditations! config id params session)
             (catch AssertionError _
-              {:status 400 :body {:error "Invalid parameters"}}))))
+              {:status 400 :body {:error "Invalid parameters"}})))
+     (POST "/scores" request
+           (scoring/upsert-scores config request id)))
     (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]
       (if (payment/confirm-payment-manually! config order-number lang session)
         (response {:success true})
@@ -198,13 +201,11 @@
     (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session}]
       (if (registration/cancel-registration! config id session)
         (response {:success true})
-        (not-found {:error "Registration not found"})))
-    (POST "/scores" request
-          (scoring/upsert-scores config request id))))
+        (not-found {:error "Registration not found"})))))
+
 (defn- exam-routes [config]
   (routes
    (GET "/exam" [lang] (exam-by-language config lang))))
-
 
 (defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []
