@@ -104,10 +104,11 @@
                                           address)})))
     {:status 400 :body {:error "Missing callback uri"}}))
 
-(defn- redirect-response [lang]
-  (redirect (if (= lang "sv")
-              "/oti/anmala"
-              "/oti/ilmoittaudu")))
+(defn- participant-base-url [{:keys [url-helper]} lang]
+  (let [url-key (if (and lang (= "sv" lang))
+                  "oti.participant.sv"
+                  "oti.participant.fi")]
+    (url url-helper url-key)))
 
 (defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers]}]
   (let [lang (or (some-> (:lang query-params) str/lower-case) "fi")
@@ -124,7 +125,7 @@
       ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
       (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
     (if (and sn firstname (s/valid? ::os/hetu nationalidentificationnumber))
-      (-> (redirect-response lang)
+      (-> (redirect (participant-base-url config lang))
           (assoc :session {:participant (merge
                                           {:etunimet         (if etunimet
                                                                (str/split etunimet #" ")
@@ -143,9 +144,10 @@
                   "tunnistus.url.fi")]
     (redirect (url url-helper url-key))))
 
-(defn- abort [lang]
-  (-> (redirect-response lang)
-      (assoc :session {})))
+(defn- abort [{:keys [url-helper] :as config} lang]
+  (-> (url url-helper "tunnistus.logout" [(participant-base-url config lang)])
+      (redirect)
+      (assoc :session nil)))
 
 (defn- translations [{:keys [localisation]} lang]
   (if (str/blank? lang)
@@ -174,7 +176,7 @@
 
 (defn participant-endpoint [config]
   (routes
-    (GET "/oti/abort" [lang] (abort lang))
+    (GET "/oti/abort" [lang] (abort config lang))
     (GET "/oti/initsession" request (header-authentication config request))
     (context routing/participant-api-root []
       (GET "/translations"         [lang] (translations config lang))
