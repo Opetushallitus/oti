@@ -1,6 +1,6 @@
 (ns oti.endpoint.participant
   (:require [compojure.core :refer :all]
-            [ring.util.response :refer [resource-response content-type redirect response]]
+            [ring.util.response :refer [resource-response content-type redirect response not-found]]
             [clojure.string :as str]
             [oti.boundary.db-access :as dba]
             [oti.component.localisation :as loc]
@@ -110,33 +110,39 @@
                   "oti.participant.fi")]
     (url url-helper url-key)))
 
-(defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers]}]
-  (let [lang (or (some-> (:lang query-params) str/lower-case) "fi")
-        {:strs [vakinainenkotimainenlahiosoites
-                vakinainenkotimainenlahiosoitepostitoimipaikkas
-                vakinainenkotimainenlahiosoitepostinumero
-                sn firstname nationalidentificationnumber]} headers
-        {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client nationalidentificationnumber)
-        {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
-        address #::os{:registration-post-office    vakinainenkotimainenlahiosoitepostitoimipaikkas
-                      :registration-zip            vakinainenkotimainenlahiosoitepostinumero
-                      :registration-street-address vakinainenkotimainenlahiosoites}]
-    (when id
-      ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
-      (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
-    (if (and sn firstname (s/valid? ::os/hetu nationalidentificationnumber))
-      (-> (redirect (participant-base-url config lang))
-          (assoc :session {:participant (merge
-                                          {:etunimet         (if etunimet
-                                                               (str/split etunimet #" ")
-                                                               (str/split firstname #" "))
-                                           :sukunimi         (or sukunimi sn)
-                                           :kutsumanimi      kutsumanimi
-                                           :hetu             nationalidentificationnumber
-                                           :external-user-id oidHenkilo
-                                           ::os/email        email}
-                                          address)}))
-      {:status 400 :body {:error "Missing critical authentication data"}})))
+(def localhost-ips #{"127.0.0.1" "0:0:0:0:0:0:0:1"})
+
+(defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers remote-addr]}]
+  (info "initsession remote address: " remote-addr)
+  (if true #_(localhost-ips remote-addr)
+    (let [lang (or (some-> (:lang query-params) str/lower-case) "fi")
+          {:strs [vakinainenkotimainenlahiosoites
+                  vakinainenkotimainenlahiosoitepostitoimipaikkas
+                  vakinainenkotimainenlahiosoitepostinumero
+                  sn firstname nationalidentificationnumber]} headers
+          {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client nationalidentificationnumber)
+          {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
+          address #::os{:registration-post-office    vakinainenkotimainenlahiosoitepostitoimipaikkas
+                        :registration-zip            vakinainenkotimainenlahiosoitepostinumero
+                        :registration-street-address vakinainenkotimainenlahiosoites}]
+      (when id
+        ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
+        (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
+      (if (and sn firstname (s/valid? ::os/hetu nationalidentificationnumber))
+        (-> (redirect (participant-base-url config lang))
+            (assoc :session {:participant (merge
+                                            {:etunimet         (if etunimet
+                                                                 (str/split etunimet #" ")
+                                                                 (str/split firstname #" "))
+                                             :sukunimi         (or sukunimi sn)
+                                             :kutsumanimi      kutsumanimi
+                                             :hetu             nationalidentificationnumber
+                                             :external-user-id oidHenkilo
+                                             ::os/email        email}
+                                            address)}))
+        {:status 400 :body {:error "Missing critical authentication data"}}))
+    (-> (not-found "Resource not found")
+        (content-type "text/plain"))))
 
 (defn- init-authentication [{:keys [url-helper]} lang]
   (let [url-key (if (and lang (= "sv" lang))
