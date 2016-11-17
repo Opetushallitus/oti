@@ -140,6 +140,7 @@
   (confirm-registration-and-payment! [db params])
   (cancel-registration-and-payment! [db params])
   (cancel-payment-set-reg-incomplete! [db params])
+  (cancel-registration! [db id])
   (next-order-number! [db])
   (unpaid-payments [db])
   (unpaid-payments-by-participant [db external-user-id])
@@ -233,6 +234,8 @@
     (update-payment-and-registration-state! spec params "ERROR" "ERROR"))
   (cancel-payment-set-reg-incomplete! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params "ERROR" "INCOMPLETE"))
+  (cancel-registration! [{:keys [spec]} id]
+    (q/update-registration-state! {:state "ERROR" :id id} {:connection spec}))
   (next-order-number! [{:keys [spec]}]
     (-> (q/select-next-order-number-suffix {} {:connection spec})
         first

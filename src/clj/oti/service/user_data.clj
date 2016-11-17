@@ -92,7 +92,8 @@
                               (map #(sec-or-mod-props "module" %))
                               (remove :accreditation-requested?))
                  {:keys [session_date start_time end_time city street_address
-                         other_location_info exam_session_id registration_state]} (first session-rows)]
+                         other_location_info exam_session_id
+                         registration_state registration_id]} (first session-rows)]
              (when session_date
                (-> (select-keys (sec-or-mod-props "section" session-rows) [:score-ts :accepted])
                    (merge
@@ -104,7 +105,8 @@
                       :street-address street_address
                       :city city
                       :other-location-info other_location_info
-                      :registration-state registration_state}))))))
+                      :registration-state registration_state
+                      :registration-id registration_id}))))))
        (remove nil?)))
 
 

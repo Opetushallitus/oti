@@ -254,3 +254,16 @@
                  (merge registration)))
            regs))
     []))
+
+(defn cancel-registration! [{:keys [db]} registration-id {{authority :username} :identity}]
+  {:pre [(pos-int? registration-id)]}
+  (audit/log :app :admin
+             :who authority
+             :on :registration
+             :op :update
+             :before {:id registration-id
+                      :state "INCOMPLETE"}
+             :after {:id registration-id
+                     :state "ERROR"}
+             :msg "Registration cancelled.")
+  (= 1 (dba/cancel-registration! db registration-id)))

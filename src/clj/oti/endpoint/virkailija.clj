@@ -169,7 +169,11 @@
     (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]
       (if (payment/confirm-payment-manually! config order-number lang session)
         (response {:success true})
-        {:status 404 :body {:error "Payment not found"}}))))
+        (not-found {:error "Payment not found"})))
+    (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session}]
+      (if (registration/cancel-registration! config id session)
+        (response {:success true})
+        (not-found {:error "Registration not found"})))))
 
 (defn virkailija-endpoint [config]
   (-> (context routing/virkailija-api-root []
