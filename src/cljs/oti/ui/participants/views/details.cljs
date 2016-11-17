@@ -64,18 +64,18 @@
      [:table
       [:thead
        [:tr
-        [:th "Maksupäivä"]
-        [:th "Summa"]
-        [:th "Maksun tila"]
-        [:th "Toiminnot"]]]
+        [:th.date "Maksupäivä"]
+        [:th.amount "Summa"]
+        [:th.state "Maksun tila"]
+        [:th.functions "Toiminnot"]]]
       [:tbody
        (doall
          (for [{:keys [id created amount state order-number]} payments]
            [:tr {:key id}
-            [:td (unparse-date created)]
-            [:td (format-price amount)]
-            [:td (format-state state)]
-            [:td
+            [:td.date (unparse-date created)]
+            [:td.amount (format-price amount)]
+            [:td.state {:class (if (= state "ERROR") "error")} (format-state state)]
+            [:td.functions
              (when (= state "ERROR")
                [:button.button-small
                 {:on-click #(re-frame/dispatch [:confirm-payment order-number participant-id language])}
@@ -148,34 +148,34 @@
     (str registration-street-address ", " registration-zip " " registration-post-office)))
 
 (defn participant-main-component [participant-data initial-form-data accreditation-types]
-  (let [{:keys [id etunimet sukunimi hetu email sections payments address language]} participant-data
-        form-data (r/atom initial-form-data)]
+  (let [form-data (r/atom initial-form-data)]
     (fn [participant-data initial-form-data]
-      [:div.participant-details
-       [:div.person
-        [:h3 "Henkilötiedot"]
-        [:div.row
-         [:span.label "Henkilötunnus"]
-         [:span.value hetu]]
-        [:div.row
-         [:span.label "Nimi"]
-         [:span.value (str etunimet " " sukunimi)]]
-        [:div.row
-         [:span.label "Katuosoite"]
-         [:span.value (format-address address)]]
-        [:div.row
-         [:span.label "Sähköpostiosoite"]
-         [:span.value email]]]
-       [participation-section sections accreditation-types form-data]
-       [payment-section payments id language]
-       [:div.buttons
-        [:div.left
-         [:button {:on-click #(-> js/window .-history .back)} "Peruuta"]]
-        (when (or (seq (:accredited-sections @form-data)) (seq (:accredited-modules @form-data)))
-          [:div.right
-           [:button.button-primary {:on-click #(re-frame/dispatch [:save-accreditation-data id @form-data])
-                                    :disabled (= initial-form-data @form-data)}
-            "Tallenna"]])]])))
+      (let [{:keys [id etunimet sukunimi hetu email sections payments address language]} participant-data]
+        [:div.participant-details
+         [:div.person
+          [:h3 "Henkilötiedot"]
+          [:div.row
+           [:span.label "Henkilötunnus"]
+           [:span.value hetu]]
+          [:div.row
+           [:span.label "Nimi"]
+           [:span.value (str etunimet " " sukunimi)]]
+          [:div.row
+           [:span.label "Katuosoite"]
+           [:span.value (format-address address)]]
+          [:div.row
+           [:span.label "Sähköpostiosoite"]
+           [:span.value email]]]
+         [participation-section sections accreditation-types form-data]
+         [payment-section payments id language]
+         [:div.buttons
+          [:div.left
+           [:button {:on-click #(-> js/window .-history .back)} "Peruuta"]]
+          (when (or (seq (:accredited-sections @form-data)) (seq (:accredited-modules @form-data)))
+            [:div.right
+             [:button.button-primary {:on-click #(re-frame/dispatch [:save-accreditation-data id @form-data])
+                                      :disabled (= initial-form-data @form-data)}
+              "Tallenna"]])]]))))
 
 (defn participant-details-panel [participant-id]
   (re-frame/dispatch [:load-participant-details participant-id])

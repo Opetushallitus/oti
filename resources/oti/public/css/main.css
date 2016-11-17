@@ -761,6 +761,15 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details .payments {
   margin-bottom: 2em;
 }
+.participant-details .payments table .amount {
+  width: 200px;
+}
+.participant-details .payments table .state {
+  width: 150px;
+}
+.participant-details .payments table .functions {
+  text-align: right;
+}
 .animate-spin {
   -moz-animation: spin 2s infinite linear;
   -o-animation: spin 2s infinite linear;
@@ -986,6 +995,14 @@ input[type="submit"]:not(:first-child),
 input[type="reset"]:not(:first-child),
 input[type="button"]:not(:first-child) {
   margin-left: .7em;
+}
+.button.button-small,
+button.button-small,
+input[type="submit"].button-small,
+input[type="reset"].button-small,
+input[type="button"].button-small {
+  line-height: normal;
+  height: 28px;
 }
 .buttons {
   margin-top: 1em;
