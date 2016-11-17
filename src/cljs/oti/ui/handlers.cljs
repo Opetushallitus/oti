@@ -71,3 +71,17 @@
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :root]
                   :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-db
+  :launch-confirmation-dialog
+  [trim-v]
+  (fn [db [question button-text & rf-event]]
+    (assoc db :confirmation-dialog {:question question
+                                    :button-text button-text
+                                    :event (vec rf-event)})))
+
+(re-frame/reg-event-db
+  :confirmation-cancel
+  [trim-v]
+  (fn [db _]
+    (assoc db :confirmation-dialog nil)))

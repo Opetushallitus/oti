@@ -739,6 +739,14 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   position: absolute;
   left: -25px;
 }
+.participant-details table .icon-cancel {
+  font-size: 1.7rem;
+  color: #eb2730;
+  position: absolute;
+  top: 5px;
+  right: -35px;
+  cursor: pointer;
+}
 .participant-details table .date {
   width: 165px;
 }
@@ -755,6 +763,14 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details table .score,
 .participant-details table .module-name {
   text-align: right;
+}
+.participant-details table .cancellation {
+  width: 0;
+  padding: 0;
+}
+.participant-details table tr.cancelled td,
+.participant-details table tr.cancelled span {
+  text-decoration: line-through;
 }
 .participant-details .payments {
   margin-bottom: 2em;
@@ -844,6 +860,36 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     -webkit-transform: rotate(359deg);
     transform: rotate(359deg);
   }
+}
+.confirmation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirmation .overlay {
+  position: fixed;
+  opacity: 0.8;
+  background-color: #000;
+  height: 100%;
+  width: 100%;
+}
+.confirmation .dialog {
+  position: fixed;
+  opacity: 1;
+  z-index: 15;
+  background-color: #fff;
+  padding: 20px 20px;
+  width: 400px;
+  max-width: 90%;
+}
+.confirmation .buttons {
+  margin-top: 2em;
 }
 .left {
   float: left;

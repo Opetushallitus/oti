@@ -6,7 +6,7 @@
             [oti.ui.participants.views.search :as search]
             [oti.ui.participants.views.details :as details]
             [oti.ui.routes :refer [virkailija-routes]]
-            [oti.ui.views.common :refer [flash-message]]
+            [oti.ui.views.common :refer [flash-message confirmation-dialog]]
             [oti.routing :as routing]))
 
 (defmulti panels identity)
@@ -42,6 +42,7 @@
         flash-opts (re-frame/subscribe [:flash-message])]
     (fn []
       [:div
+       [confirmation-dialog]
        [:div#header
         [:img {:src (routing/img "opetushallitus.gif")}]
         [:p "Opetushallinnon tutkintorekisteri"]

@@ -34,7 +34,7 @@
     "OK" "Maksettu"
     "Tuntematon"))
 
-(defn session-table [sessions module-titles]
+(defn session-table [sessions module-titles participant-id]
   (if (seq sessions)
     [:table
      [:thead
@@ -48,8 +48,8 @@
      [:tbody
       (doall
         (for [{:keys [session-date start-time end-time session-id registration-state
-                      street-address city score-ts accepted modules]} sessions]
-          [:tr {:key session-id}
+                      street-address city score-ts accepted modules registration-id]} sessions]
+          [:tr {:key session-id :class (when (= "ERROR" registration-state) "cancelled")}
            [:td.date
             (when (not= "OK" registration-state)
               [:i.icon-attention {:class (if (= "INCOMPLETE" registration-state) "warn" "error")
@@ -58,7 +58,14 @@
            [:td.location (str city ", " street-address)]
            [:td.section-result (exam-label score-ts accepted)]
            (for [{:keys [id name]} module-titles]
-             [:td.score {:key id :title name} (or (format-number (get-in modules [id :points])) "\u2014")])]))]]
+             [:td.score {:key id :title name} (or (format-number (get-in modules [id :points])) "\u2014")])
+           [:td.cancellation
+            (when (= "INCOMPLETE" registration-state)
+              [:i.icon-cancel
+               {:title "Peru ilmoittautuminen"
+                :on-click #(re-frame/dispatch
+                            [:launch-confirmation-dialog "Haluatko varmasti poistaa ilmoittautumisen?" "Poista"
+                             :cancel-registration registration-id participant-id])}])]]))]]
     [:div "Ei ilmoittautumisia"]))
 
 (defn payment-section [payments participant-id language]
@@ -127,7 +134,7 @@
           (for [{:keys [id description]} accreditation-types]
             [:option {:value id :key id} description]))]]]]))
 
-(defn participation-section [sections accreditation-types form-data]
+(defn participation-section [sections accreditation-types form-data participant-id]
   [:div.participation-section
    (doall
      (for [{:keys [name accreditation-requested? sessions id module-titles accredited-modules]} sections]
@@ -144,7 +151,7 @@
               (for [{:keys [id]} accredited-modules]
                 [:div.module {:key id}
                  [accreditation-inputs form-data accreditation-types :accredited-modules id]]))]])
-        [session-table sessions module-titles]]))])
+        [session-table sessions module-titles participant-id]]))])
 
 (defn format-address [{::os/keys [registration-street-address registration-zip registration-post-office]}]
   (if (s/blank? registration-street-address)
@@ -170,7 +177,7 @@
           [:div.row
            [:span.label "Sähköpostiosoite"]
            [:span.value email]]]
-         [participation-section sections accreditation-types form-data]
+         [participation-section sections accreditation-types form-data id]
          [payment-section payments id language]
          [:div.buttons
           [:div.left

@@ -51,6 +51,14 @@
       position: absolute;
       left: -25px;
     }
+    .icon-cancel {
+      font-size: 1.7rem;
+      color: @oph-red;
+      position: absolute;
+      top: 5px;
+      right: -35px;
+      cursor: pointer;
+    }
     .date {
       width: 165px;
     }
@@ -66,6 +74,15 @@
     }
     .score, .module-name {
       text-align: right;
+    }
+    .cancellation {
+      width: 0;
+      padding: 0;
+    }
+    tr.cancelled {
+      td, span {
+        text-decoration: line-through;
+      }
     }
   }
   .payments {
