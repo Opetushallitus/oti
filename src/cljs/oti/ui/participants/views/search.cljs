@@ -6,12 +6,13 @@
             [oti.ui.views.common :refer [small-loader]]
             [oti.routing :as routing]
             [reagent.core :as r]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [oti.ui.exam-sessions.utils :as utils]))
 
 (defn- section-status [{:keys [sections]} section-id]
   (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]
     (cond
-      accepted score-ts
+      accepted (utils/unparse-date score-ts)
       (and score-ts (not accepted)) "Ei hyväksytty"
       accreditation-date "Korvattu"
       accreditation-requested? "Korv. vahvistettava"
