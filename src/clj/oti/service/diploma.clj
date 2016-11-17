@@ -57,13 +57,13 @@
                :after new-data
                :msg "Generating participant diploma.")))
 
-(defn generate-diplomas [{:keys [db] :as config} ids signer {{authority :username} :identity}]
+(defn generate-diplomas [{:keys [db] :as config} ids signer title {{authority :username} :identity}]
   (let [users (->> (map #(user-data/participant-data config %) ids)
                    (remove nil?)
                    (filter #(not= (:filter %) :incomplete)))
         valid-ids (map :id users)]
     (if (seq users)
-      (do (dba/update-participant-diploma-data! db valid-ids signer)
+      (do (dba/update-participant-diploma-data! db valid-ids signer title)
           (let [updated-users (map #(user-data/participant-data config %) valid-ids)
                 users-by-id (reduce #(assoc %1 (:id %2) %2) {} updated-users)]
             (dorun (map #(write-audit-log! % authority users-by-id) users))

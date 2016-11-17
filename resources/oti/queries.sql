@@ -177,7 +177,7 @@ INSERT INTO participant (ext_reference_id, email)
 -- name: select-participant
 SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
   module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date,
-  diploma_date, diploma_signer
+  diploma_date
 FROM all_participant_data
 WHERE ext_reference_id = :external-user-id AND lang = 'fi'
 ORDER BY id;
@@ -185,7 +185,7 @@ ORDER BY id;
 -- name: select-all-participants
 SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
   module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date,
-  diploma_date, diploma_signer
+  diploma_date
 FROM all_participant_data
 WHERE lang = 'fi'
 ORDER BY id;
