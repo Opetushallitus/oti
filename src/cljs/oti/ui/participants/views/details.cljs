@@ -19,9 +19,13 @@
     name)
   name)
 
-(defn- format-price [number]
+(defn- format-number [number]
   (when (transit/bigdec? number)
-    (-> number .-rep (str " €"))))
+    (-> number .-rep)))
+
+(defn- format-price [number]
+  (when-let [rep (format-number number)]
+    (str  rep " €")))
 
 (defn- format-state [state]
   (condp = state
@@ -44,7 +48,7 @@
      [:tbody
       (doall
         (for [{:keys [session-date start-time end-time session-id registration-state
-                      street-address city score-ts accepted? modules]} sessions]
+                      street-address city score-ts accepted modules]} sessions]
           [:tr {:key session-id}
            [:td.date
             (when (not= "OK" registration-state)
@@ -52,9 +56,9 @@
                                   :title (if (= "INCOMPLETE" registration-state) "Ilmoittautuminen maksamatta" "Ilmoittautuminen peruutettu")}])
             [:span (str (unparse-date session-date) " " start-time " - " end-time)]]
            [:td.location (str city ", " street-address)]
-           [:td.section-result (exam-label score-ts accepted?)]
+           [:td.section-result (exam-label score-ts accepted)]
            (for [{:keys [id name]} module-titles]
-             [:td.score {:key id :title name} (or (get-in modules [id :points]) "\u2014")])]))]]
+             [:td.score {:key id :title name} (or (format-number (get-in modules [id :points])) "\u2014")])]))]]
     [:div "Ei ilmoittautumisia"]))
 
 (defn payment-section [payments participant-id language]
