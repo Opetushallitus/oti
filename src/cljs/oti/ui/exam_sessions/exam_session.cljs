@@ -139,9 +139,11 @@
             "Peruuta"]
            (when edit-id
              [:div.right
-              [:button.button-danger {:on-click (fn [e]
-                                                  (.preventDefault e)
-                                                  (re-frame/dispatch [:delete-exam-session edit-id]))}
+              [:button.button-danger
+               {:on-click (fn [e]
+                            (.preventDefault e)
+                            (re-frame/dispatch [:launch-confirmation-dialog "Haluatko varmasti poistaa tutkintotapahtuman?" "Poista"
+                                                :delete-exam-session edit-id]))}
                "Poista tapahtuma"]])]]]))))
 
 (defn new-exam-session []
