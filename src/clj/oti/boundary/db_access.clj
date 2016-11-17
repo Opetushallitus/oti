@@ -201,13 +201,14 @@
                 (let [sections (->> (partition-by :section_id registration-rows)
                                     (map (fn [s-rows] [(:section_id (first s-rows)) (remove nil? (map :module_id s-rows))]))
                                     (into {}))
-                      {:keys [id created language_code, participant_id ext_reference_id]} (first registration-rows)]
+                      {:keys [id created language_code, participant_id ext_reference_id payment_state]} (first registration-rows)]
                   {:id id
                    :created created
                    :lang (keyword language_code)
                    :participant-id participant_id
                    :external-user-id ext_reference_id
-                   :sections sections})))))
+                   :sections sections
+                   :payment-state payment_state})))))
   (existing-registration-id [{:keys [spec]} exam-session-id external-user-id]
     (-> (q/select-existing-registration-id {:external-user-id external-user-id :exam-session-id exam-session-id} {:connection spec})
         first

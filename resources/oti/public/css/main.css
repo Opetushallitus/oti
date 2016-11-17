@@ -151,9 +151,6 @@ table {
 .flash-container .success {
   color: #00af2f;
 }
-.flash-container .error {
-  color: #ff0012;
-}
 .exam-sessions {
   margin: 1em 0;
 }
@@ -582,6 +579,13 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     color: #1b1b1b;
   }
 }
+.registrations table td {
+  position: relative;
+}
+.registrations table .icon-attention {
+  position: absolute;
+  left: -25px;
+}
 .ext-link a,
 .ext-link p {
   font-size: 0.9rem;
@@ -734,12 +738,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details table .icon-attention {
   position: absolute;
   left: -25px;
-}
-.participant-details table .warn {
-  color: #f69532;
-}
-.participant-details table .error {
-  color: #eb2730;
 }
 .participant-details table .date {
   width: 165px;
@@ -1158,4 +1156,10 @@ input[type="button"].button-small {
   padding-top: 1em;
   width: 100%;
   text-align: center;
+}
+.warn {
+  color: #f69532;
+}
+.error {
+  color: #eb2730;
 }

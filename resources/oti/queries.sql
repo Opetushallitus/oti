@@ -304,9 +304,17 @@ UPDATE registration SET state = :state::registration_state WHERE id = :id;
 
 -- name: select-registrations-for-exam-session
 SELECT
-  r.id, r.created, r.language_code, p.id AS participant_id, p.ext_reference_id, recs.section_id, recm.module_id
+  r.id,
+  r.created,
+  r.language_code,
+  p.id AS participant_id,
+  p.ext_reference_id,
+  recs.section_id,
+  recm.module_id,
+  pp.state AS payment_state
 FROM registration r
   JOIN participant p ON r.participant_id = p.id
+  LEFT JOIN payment pp ON r.id = pp.registration_id
   LEFT JOIN registration_exam_content_section recs ON r.id = recs.registration_id
   LEFT JOIN module m ON recs.section_id = m.section_id
   LEFT JOIN registration_exam_content_module recm ON r.id = recm.registration_id AND m.id = recm.module_id

@@ -23,9 +23,13 @@
          [:th "Kokeen kieli"]]]
        [:tbody
         (doall
-          (for [{:keys [sections id etunimet sukunimi lang participant-id]} registrations]
+          (for [{:keys [sections id etunimet sukunimi lang participant-id payment-state]} registrations]
             [:tr {:key id}
-             [:td [:a {:href (routing/v-route "/henkilot/" participant-id)} (str etunimet " " sukunimi)]]
+             [:td
+              (when (#{"ERROR" "UNPAID"} payment-state)
+                [:i.icon-attention {:class "error"
+                                    :title "Ilmoittautuminen maksamatta"}])
+              [:a {:href (routing/v-route "/henkilot/" participant-id)} (str etunimet " " sukunimi)]]
              (doall
                (for [[id _] (:sections @sm-names)]
                  [:td {:key id}
