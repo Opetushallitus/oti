@@ -108,3 +108,13 @@
                   :response-format (ajax/transit-response-format)
                   :on-success      [:load-participant-details participant-id]
                   :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
+  :load-default-signer-title
+  (fn [_ _]
+    {:http-xhrio {:method          :get
+                  :uri             (routing/v-a-route "/diplomas/default-signer-title")
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:store-response-to-db :default-signer-title]
+                  :on-failure      [:bad-response]}}))

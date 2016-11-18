@@ -159,6 +159,7 @@
     (GET "/participant-search" [q filter] (search-participant config q filter))
     (context "/diplomas" []
      (PUT "/" [] (partial generate-diplomas! config))
+     (GET "/default-signer-title" [] (response (diploma/default-signer-title config)))
      (GET "/count" [start-date end-date] (diploma-count config start-date end-date)))
     (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))

@@ -89,14 +89,14 @@
                :placeholder "Allekirjoittajan titteli ruotsiksi"
                :on-change #(swap! form-data assoc-in [::os/signer-title :sv] (-> % .-target .-value))}]]]))
 
-(defn search-panel []
+(defn- base-panel [default-signer-title]
   (let [search-query (re-frame/subscribe [:participant-search-query])
         search-results (re-frame/subscribe [:participant-search-results])
         sm-names (re-frame/subscribe [:section-and-module-names])
         loading? (re-frame/subscribe [:loading?])
         diploma-form-data (r/atom #::os{:participant-ids #{}
                                         :signer nil
-                                        :signer-title {:fi nil :sv nil}})]
+                                        :signer-title default-signer-title})]
     (fn []
       [:div.search
        [:form.search-form {:on-submit (fn [e]
@@ -128,3 +128,9 @@
           [search-result-list @search-results @sm-names diploma-form-data])]
        (when (seq @search-results)
          [diploma-form diploma-form-data])])))
+
+(defn search-panel []
+  (re-frame/dispatch [:load-default-signer-title])
+  (let [default-signer-title (re-frame/subscribe [:default-signer-title])]
+    (when (seq @default-signer-title)
+      [base-panel @default-signer-title])))
