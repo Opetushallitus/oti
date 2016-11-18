@@ -67,25 +67,27 @@
 (defn- diploma-form [form-data]
   (let [{::os/keys [signer signer-title]} @form-data]
     [:div.diploma-printing
-     [:input {:type "text"
-              :name "diploma-signer"
-              :value signer
-              :placeholder "Todistuksen allekirjoittajan nimi"
-              :on-change #(swap! form-data assoc ::os/signer (-> % .-target .-value))}]
-     [:input {:type "text"
-              :name "diploma-signer-title-fi"
-              :value (:fi signer-title)
-              :placeholder "Allekirjoittajan titteli suomeksi"
-              :on-change #(swap! form-data assoc-in [::os/signer-title :fi] (-> % .-target .-value))}]
-     [:input {:type "text"
-              :name "diploma-signer-title-sv"
-              :value (:sv signer-title)
-              :placeholder "Allekirjoittajan titteli ruotsiksi"
-              :on-change #(swap! form-data assoc-in [::os/signer-title :sv] (-> % .-target .-value))}]
-     [:button {:on-click (fn [_]
-                           (re-frame/dispatch-sync [:print-diplomas @form-data]))
-               :disabled (not (s/valid? ::os/diploma-data @form-data))}
-      "Tulosta todistukset"]]))
+     [:div.print-button
+      [:button {:on-click (fn [_]
+                            (re-frame/dispatch-sync [:print-diplomas @form-data]))
+                :disabled (not (s/valid? ::os/diploma-data @form-data))}
+       "Tulosta todistukset"]]
+     [:div.inputs
+      [:input {:type "text"
+               :name "diploma-signer"
+               :value signer
+               :placeholder "Todistuksen allekirjoittajan nimi"
+               :on-change #(swap! form-data assoc ::os/signer (-> % .-target .-value))}]
+      [:input {:type "text"
+               :name "diploma-signer-title-fi"
+               :value (:fi signer-title)
+               :placeholder "Allekirjoittajan titteli suomeksi"
+               :on-change #(swap! form-data assoc-in [::os/signer-title :fi] (-> % .-target .-value))}]
+      [:input {:type "text"
+               :name "diploma-signer-title-sv"
+               :value (:sv signer-title)
+               :placeholder "Allekirjoittajan titteli ruotsiksi"
+               :on-change #(swap! form-data assoc-in [::os/signer-title :sv] (-> % .-target .-value))}]]]))
 
 (defn search-panel []
   (let [search-query (re-frame/subscribe [:participant-search-query])

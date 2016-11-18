@@ -688,7 +688,21 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   margin-top: 2em;
 }
 .search .diploma-printing input {
-  width: 300px;
+  margin-right: 5px;
+  width: 32%;
+  min-width: 200px;
+}
+.search .diploma-printing .inputs {
+  width: auto;
+  overflow: hidden;
+}
+.search .diploma-printing .print-button {
+  width: auto;
+  padding-left: 5px;
+  float: right;
+}
+.search .diploma-printing .print-button button {
+  margin: 0;
 }
 .participant-details span {
   display: inline-block;
