@@ -187,6 +187,7 @@
   (re-frame/dispatch [:load-available-sessions])
   (re-frame/dispatch [:load-registration-options])
   (let [lang (re-frame/subscribe [:language])
+        initial-lang (reagent/atom @lang)
         exam-sessions (re-frame/subscribe [:exam-sessions])
         registration-options (re-frame/subscribe [:registration-options])
         base-form-data (merge #::os{:language-code @lang
@@ -196,6 +197,9 @@
         form-data (reagent/atom base-form-data)
         submitted? (reagent/atom false)]
     (fn [participant-data]
+      (when (and (= (::os/language-code @form-data) @initial-lang) (not= @lang @initial-lang))
+        (swap! form-data assoc ::os/language-code @lang)
+        (reset! initial-lang @lang))
       (let [invalids (invalid-keys form-data ::os/registration)]
         [:div.registration
          (if (pos? (count (:sections @registration-options)))
