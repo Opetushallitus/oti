@@ -7,7 +7,9 @@
             [oti.routing :as routing]
             [reagent.core :as r]
             [clojure.string :as str]
-            [oti.ui.exam-sessions.utils :as utils]))
+            [oti.ui.exam-sessions.utils :as utils]
+            [oti.spec :as os]
+            [clojure.spec :as s]))
 
 (defn- section-status [{:keys [sections]} section-id]
   (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]
@@ -20,22 +22,22 @@
       (seq accredited-modules) "Osakorv. vahvistettava"
       :else "Puuttuu")))
 
-(defn- select-all [results selected-ids event]
+(defn- select-all [results form-data event]
   (let [new-val (if (-> event .-target .-checked)
                   (->> results
                        (filter #(not= :incomplete (:filter %)))
                        (map :id)
                        set)
                   #{})]
-    (reset! selected-ids new-val)))
+    (swap! form-data assoc ::os/participant-ids new-val)))
 
-(defn search-result-list [search-results {:keys [sections]} selected-ids]
+(defn search-result-list [search-results {:keys [sections]} form-data]
   [:div.results
    (if (seq search-results)
      [:table
       [:thead
        [:tr
-        [:th [:input {:type "checkbox" :on-change (partial select-all search-results selected-ids)}]]
+        [:th [:input {:type "checkbox" :on-change (partial select-all search-results form-data)}]]
         [:th "Nimi"]
         [:th "Henkilötunnus"]
         (doall
@@ -49,10 +51,10 @@
             [:td
              (when (not= filter-kw :incomplete)
                [:input {:type "checkbox"
-                        :checked (@selected-ids id)
+                        :checked ((::os/participant-ids @form-data) id)
                         :on-change (fn [e]
                                      (let [op (if (-> e .-target .-checked) conj disj)]
-                                       (swap! selected-ids op id)))}])]
+                                       (swap! form-data update ::os/participant-ids op id)))}])]
             [:td [:a {:href (routing/v-route "/henkilot/" id)} (str etunimet " " sukunimi)]]
             [:td hetu]
             (doall
@@ -62,18 +64,42 @@
      (when (sequential? search-results)
        [:div.no-results "Ei hakutuloksia"]))])
 
+(defn- diploma-form [form-data]
+  (let [{::os/keys [signer signer-title]} @form-data]
+    [:div.diploma-printing
+     [:input {:type "text"
+              :name "diploma-signer"
+              :value signer
+              :placeholder "Todistuksen allekirjoittajan nimi"
+              :on-change #(swap! form-data assoc ::os/signer (-> % .-target .-value))}]
+     [:input {:type "text"
+              :name "diploma-signer-title-fi"
+              :value (:fi signer-title)
+              :placeholder "Allekirjoittajan titteli suomeksi"
+              :on-change #(swap! form-data assoc-in [::os/signer-title :fi] (-> % .-target .-value))}]
+     [:input {:type "text"
+              :name "diploma-signer-title-sv"
+              :value (:sv signer-title)
+              :placeholder "Allekirjoittajan titteli ruotsiksi"
+              :on-change #(swap! form-data assoc-in [::os/signer-title :sv] (-> % .-target .-value))}]
+     [:button {:on-click (fn [_]
+                           (re-frame/dispatch-sync [:print-diplomas @form-data]))
+               :disabled (not (s/valid? ::os/diploma-data @form-data))}
+      "Tulosta todistukset"]]))
+
 (defn search-panel []
   (let [search-query (re-frame/subscribe [:participant-search-query])
         search-results (re-frame/subscribe [:participant-search-results])
         sm-names (re-frame/subscribe [:section-and-module-names])
         loading? (re-frame/subscribe [:loading?])
-        selected-ids (r/atom #{})
-        signer-name (r/atom nil)]
+        diploma-form-data (r/atom #::os{:participant-ids #{}
+                                        :signer nil
+                                        :signer-title {:fi nil :sv nil}})]
     (fn []
       [:div.search
        [:form.search-form {:on-submit (fn [e]
                                         (.preventDefault e)
-                                        (reset! selected-ids #{})
+                                        (swap! diploma-form-data assoc ::os/participant-ids #{})
                                         (re-frame/dispatch [:do-participant-search]))}
         [:div.search-fields
          [:div.half
@@ -97,15 +123,6 @@
          [:button.button-primary {:type "submit"} "Hae"]]
         (if @loading?
           [small-loader]
-          [search-result-list @search-results @sm-names selected-ids])]
+          [search-result-list @search-results @sm-names diploma-form-data])]
        (when (seq @search-results)
-         [:div.diploma-printing
-          [:input {:type "text"
-                   :name "diploma-signer"
-                   :value @signer-name
-                   :placeholder "Todistuksen allekirjoittajan nimi"
-                   :on-change #(reset! signer-name (-> % .-target .-value))}]
-          [:button {:on-click (fn [_]
-                                (re-frame/dispatch-sync [:print-diplomas @selected-ids @signer-name]))
-                    :disabled (or (empty? @selected-ids) (str/blank? @signer-name))}
-           "Tulosta todistukset"]])])))
+         [diploma-form diploma-form-data])])))

@@ -235,7 +235,7 @@
 
 ;; diploma
 
-(s/def ::participant-ids (s/* ::id))
+(s/def ::participant-ids (s/and set? (s/+ ::id)))
 (s/def ::signer ::non-blank-string)
 (s/def ::signer-title ::i18n-string)
 
