@@ -157,7 +157,7 @@
   (add-token-to-exam-session! [db id token])
   (access-token-for-exam-session [db id])
   (access-token-matches-session? [db id token])
-  (update-participant-diploma-data! [db participant-ids signer title])
+  (update-participant-diploma-data! [db update-params])
   (diploma-count [db start-date end-date]))
 
 (extend-type HikariCP
@@ -285,8 +285,10 @@
         first
         :id
         (= id)))
-  (update-participant-diploma-data! [{:keys [spec]} participant-ids signer title]
-    (q/update-participant-diploma! {:ids participant-ids :signer signer :title title} {:connection spec}))
+  (update-participant-diploma-data! [{:keys [spec]} update-params]
+    (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+      (doseq [participant-update update-params]
+        (q/update-participant-diploma! participant-update {:connection tx}))))
   (diploma-count [{:keys [spec]} start-date end-date]
     (-> (q/select-diploma-count {:start-date start-date :end-date end-date} {:connection spec})
         first

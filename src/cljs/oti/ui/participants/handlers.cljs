@@ -92,7 +92,7 @@
   [re-frame/trim-v]
   (fn [_ [order-number participant-id lang]]
     {:http-xhrio {:method          :put
-                  :uri             (routing/v-a-route "/payment/" order-number "/approve?lang=" lang)
+                  :uri             (routing/v-a-route "/payment/" order-number "/approve?lang=" (name lang))
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:load-participant-details participant-id]

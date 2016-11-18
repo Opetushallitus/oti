@@ -137,9 +137,9 @@
     (dba/add-token-to-exam-session! db session-id token)
     (response {:access-token token})))
 
-(defn- generate-diplomas! [config {{:keys [ids signer title]} :body-params session :session}]
-  (if (and (set? ids) (every? pos-int? ids) (not (str/blank? signer)))
-    (diploma/generate-diplomas config ids signer title session)
+(defn- generate-diplomas! [config {diploma-data :body-params session :session}]
+  (if (s/valid? ::os/diploma-data diploma-data)
+    (diploma/generate-diplomas config diploma-data session)
     {:status 400 :body {:error "Invalid parameters"}}))
 
 (defn- exam-session-routes [config]

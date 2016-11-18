@@ -163,10 +163,10 @@
         api-data
         {:id id
          :email email
-         :diploma {:date diploma_date :signer diploma_signer :signer-title diploma_signer_title}
+         :diploma {:date diploma_date :signer diploma_signer :title diploma_signer_title}
          :sections (group-by-section db-data)
          :filter (user-status-filter db sections diploma_date)
-         :language (or (->> db-data (sort-by :registration_id) last :registration_language) (:asiointikieli api-data))
+         :language (keyword (or (->> db-data (sort-by :registration_id) last :registration_language) (:asiointikieli api-data) :fi))
          :payments (payments db-data)}))))
 
 (defn participant-data

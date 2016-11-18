@@ -6,7 +6,8 @@
             [clojure.string :as str]
             [ring.util.response :as resp]
             [oti.boundary.db-access :as dba]
-            [oti.util.logging.audit :as audit])
+            [oti.util.logging.audit :as audit]
+            [oti.spec :as os])
   (:import [java.time.format DateTimeFormatter]))
 
 (def formatter (DateTimeFormatter/ofPattern "d.M.yyyy"))
@@ -37,7 +38,7 @@
     [:div.signer
      (:signer diploma)]
     [:div.signer-title
-     (t localisation language "diploma-signer-title")]]])
+     (:title diploma)]]])
 
 (defn- diplomas [{:keys [localisation]} users]
   (-> [:div.diplomas
@@ -57,13 +58,15 @@
                :after new-data
                :msg "Generating participant diploma.")))
 
-(defn generate-diplomas [{:keys [db] :as config} ids signer title {{authority :username} :identity}]
-  (let [users (->> (map #(user-data/participant-data config %) ids)
+(defn generate-diplomas [{:keys [db] :as config} {::os/keys [participant-ids signer signer-title]} {{authority :username} :identity}]
+  (let [users (->> (map #(user-data/participant-data config %) participant-ids)
                    (remove nil?)
                    (filter #(not= (:filter %) :incomplete)))
         valid-ids (map :id users)]
     (if (seq users)
-      (do (dba/update-participant-diploma-data! db valid-ids signer title)
+      (do (->> users
+               (map (fn [{:keys [id language]}] {:id id :signer signer :title (language signer-title)}))
+               (dba/update-participant-diploma-data! db))
           (let [updated-users (map #(user-data/participant-data config %) valid-ids)
                 users-by-id (reduce #(assoc %1 (:id %2) %2) {} updated-users)]
             (dorun (map #(write-audit-log! % authority users-by-id) users))
@@ -72,3 +75,7 @@
                 (resp/header "Content-Type" "text/html; charset=utf-8"))))
       (-> (resp/not-found "Käyttäjää ei löydy tai tutkintoa ei ole suoritettu.")
           (resp/header "Content-Type" "text/plain; charset=utf-8")))))
+
+(defn default-signer-title [{:keys [localisation]}]
+  {:fi (t localisation :fi "diploma-signer-title")
+   :sv (t localisation :sv "diploma-signer-title")})

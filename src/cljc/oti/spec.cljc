@@ -232,3 +232,13 @@
 
 (s/def ::payment-query-data (s/keys :req [::uri
                                           ::payment-query-params]))
+
+;; diploma
+
+(s/def ::participant-ids (s/* ::id))
+(s/def ::signer ::non-blank-string)
+(s/def ::signer-title ::i18n-string)
+
+(s/def ::diploma-data (s/keys :req [::participant-ids
+                                    ::signer
+                                    ::signer-title]))

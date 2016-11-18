@@ -1,6 +1,3 @@
-ALTER TABLE participant
-  DROP COLUMN diploma_signer_title;
-
 DROP VIEW IF EXISTS all_participant_data;
 
 CREATE VIEW all_participant_data AS
@@ -65,3 +62,6 @@ CREATE VIEW all_participant_data AS
       ON p.id = pm.participant_id AND (pm.registration_id = r.id OR (pm.registration_id IS NULL AND r.id IS NULL))
     LEFT JOIN exam_session_translation est ON es.id = est.exam_session_id AND est.language_code = st.language_code
   ORDER BY section_id, module_id, es.session_date, es.id, lang;
+
+ALTER TABLE participant
+  DROP COLUMN diploma_signer_title;
