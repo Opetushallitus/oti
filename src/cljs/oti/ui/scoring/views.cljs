@@ -195,10 +195,10 @@
       :primary true
       :disabled (not changes?)]]))
 
-(defn scoring-panel [pre-selected-exam-session]
+(defn scoring-panel [pre-selected-registration-id]
   (rf/dispatch [:load-exam])
   (rf/dispatch [:load-exam-sessions-full])
-  (rf/dispatch [:select-exam-session pre-selected-exam-session])
+  (rf/dispatch [:select-participant-by-registration-id pre-selected-registration-id])
   (let [exam                  (rf/subscribe [:exam])
         exam-sessions         (rf/subscribe [:exam-sessions-full])
         selected-exam-session (rf/subscribe [:selected-exam-session])

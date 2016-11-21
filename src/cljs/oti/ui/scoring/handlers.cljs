@@ -147,6 +147,30 @@
  (fn [db [id]]
    (assoc-in db [:scoring :selected-participant] id)))
 
+(defn- has-registration-id?
+  [registration-id es]
+  (some #(= (:registration-id %) registration-id) (vals (:participants es))))
+
+(rf/reg-event-db
+ :select-participant-by-registration-id
+ [trim-v]
+ (fn [db [registration-id]]
+   (let [selected-exam-session-id (when registration-id
+                                    (some (fn [es]
+                                            (when (has-registration-id? registration-id es)
+                                              (:id es))) (vals (get-in db [:scoring :exam-sessions]))))
+         selected-participant-id (when selected-exam-session-id
+                                   (->> (get-in db [:scoring :exam-sessions selected-exam-session-id])
+                                        :participants
+                                        vals
+                                        (some #(when (= (:registration-id %) registration-id)
+                                                 (:id %)))))]
+     (if (and selected-exam-session-id
+              selected-participant-id)
+       (-> (assoc-in db [:scoring :selected-exam-session] selected-exam-session-id)
+           (assoc-in [:scoring :selected-participant] selected-participant-id))
+       (assoc-in db [:scoring :selected-registration-id] registration-id)))))
+
 
 (rf/reg-event-db
  :init-scoring-form-data
@@ -156,17 +180,29 @@
      (if (seq form-data) ;; Already inited
        db
        (if (seq existing-data)
-         (let [pre-selected-exam-session (get-in db [:scoring :selected-exam-session])
-               exam-session (or pre-selected-exam-session (-> (get-in db [:scoring :exam-sessions]) first second :id))
-               first-participant (->> (get-in db [:scoring :exam-sessions exam-session])
+         (let [pre-selected-registration-id (get-in db [:scoring :selected-registration-id])
+               pre-selected-exam-session-id (when pre-selected-registration-id
+                                              (some (fn [es]
+                                                   (when (has-registration-id? pre-selected-registration-id es)
+                                                     (:id es))) (vals (get-in db [:scoring :exam-sessions]))))
+               pre-selected-participant-id (when pre-selected-exam-session-id
+                                             (->> (get-in db [:scoring :exam-sessions pre-selected-exam-session-id])
+                                                  :participants
+                                                  vals
+                                                  (some #(when (= (:registration-id %) pre-selected-registration-id)
+                                                           (:id %)))))
+               first-exam-session (-> (get-in db [:scoring :exam-sessions]) first second :id)
+               first-participant (->> (get-in db [:scoring :exam-sessions first-exam-session])
                                       :participants
                                       first
                                       second
                                       :id)
+               exam-session (or pre-selected-exam-session-id first-exam-session)
+               participant (or pre-selected-participant-id first-participant)
                form-data (as-form-data existing-data)
                prepared-db (-> (assoc-in db [:scoring :form-data] form-data)
                                (assoc-in [:scoring :selected-exam-session] exam-session)
-                               (assoc-in [:scoring :selected-participant] first-participant))]
+                               (assoc-in [:scoring :selected-participant] participant))]
            (assoc-in prepared-db [:scoring :initial-form-data] form-data))
          db)))))
 

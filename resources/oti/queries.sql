@@ -216,7 +216,8 @@ SELECT id,
        module_accreditation_module_id,
        module_accreditation_date,
        diploma_date,
-       diploma_signer
+       diploma_signer,
+       diploma_signer_title
 FROM all_participant_data
 WHERE ext_reference_id = :external-user-id AND lang = 'fi'
 ORDER BY id;
@@ -271,8 +272,10 @@ SELECT id,
        section_registration_id,
        module_registration_module_id,
        module_registration_id,
+       registration_id,
        diploma_date,
-       diploma_signer
+       diploma_signer,
+       diploma_signer_title
 FROM all_participant_data
 WHERE lang = 'fi'
 ORDER BY id;
@@ -303,8 +306,10 @@ SELECT id,
        section_registration_id,
        module_registration_module_id,
        module_registration_id,
+       registration_id,
        diploma_date,
-       diploma_signer
+       diploma_signer,
+       diploma_signer_title
 FROM all_participant_data
 WHERE lang = 'fi' AND ext_reference_id IN (:ext-reference-ids)
 ORDER BY id;
