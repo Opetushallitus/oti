@@ -8,6 +8,7 @@ body {
 .registration .section,
 .search .search-fields,
 .buttons,
+#header,
 #header .user,
 #nav-holder ul {
   zoom: 1;
@@ -22,6 +23,8 @@ body {
 .search .search-fields:after,
 .buttons:before,
 .buttons:after,
+#header:before,
+#header:after,
 #header .user:before,
 #header .user:after,
 #nav-holder ul:before,
@@ -34,6 +37,7 @@ body {
 .registration .section:after,
 .search .search-fields:after,
 .buttons:after,
+#header:after,
 #header .user:after,
 #nav-holder ul:after {
   clear: both;
@@ -237,6 +241,9 @@ table {
   width: 70%;
   max-width: 600px;
 }
+.registration .participant .nin {
+  white-space: nowrap;
+}
 .registration .exam-session-info {
   margin-left: 150px;
   max-width: 600px;
@@ -244,9 +251,26 @@ table {
 .registration .exam-sections .row {
   margin: 5px 0 5px 30px;
 }
-.registration .exam-sections .row input {
-  margin-right: 10px;
+@media screen and (max-width: 480px) {
+  .registration .exam-sections .row {
+    margin: 5px 0 5px 5px;
+  }
+}
+.registration .exam-sections .row label {
+  display: block;
   vertical-align: middle;
+  clear: both;
+}
+.registration .exam-sections .row input {
+  display: block;
+  float: left;
+  width: auto;
+}
+.registration .exam-sections .row span {
+  display: block;
+  width: auto;
+  overflow: hidden;
+  padding-left: 5px;
 }
 .registration .exam-sections .row .modules {
   margin: 5px 0 5px 20px;
@@ -263,6 +287,17 @@ table {
 .registration .exam-sections .partial-accreditation .modules {
   margin-left: -3px;
 }
+@media screen and (max-width: 480px) {
+  .registration .exam-sections .partial-accreditation {
+    margin: 10px 0 10px 5px;
+  }
+  .registration .exam-sections .partial-accreditation .modules {
+    margin: 5px 0;
+  }
+  .registration .exam-sections .partial-accreditation .modules label {
+    margin-bottom: 5px;
+  }
+}
 .registration .price {
   text-transform: uppercase;
   font-weight: bold !important;
@@ -274,6 +309,12 @@ table {
 .registration .registration-pending {
   color: #00a651;
   font-size: 2.5rem;
+}
+@media screen and (max-width: 480px) {
+  .registration .buttons .left,
+  .registration .buttons .right {
+    max-width: 49%;
+  }
 }
 .exam-session-selection {
   font-weight: bold;
@@ -959,6 +1000,13 @@ select {
   padding-right: 20px;
   background: url("data:image/svg+xml;utf8,<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='24' height='24' viewBox='0 0 24 24'><path fill='#444' d='M7.406 7.828l4.594 4.594 4.594-4.594 1.406 1.406-6 6-6-6z'></path></svg>") no-repeat 100% 50%;
 }
+@media screen and (max-width: 480px) {
+  input[type="text"],
+  input[type="email"],
+  select {
+    width: 100% !important;
+  }
+}
 .button,
 button,
 input[type="submit"],
@@ -974,10 +1022,32 @@ input[type="button"] {
   line-height: 38px;
   padding: 0 12px;
   cursor: pointer;
-  display: inline-block;
+  display: inline-flex;
+  position: relative;
+  align-items: center;
   text-decoration: none;
   vertical-align: top;
   box-sizing: border-box;
+}
+.button span,
+button span,
+input[type="submit"] span,
+input[type="reset"] span,
+input[type="button"] span {
+  display: inline-block;
+  line-height: normal;
+}
+@media screen and (max-width: 480px) {
+  .button,
+  button,
+  input[type="submit"],
+  input[type="reset"],
+  input[type="button"] {
+    height: 60px;
+    line-height: normal;
+    text-align: center;
+    padding: 12px 12px;
+  }
 }
 .button:hover,
 button:hover,
@@ -1001,7 +1071,29 @@ input[type="button"].button-primary {
   line-height: 38px;
   padding: 0 12px;
   cursor: pointer;
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+}
+.button.button-primary span,
+button.button-primary span,
+input[type="submit"].button-primary span,
+input[type="reset"].button-primary span,
+input[type="button"].button-primary span {
   display: inline-block;
+  line-height: normal;
+}
+@media screen and (max-width: 480px) {
+  .button.button-primary,
+  button.button-primary,
+  input[type="submit"].button-primary,
+  input[type="reset"].button-primary,
+  input[type="button"].button-primary {
+    height: 60px;
+    line-height: normal;
+    text-align: center;
+    padding: 12px 12px;
+  }
 }
 .button.button-primary:hover,
 button.button-primary:hover,
@@ -1025,7 +1117,29 @@ input[type="button"].button-danger {
   line-height: 38px;
   padding: 0 12px;
   cursor: pointer;
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+}
+.button.button-danger span,
+button.button-danger span,
+input[type="submit"].button-danger span,
+input[type="reset"].button-danger span,
+input[type="button"].button-danger span {
   display: inline-block;
+  line-height: normal;
+}
+@media screen and (max-width: 480px) {
+  .button.button-danger,
+  button.button-danger,
+  input[type="submit"].button-danger,
+  input[type="reset"].button-danger,
+  input[type="button"].button-danger {
+    height: 60px;
+    line-height: normal;
+    text-align: center;
+    padding: 12px 12px;
+  }
 }
 .button.button-danger:hover,
 button.button-danger:hover,
@@ -1083,6 +1197,7 @@ input[type="button"].button-small {
 }
 #header {
   padding-top: 20px;
+  padding-bottom: 22px;
   max-width: 940px !important;
   margin-left: auto;
   margin-right: auto;
@@ -1090,7 +1205,8 @@ input[type="button"].button-small {
 }
 #header img {
   float: left;
-  width: 271px;
+  width: 70%;
+  max-width: 271px;
 }
 #header p {
   margin: 0;
@@ -1100,8 +1216,12 @@ input[type="button"].button-small {
   color: #1b1b1b;
   text-transform: uppercase;
   display: inline-block;
-  height: 70px;
   vertical-align: middle;
+}
+@media screen and (max-width: 940px) {
+  #header p {
+    width: 100%;
+  }
 }
 #header a.language-link {
   padding-top: 25px;
@@ -1110,6 +1230,11 @@ input[type="button"].button-small {
   font-size: 14px;
   color: #515151;
   cursor: pointer;
+}
+@media screen and (max-width: 390px) {
+  #header a.language-link {
+    padding-top: 18px;
+  }
 }
 #header .user {
   padding-top: 20px;
@@ -1125,6 +1250,12 @@ input[type="button"].button-small {
 #header .user a {
   padding: 0;
 }
+@media screen and (max-width: 940px) {
+  #header {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
 @media print {
   #header {
     display: none;
@@ -1135,6 +1266,12 @@ input[type="button"].button-small {
   margin-left: auto;
   margin-right: auto;
   padding-top: 2em;
+}
+@media screen and (max-width: 940px) {
+  #content-area {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
 }
 @media print {
   #content-area {
@@ -1168,6 +1305,11 @@ input[type="button"].button-small {
   padding: 0;
   border-left: 1px solid white;
   border-bottom: white;
+}
+@media screen and (max-width: 940px) {
+  #nav-holder ul {
+    padding-left: 20px;
+  }
 }
 #nav-holder.first-child {
   background: rgba(0, 0, 0, 0) no-repeat scroll 0 0;

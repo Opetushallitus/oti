@@ -15,6 +15,9 @@
         max-width: @input-width;
       }
     }
+    .nin {
+      white-space: nowrap;
+    }
   }
   .exam-session-info {
     margin-left: @label-width;
@@ -23,9 +26,24 @@
   .exam-sections {
     .row {
       margin: 5px 0 5px 30px;
-      input {
-        margin-right: 10px;
+      .mobile({
+        margin: 5px 0 5px 5px;
+      });
+      label {
+        display: block;
         vertical-align: middle;
+        clear: both;
+      }
+      input {
+        display: block;
+        float: left;
+        width: auto;
+      }
+      span {
+        display: block;
+        width: auto;
+        overflow: hidden;
+        padding-left: 5px;
       }
       .modules {
         margin: 5px 0 5px 20px;
@@ -42,6 +60,15 @@
       .modules {
         margin-left: -3px;
       }
+      .mobile({
+        margin: 10px 0 10px 5px;
+        .modules {
+          margin: 5px 0;
+          label {
+            margin-bottom: 5px;
+          }
+        }
+      })
     }
   }
   .price {
@@ -55,6 +82,13 @@
   .registration-pending {
     color: @oph-green;
     font-size: 2.5rem;
+  }
+  .buttons {
+    .left, .right {
+      .mobile({
+        max-width: 49%;
+      });
+    }
   }
 }
 

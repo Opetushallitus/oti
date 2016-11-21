@@ -16,6 +16,14 @@ html, body {
   @media print { display: none; }
 }
 
+.narrow(@rules) {
+  @media screen and (max-width: 940px) { @rules(); }
+}
+
+.mobile(@rules) {
+  @media screen and (max-width: 480px) { @rules(); }
+}
+
 @import "_forms";
 @import "_tables";
 @import "_flash";
@@ -65,7 +73,21 @@ div, ul, li {
   line-height: 38px;
   padding: 0 12px;
   cursor: pointer;
-  display: inline-block;
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+
+  span {
+    display: inline-block;
+    line-height: normal;
+  }
+
+  .mobile({
+    height: 60px;
+    line-height: normal;
+    text-align: center;
+    padding: 12px 12px;
+  })
 }
 
 body{
@@ -109,6 +131,12 @@ select {
   -webkit-border-radius: 0;
   padding-right: 20px;
   background: url("data:image/svg+xml;utf8,<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='24' height='24' viewBox='0 0 24 24'><path fill='#444' d='M7.406 7.828l4.594 4.594 4.594-4.594 1.406 1.406-6 6-6-6z'></path></svg>") no-repeat 100% 50%;
+}
+
+input[type="text"], input[type="email"], select {
+  .mobile({
+    width: 100% !important;
+  })
 }
 
 .button,
@@ -176,7 +204,9 @@ input[type="button"] {
 }
 
 #header{
+  &:extend(.clearfix all);
   padding-top: 20px;
+  padding-bottom: 22px;
   max-width: 940px !important;
   margin-left: auto;
   margin-right: auto;
@@ -184,7 +214,8 @@ input[type="button"] {
 
   & img{
     float: left;
-    width: 271px;
+    width: 70%;
+    max-width: 271px;
   }
 
   & p{
@@ -195,8 +226,12 @@ input[type="button"] {
     color: #1b1b1b;
     text-transform: uppercase;
     display: inline-block;
-    height: 70px;
+    //height: 70px;
     vertical-align: middle;
+
+    .narrow({
+      width: 100%;
+    });
   }
 
   a.language-link {
@@ -206,6 +241,9 @@ input[type="button"] {
     font-size: 14px;
     color: #515151;
     cursor: pointer;
+    @media screen and (max-width: 390px) {
+      padding-top: 18px;
+    }
   }
 
   .user {
@@ -223,6 +261,10 @@ input[type="button"] {
       padding: 0;
     }
   }
+  .narrow({
+    padding-left: 20px;
+    padding-right: 20px;
+  });
   .hide-for-print();
 }
 
@@ -232,8 +274,13 @@ input[type="button"] {
   margin-right: auto;
   padding-top: 2em;
 
+  .narrow({
+    padding-left: 20px;
+    padding-right: 20px;
+  });
+
   .print({
-  padding: 0;
+    padding: 0;
   });
 }
 
@@ -269,6 +316,10 @@ input[type="button"] {
         border-bottom: white;
       }
     }
+
+    .narrow({
+      padding-left: 20px;
+    });
   }
 
   &.first-child{

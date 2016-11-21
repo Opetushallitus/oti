@@ -89,7 +89,10 @@
 
 (defn participant-div [participant-data]
   (let [{:keys [etunimet sukunimi hetu]} participant-data]
-    [:div.name (str (str/join " " etunimet) " " sukunimi ", " hetu)]))
+    [:div.name
+     [:span.names (str (str/join " " etunimet) " " sukunimi ",")]
+     " "
+     [:span.nin hetu]]))
 
 (defn valid-registration? [{reg-sections ::os/sections :as form-data} {:keys [sections]}]
   (and (s/valid? ::os/registration form-data)
