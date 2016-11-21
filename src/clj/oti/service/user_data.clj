@@ -124,7 +124,8 @@
                                                    (concat mods)))
                                             []
                                             sessions)
-                                    (sort-by :id))]
+                                    (sort-by :id)
+                                    (distinct))]
              (-> (sec-or-mod-props "section" section-rows)
                  (select-keys [:id :name :accreditation-requested? :accreditation-date :accreditation-type :accepted])
                  (assoc :sessions sessions

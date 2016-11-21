@@ -316,7 +316,8 @@ ORDER BY id;
 
 -- name: select-participant-by-id
 SELECT * FROM all_participant_data
-WHERE id = :id AND lang = 'fi';
+WHERE id = :id AND lang = 'fi'
+ORDER BY section_id, session_date, exam_session_id, module_id;
 
 -- name: select-participant-by-payment-order-number
 SELECT * FROM all_participant_data
