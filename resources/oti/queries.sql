@@ -194,9 +194,29 @@ INSERT INTO participant (ext_reference_id, email)
   WHERE NOT EXISTS (SELECT id FROM participant WHERE ext_reference_id = :external-user-id);
 
 -- name: select-participant
-SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
-  module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date,
-  diploma_date
+SELECT id,
+       ext_reference_id,
+       exam_session_id,
+       email,
+       section_id,
+       section_score_created,
+       section_score_updated,
+       section_score_id,
+       section_score_accepted,
+       section_score_evaluator,
+       module_id,
+       module_score_created,
+       module_score_updated,
+       module_score_id,
+       module_score_points,
+       module_score_accepted,
+       module_score_evaluator,
+       section_accreditation_section_id,
+       section_accreditation_date,
+       module_accreditation_module_id,
+       module_accreditation_date,
+       diploma_date,
+       diploma_signer
 FROM all_participant_data
 WHERE ext_reference_id = :external-user-id AND lang = 'fi'
 ORDER BY id;
@@ -226,11 +246,67 @@ WHERE es.id = :exam-session-id AND st.language_code = 'fi' AND p.ext_reference_i
 ORDER BY ext_reference_id;
 
 -- name: select-all-participants
-SELECT id, ext_reference_id, email, section_id, section_score_ts, section_accepted, module_id, module_score_ts,
-  module_accepted, section_accreditation, section_accreditation_date, module_accreditation, module_accreditation_date,
-  diploma_date
+SELECT id,
+       ext_reference_id,
+       exam_session_id,
+       email,
+       section_id,
+       section_score_created,
+       section_score_updated,
+       section_score_id,
+       section_score_accepted,
+       section_score_evaluator,
+       module_id,
+       module_score_created,
+       module_score_updated,
+       module_score_id,
+       module_score_points,
+       module_score_accepted,
+       module_score_evaluator,
+       section_accreditation_section_id,
+       section_accreditation_date,
+       module_accreditation_module_id,
+       module_accreditation_date,
+       section_registration_section_id,
+       section_registration_id,
+       module_registration_module_id,
+       module_registration_id,
+       diploma_date,
+       diploma_signer
 FROM all_participant_data
 WHERE lang = 'fi'
+ORDER BY id;
+
+-- name: select-all-participants-by-ext-references
+SELECT id,
+       ext_reference_id,
+       exam_session_id,
+       email,
+       section_id,
+       section_score_created,
+       section_score_updated,
+       section_score_id,
+       section_score_accepted,
+       section_score_evaluator,
+       module_id,
+       module_score_created,
+       module_score_updated,
+       module_score_id,
+       module_score_points,
+       module_score_accepted,
+       module_score_evaluator,
+       section_accreditation_section_id,
+       section_accreditation_date,
+       module_accreditation_module_id,
+       module_accreditation_date,
+       section_registration_section_id,
+       section_registration_id,
+       module_registration_module_id,
+       module_registration_id,
+       diploma_date,
+       diploma_signer
+FROM all_participant_data
+WHERE lang = 'fi' AND ext_reference_id IN (:ext-reference-ids)
 ORDER BY id;
 
 -- name: select-participant-by-id

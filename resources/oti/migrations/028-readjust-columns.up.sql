@@ -47,7 +47,8 @@ CREATE VIEW all_participant_data AS
     r.id                      AS registration_id,
     r.language_code           AS registration_language,
     p.diploma_date,
-    p.diploma_signer
+    p.diploma_signer,
+    p.diploma_signer_title
   FROM participant p
     LEFT JOIN section s ON s.exam_id = 1
     LEFT JOIN section_translation st ON s.id = st.section_id
