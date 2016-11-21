@@ -111,7 +111,7 @@
     (info "participant base url:" (url url-helper url-key))
     (url url-helper url-key)))
 
-(defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers]}]
+(defn- header-authentication [{:keys [db api-client] :as config} {:keys [query-params headers session]}]
   (let [lang (or (some-> (:lang query-params) str/lower-case) "fi")
         {:strs [vakinainenkotimainenlahiosoites
                 vakinainenkotimainenlahiosoitepostitoimipaikkas
@@ -121,12 +121,13 @@
         {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
         address #::os{:registration-post-office    vakinainenkotimainenlahiosoitepostitoimipaikkas
                       :registration-zip            vakinainenkotimainenlahiosoitepostinumero
-                      :registration-street-address vakinainenkotimainenlahiosoites}]
+                      :registration-street-address vakinainenkotimainenlahiosoites}
+        redirect-url (or (:redirect-after-authentication session) (participant-base-url config lang))]
     (when id
       ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
       (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
     (if (and sn firstname (s/valid? ::os/hetu nationalidentificationnumber))
-      (-> (redirect (participant-base-url config lang) :see-other)
+      (-> (redirect redirect-url :see-other)
           (assoc :session {:participant (merge
                                           {:etunimet         (if etunimet
                                                                (str/split etunimet #" ")
@@ -139,11 +140,12 @@
                                           address)}))
       {:status 400 :body {:error "Missing critical authentication data"}})))
 
-(defn- init-authentication [{:keys [url-helper]} lang]
+(defn- init-authentication [{:keys [url-helper]} lang callback]
   (let [url-key (if (and lang (= "sv" lang))
                   "tunnistus.url.sv"
                   "tunnistus.url.fi")]
-    (redirect (url url-helper url-key) :see-other)))
+    (-> (redirect (url url-helper url-key) :see-other)
+        (assoc :session {:redirect-after-authentication callback}))))
 
 (defn- abort [{:keys [url-helper] :as config} lang]
   (-> (url url-helper "tunnistus.logout" [(participant-base-url config lang)])
@@ -182,7 +184,7 @@
     (context routing/participant-api-root []
       (GET "/translations"         [lang] (translations config lang))
       (GET "/translations/refresh" []     (refresh-translations config))
-      (GET "/authenticate"         [lang] (init-authentication config lang))
+      (GET "/authenticate"         [lang callback] (init-authentication config lang callback))
       ;; FIXME: This is a dummy route
       (GET "/dummy-authenticate"   [callback hetu automatic-address] (authenticate config callback hetu automatic-address))
       (GET "/exam-sessions"        []         (exam-sessions config))
