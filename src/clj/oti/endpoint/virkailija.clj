@@ -150,19 +150,20 @@
     (not-found {})))
 
 (defn- enrich-participant-data [data p-data]
-  (->> (map (fn [[exam-session-id exam-session]]
-              [exam-session-id (update exam-session :participants
-                                       (fn [ps]
-                                         (->> (map (fn [[p-id p]]
-                                                     (if-let [api-data (get p-data (:ext-reference-id p))]
-                                                       [p-id (assoc p
-                                                                    :first-names (:etunimet api-data)
-                                                                    :last-name (:sukunimi api-data)
-                                                                    :display-name (:kutsumanimi api-data)
-                                                                    :ssn (:hetu api-data))]
-                                                       [p-id p])) ps)
-                                              (into {}))))]) data)
-       (into {})))
+  (when (and (seq data) (seq p-data))
+    (->> (map (fn [[exam-session-id exam-session]]
+                [exam-session-id (update exam-session :participants
+                                         (fn [ps]
+                                           (->> (map (fn [[p-id p]]
+                                                       (if-let [api-data (get p-data (:ext-reference-id p))]
+                                                         [p-id (assoc p
+                                                                      :first-names (:etunimet api-data)
+                                                                      :last-name (:sukunimi api-data)
+                                                                      :display-name (:kutsumanimi api-data)
+                                                                      :ssn (:hetu api-data))]
+                                                         [p-id p])) ps)
+                                                (into {}))))]) data)
+         (into {}))))
 
 (defn- exam-sessions-full [{:keys [db api-client]} lang]
   (let [scoring-data (scoring/exam-sessions-full db lang)
@@ -170,9 +171,12 @@
                             (mapcat (fn [[_ es]]
                                       (-> (:participants es)
                                           vals)) scoring-data))
-        external-data (user-data/api-user-data-by-oid api-client ext-references)
+        external-data (when (seq ext-references)
+                        (user-data/api-user-data-by-oid api-client ext-references))
         enriched (enrich-participant-data scoring-data external-data)]
-    (response enriched)))
+    (if (seq enriched)
+      (response enriched)
+      (not-found {:error "No exam session data available"}))))
 
 (defn- exam-session-routes [config]
   (context "/exam-sessions" []
