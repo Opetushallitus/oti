@@ -76,13 +76,13 @@
         first-row (first rows)]
     {:id (get-fn first-row "id")
      :name (get-fn first-row "name")
-     :score-ts (some #(get-fn % "score_ts") rows)
-     :accepted (some #(get-fn % "accepted") rows)
-     :points (some #(get-fn % "points") rows)
-     :accreditation-requested? (some #(get-fn % "accreditation") rows)
+     :score-ts (some #(get-fn % "score_created") rows)
+     :accepted (some #(get-fn % "score_accepted") rows)
+     :points (some #(get-fn % "score_points") rows)
+     :accreditation-requested? (some #(get-fn % (str "accreditation_" kw-prefix "_id")) rows)
      :accreditation-date (some #(get-fn % "accreditation_date") rows)
      :accreditation-type (some #(get-fn % "accreditation_type") rows)
-     :registered-to? (some #(get-fn % "registration") rows)}))
+     :registered-to? (some #(get-fn % "registration_id") rows)}))
 
 (defn- group-by-session [rows]
   (->> (partition-by :exam_session_id rows)

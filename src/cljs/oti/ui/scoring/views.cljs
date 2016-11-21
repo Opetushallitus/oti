@@ -8,8 +8,13 @@
 
 (defn- accredited? [type o fd]
   (condp = type
-    :section (seq (filter #(= (::spec/section-id %) (:id o)) (:accreditations fd)))
-    :module (seq (filter #(= (::spec/module-id %) (:id o)) (:accreditations fd)))))
+    :section (seq (get-in fd [:accreditations :sections (:id o)]))
+    :module (seq (get-in fd [:accreditations :modules (:id o)]))))
+
+(defn- included? [type o fd]
+  (condp = type
+    :section (seq (get-in fd [:exam-content :sections (:id o)]))
+    :module (seq (get-in fd [:exam-content :modules (:id o)]))))
 
 (defn- accredited-module? [m fd]
   (accredited? :module m fd))
@@ -19,14 +24,20 @@
 
 (defn- accreditation-date [type o fd]
   (condp = type
-    :section (::spec/section-accreditation-date (first (filter #(= (::spec/section-id %) (:id o)) (:accreditations fd))))
-    :module (::spec/module-accreditation-date (first (filter #(= (::spec/module-id %) (:id o)) (:accreditations fd))))))
+    :section (get-in fd [:accreditations :sections (:id o) ::spec/section-accreditation-date])
+    :module (get-in fd [:accreditations :modules (:id o) ::spec/module-accreditation-date])))
 
 (defn- section-accreditation-date [s fd]
   (accreditation-date :section s fd))
 
 (defn- module-accreditation-date [m fd]
   (accreditation-date :module m fd))
+
+(defn- included-section? [s fd]
+  (included? :section s fd))
+
+(defn- included-module? [s fd]
+  (included? :module s fd))
 
 (defn- assoc-when [pred map & keys]
   (if pred
@@ -114,12 +125,13 @@
 
 (defn module [m form-data]
   (if-not (accredited-module? m form-data)
-    [:div.module
-     [:label (:name m)]
-     (when (:accepted-separately? m)
-       [accepted-radio :module m form-data])
-     (when (:points? m)
-       [module-points-input m form-data])]
+    (when (included-module? m form-data)
+      [:div.module
+       [:label (:name m)]
+       (when (:accepted-separately? m)
+         [accepted-radio :module m form-data])
+       (when (:points? m)
+         [module-points-input m form-data])])
     [:div.module
      [:label (str (:name m) ", korvaavuus myönnetty " (unparse-date (module-accreditation-date m form-data)))]]))
 
@@ -131,10 +143,11 @@
 
 (defn section [section form-data]
   (if-not (accredited-section? section form-data)
-    [:div.section
-     [:h3 (str "OSIO " (:name section))]
-     [accepted-radio :section section form-data]
-     [modules section form-data]]
+    (when (included-section? section form-data)
+      [:div.section
+       [:h3 (str "OSIO " (:name section))]
+       [accepted-radio :section section form-data]
+       [modules section form-data]])
     [:div.section
      [:h3 (str "OSIO " (:name section) ", korvaavuus myönnetty " (unparse-date (section-accreditation-date section form-data)))]]))
 
@@ -162,7 +175,7 @@
 
 (defn button-bar [form-data initial-form-data participants]
   (let [changes? (not= form-data initial-form-data)
-        more-than-one-participant? (>= (count participants) 1)]
+        more-than-one-participant? (> (count participants) 1)]
     [:div.button-bar
      [link-button "/" "Peruuta" "abort-button"]
      [button (if changes?
@@ -202,7 +215,5 @@
                            @exam-sessions]
          [scoring-form @exam @form-data]
          [button-bar @form-data @initial-form-data @participants]]
-        (if (not (nil? @exam-sessions))
-          [:div.scoring-panel
-           [:h1 "Ei arvioitavia tutkintotapahtumia"]]
-          [:div.scoring-panel])))))
+        [:div.scoring-panel
+         [:h2 "Ei arvioitavia tutkintotapahtumia"]]))))

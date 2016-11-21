@@ -3,6 +3,7 @@
             [cognitect.transit :as transit]
             [clojure.string :as str]
             [oti.routing :as routing]
+            [oti.ui.handlers :as handlers]
             [oti.spec :as spec]
             [ajax.core :as ajax]))
 
@@ -90,7 +91,6 @@
                               (inc current-participant-index))))
         :id)))
 
-
 ;; HANDLERS
 
 (rf/reg-event-fx
@@ -100,7 +100,7 @@
                  :uri             (routing/v-a-route "/exam-sessions/full")
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-exam-sessions-full-success]
-                 :on-failure      [:bad-response]}
+                 :on-failure      [:handle-exam-sessions-full-failure]}
     :loader     true}))
 
 
@@ -109,7 +109,22 @@
  [trim-v]
  (fn [{:keys [db]} [result]]
    {:db (assoc-in db [:scoring :exam-sessions] result)
+    :loader false
     :dispatch [:init-scoring-form-data result]}))
+
+(rf/reg-event-fx
+ :handle-exam-sessions-full-failure
+ [trim-v]
+ (fn
+   [{:keys [db]} [response]]
+   (condp = (:status response)
+     401 (handlers/redirect-to-auth)
+     404 {:db (assoc db :error response)
+          :show-flash [:error "Arvioitavia tutkintotapahtumia tai henkilöitä ei löytynyt."]
+          :loader false}
+     {:db (assoc db :error response)
+      :show-flash [:error "Tietojen lataus palvelimelta epäonnistui"]
+      :loader false})))
 
 
 (rf/reg-event-db

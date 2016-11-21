@@ -37,15 +37,15 @@
          (set! (.-href location)))))
 
 (rf/reg-event-fx
-  :bad-response
-  [trim-v]
-  (fn
-    [{:keys [db]} [response]]
-    (if (= 401 (:status response))
-      (redirect-to-auth)
-      {:db (assoc db :error response)
-       :show-flash [:error "Tietojen lataus palvelimelta epäonnistui"]
-       :loader false})))
+ :bad-response
+ [trim-v]
+ (fn
+   [{:keys [db]} [response]]
+   (if (= 401 (:status response))
+     (redirect-to-auth)
+     {:db (assoc db :error response)
+      :show-flash [:error "Tietojen lataus palvelimelta epäonnistui"]
+      :loader false})))
 
 (rf/reg-fx
   :redirect
@@ -72,7 +72,7 @@
                   :on-success      [:store-response-to-db :root]
                   :on-failure      [:bad-response]}}))
 
-(re-frame/reg-event-db
+(rf/reg-event-db
   :launch-confirmation-dialog
   [trim-v]
   (fn [db [question button-text & rf-event]]
@@ -80,7 +80,7 @@
                                     :button-text button-text
                                     :event (when rf-event (vec rf-event))})))
 
-(re-frame/reg-event-db
+(rf/reg-event-db
   :confirmation-cancel
   [trim-v]
   (fn [db _]

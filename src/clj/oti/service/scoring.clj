@@ -65,11 +65,10 @@
        :body {:errors [:upsert-failed]}})))
 
 (defn- as-participants [[ext-reference-id participant-data]]
-  (let [{:keys [id exam_session_id]} (first participant-data)]
-    {:ext-reference-id ext-reference-id
-     :id id
-     :exam-session-id exam_session_id
-     :data participant-data}))
+  {:ext-reference-id ext-reference-id
+   :id (some :id participant-data)
+   :exam-session-id (some :exam_session_id participant-data)
+   :data participant-data})
 
 (defn- conforms-filter
   "Returns distinct elements that conforms to spec."
@@ -90,7 +89,13 @@
 (defn- module-accreditations [participant-data]
   (conforms-filter ::spec/module-accreditation-conformer participant-data))
 
-(defn- relational-by
+(defn- section-registrations [participant-data]
+  (conforms-filter ::spec/section-registration-conformer participant-data))
+
+(defn- module-registrations [participant-data]
+  (conforms-filter ::spec/module-registration-conformer participant-data))
+
+(defn- hierarchial-by
   "Returns a map where key points to the data in a semi relational manner.
   Assumes key is unique."
   [key data]
@@ -104,34 +109,46 @@
   (map (fn [s]
          (let [module-scores (filter #(= (::spec/section-score-id s)
                                          (::spec/section-score-id %)) ms)]
-           (assoc s :modules (relational-by ::spec/module-id module-scores)))) ss))
+           (assoc s :modules (hierarchial-by ::spec/module-id module-scores)))) ss))
 
 (defn- set-scores [participant]
   (let [section-scores (section-scores (:data participant))
         module-scores (module-scores (:data participant))
         merged-scores (module-scores-under-section-scores section-scores module-scores)]
-    (assoc participant :scores (relational-by ::spec/section-id merged-scores))))
+    (assoc participant :scores (hierarchial-by ::spec/section-id merged-scores))))
 
 
 (defn- set-accreditations [participant]
   (let [section-accreditations (section-accreditations (:data participant))
         module-accreditations (module-accreditations (:data participant))]
-    (-> (assoc-in participant [:accreditations :sections] section-accreditations)
-        (assoc-in [:accreditations :modules] module-accreditations))))
+    (-> (assoc-in participant [:accreditations :sections] (hierarchial-by ::spec/section-id section-accreditations))
+        (assoc-in [:accreditations :modules] (hierarchial-by ::spec/module-id module-accreditations)))))
+
+(defn- set-exam-content [{:keys [data] :as participant}]
+  (let [sections (section-registrations data)
+        modules (module-registrations data)]
+    (assoc participant :exam-content {:sections (hierarchial-by ::spec/section-registration-section-id sections)
+                                      :modules (hierarchial-by ::spec/module-registration-module-id modules)})))
 
 (defn- participants-by-exam-session [participant-data exam-session-id]
-  (->> (filter #(= (:exam_session_id %) exam-session-id) participant-data)
+  (->> (filter #(or (= (:exam_session_id %) exam-session-id)
+                    (nil? (:exam_session_id %))) participant-data) ;; Allow nil session ids, they should be accreditations.
        (group-by :ext_reference_id)
        (map as-participants)
        (map set-scores)
        (map set-accreditations)
+       (map set-exam-content)
+       (remove #(nil? (:exam-session-id %))) ;; Accreditations show up as 'participants' with nil exam_sessions
        (map #(dissoc % :data))
-       (relational-by :id)))
+       (hierarchial-by :id)))
 
 (defn exam-sessions-full [{:keys [spec] :as db} lang]
   (let [exam-session-data (dba/exam-sessions-full db lang)
         participant-ext-ids (into [] (distinct (map :participant_ext_reference exam-session-data)))
-        participant-data (dba/all-participants-by-ext-references db participant-ext-ids)]
+        participant-data (if (seq participant-ext-ids)
+                           (dba/all-participants-by-ext-references db participant-ext-ids)
+                           [])]
+    (when (seq exam-session-data)
       (->> exam-session-data
            (group-by :exam_session_id)
            (mapv (fn [[es-id exam-sessions]]
@@ -153,4 +170,4 @@
                       :city exam_session_city
                       :other-location-info exam_session_other_location_info
                       :participants (participants-by-exam-session participant-data es-id)})))
-           (relational-by :id))))
+           (hierarchial-by :id)))))

@@ -261,6 +261,10 @@
 (s/def ::exam-session-id ::id)
 (s/def ::ext-reference-id ::non-blank-string)
 (s/def ::participant-id ::id)
+(s/def ::section-registration-id ::id)
+(s/def ::section-registration-section-id ::id)
+(s/def ::module-registration-id ::id)
+(s/def ::module-registration-section-id ::id)
 (s/def ::section-score (s/keys :req [::section-score-id
                                      ::section-id
                                      ::section-score-accepted
@@ -274,6 +278,13 @@
                                             ::module-accreditation-date]))
 (s/def ::section-accreditation (s/keys :req [::section-id
                                              ::section-accreditation-date]))
+(s/def ::section-registration (s/keys :req [::section-registration-id
+                                            ::section-registration-section-id
+                                            ::exam-session-id]))
+(s/def ::module-registration (s/keys :req [::module-registration-id
+                                           ::module-registration-module-id
+                                           ::exam-session-id]))
+
 
 (s/def ::section-accreditation-conformer
   (s/conformer (fn [{:keys [section_accreditation_section_id
@@ -322,4 +333,26 @@
                                       ::ext-reference-id ext_reference_id}]
                    (if (s/valid? ::section-score section-score)
                      section-score
+                     ::s/invalid)))))
+
+(s/def ::section-registration-conformer
+  (s/conformer (fn [{:keys [section_registration_section_id
+                            section_registration_id
+                            exam_session_id]}]
+                 (let [section-registration {::section-registration-id section_registration_id
+                                             ::section-registration-section-id section_registration_section_id
+                                             ::exam-session-id exam_session_id}]
+                   (if (s/valid? ::section-registration section-registration)
+                     section-registration
+                     ::s/invalid)))))
+
+(s/def ::module-registration-conformer
+  (s/conformer (fn [{:keys [module_registration_module_id
+                            module_registration_id
+                            exam_session_id]}]
+                 (let [module-registration {::module-registration-id module_registration_id
+                                            ::module-registration-module-id module_registration_module_id
+                                            ::exam-session-id exam_session_id}]
+                   (if (s/valid? ::module-registration module-registration)
+                     module-registration
                      ::s/invalid)))))
