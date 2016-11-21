@@ -78,7 +78,7 @@
   (fn [db [question button-text & rf-event]]
     (assoc db :confirmation-dialog {:question question
                                     :button-text button-text
-                                    :event (vec rf-event)})))
+                                    :event (when rf-event (vec rf-event))})))
 
 (re-frame/reg-event-db
   :confirmation-cancel

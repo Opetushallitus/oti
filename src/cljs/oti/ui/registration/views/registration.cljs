@@ -4,6 +4,7 @@
             [oti.spec :as os]
             [oti.ui.i18n :refer [t]]
             [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
+            [oti.ui.views.common :refer [confirmation-dialog]]
             [oti.exam-rules :as rules]
             [clojure.string :as str]
             [cljs.spec :as s]))
@@ -14,25 +15,28 @@
     (swap! form-data assoc key val)
     true))
 
+(defn- note-invalid-session-id! [session-id]
+  (when (pos-int? session-id)
+    (re-frame/dispatch [:launch-confirmation-dialog (t "invalid-exam-session-selected")])))
+
 (defn session-select [lang exam-sessions form-data]
-  (when (and (seq exam-sessions)
-             (not= -1 (::os/session-id @form-data))
-             (or (nil? (::os/session-id @form-data))
-                 (nil? (some #(= (::os/id %) (::os/session-id @form-data)) exam-sessions))))
-    (swap! form-data assoc ::os/session-id (-> exam-sessions first ::os/id)))
-  [:div
-   [:label {:for "exam-session-select"}
-    [:span.label (str (t "session" "Tapahtuma") ":")]]
-   (when lang
-     [:select#exam-session-select
-      {:value (or (::os/session-id @form-data) "")
-       :on-change (partial set-val form-data ::os/session-id)}
-      [:option {:value -1 :key -1} (t "no-exam-session" "En osallistu koetilaisuuteen")]
-      (doall
-        (for [{::os/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
-          [:option {:value id :key id}
-           (str (unparse-date session-date) " " start-time " - " end-time " "
-                (lang city) ", " (lang street-address) ", " (lang other-location-info))]))])])
+  (if (seq exam-sessions)
+    (let [{::os/keys [session-id]} @form-data]
+      [:div.section.exam-session-selection
+       [:div
+        [:label {:for "exam-session-select"}
+         [:span.label (str (t "session" "Tapahtuma") ":")]]
+        (when lang
+          [:select#exam-session-select
+           {:value (or session-id "")
+            :on-change (partial set-val form-data ::os/session-id)}
+           [:option {:value -1 :key -1} (t "no-exam-session" "En osallistu koetilaisuuteen")]
+           (doall
+             (for [{::os/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
+               [:option {:value id :key id}
+                (str (unparse-date session-date) " " start-time " - " end-time " "
+                     (lang city) ", " (lang street-address) ", " (lang other-location-info))]))])]])
+    [:div.section.exam-session-info (t "no-available-sessions-info")]))
 
 (defn format-price [number]
   (when (number? number)
@@ -200,17 +204,20 @@
       (when (and (= (::os/language-code @form-data) @initial-lang) (not= @lang @initial-lang))
         (swap! form-data assoc ::os/language-code @lang)
         (reset! initial-lang @lang))
+      (when-not (or (nil? @exam-sessions)
+                    (= -1 (::os/session-id @form-data))
+                    (some #(= (::os/id %) (::os/session-id @form-data)) @exam-sessions))
+        (swap! form-data assoc ::os/session-id (-> @exam-sessions first ::os/id))
+        (note-invalid-session-id! session-id))
       (let [invalids (invalid-keys form-data ::os/registration)]
         [:div.registration
+         [confirmation-dialog]
          (if (pos? (count (:sections @registration-options)))
            [:form.registration {:on-submit (fn [e]
                                              (.preventDefault e)
                                              (reset! submitted? true)
                                              (re-frame/dispatch [:store-registration @form-data @lang]))}
-            [:div.section.exam-session-selection
-             [session-select @lang @exam-sessions form-data]]
-            (when (empty? @exam-sessions)
-              [:div.section.exam-session-info (t "no-available-sessions-info")])
+            [session-select @lang @exam-sessions form-data]
             [:div.section.participant
              [:h3 (t "particulars" "Henkilötiedot")]
              (participant-div participant-data)

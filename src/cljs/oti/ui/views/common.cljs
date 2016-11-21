@@ -31,10 +31,13 @@
            (:question @data)]
           [:div.buttons
            [:div.right
-            [:button {:on-click #(re-frame/dispatch [:confirmation-cancel])} "Peruuta"]
-            [:button.button-danger
-             {:on-click (fn []
-                          (re-frame/dispatch (:event @data))
-                          (re-frame/dispatch [:confirmation-cancel]))}
-             (:button-text @data)]]]]
+            [:button
+             {:on-click #(re-frame/dispatch [:confirmation-cancel])}
+             (if (:event @data) "Peruuta" "OK")]
+            (when (:event @data)
+              [:button.button-danger
+               {:on-click (fn []
+                            (re-frame/dispatch (:event @data))
+                            (re-frame/dispatch [:confirmation-cancel]))}
+               (:button-text @data)])]]]
          [:div.overlay]]))))
