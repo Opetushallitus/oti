@@ -6,7 +6,8 @@
             [clojure.string :as str]
             [oti.service.user-data :as user-data]
             [oti.service.registration :as registration]
-            [oti.util.logging.audit :as audit])
+            [oti.util.logging.audit :as audit]
+            [oti.db-states :as states])
   (:import [java.time LocalDateTime]
            [java.net URLEncoder URLDecoder]))
 
@@ -37,9 +38,9 @@
                :on :payment
                :op :update
                :before {:order-number (:ORDNR form-data)
-                        :state "UNPAID"}
+                        :state states/pmt-unpaid}
                :after {:order-number (:ORDNR form-data)
-                       :state "OK"}
+                       :state states/pmt-ok}
                :msg "Payment has been confirmed.")
     (try
       (send-confirmation-email! config form-data)
@@ -54,9 +55,9 @@
                :on :payment
                :op :update
                :before {:order-number (:ORDNR form-data)
-                        :state "UNPAID"}
+                        :state states/pmt-unpaid}
                :after {:order-number (:ORDNR form-data)
-                       :state "ERROR"}
+                       :state states/pmt-error}
                :msg "Payment has been cancelled.")
     :cancelled))
 
@@ -68,7 +69,7 @@
              :before {:order-number order_number
                       :state state}
              :after {:order-number order_number
-                     :state "ERROR"}
+                     :state states/pmt-error}
              :msg "Payment has been cancelled.")
   (dba/cancel-registration-and-payment! db {:order-number order_number})
   :cancelled)
@@ -161,7 +162,7 @@
                      :before {:order-number order_number
                               :state state}
                      :after {:order-number order_number
-                             :state "ERROR"}
+                             :state states/pmt-error}
                      :msg "Payment has been cancelled and related registration set as incomplete.")
           (dba/cancel-payment-set-reg-incomplete! db {:order-number order_number})))
       (info "Payments checked."))))
@@ -173,9 +174,9 @@
              :on :payment
              :op :update
              :before {:order-number order-number
-                      :state "ERROR"}
+                      :state states/pmt-error}
              :after {:order-number order-number
-                     :state "OK"}
+                     :state states/pmt-ok}
              :msg "Payment and related registration has been approved.")
   (when (= 1 (dba/confirm-registration-and-payment! db {:order-number order-number}))
     (some->> (user-data/participant-data config order-number user-lang)

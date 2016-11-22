@@ -9,7 +9,8 @@
             [clojure.string :as str]
             [oti.routing :as routing]
             [oti.ui.views.common :refer [small-loader]]
-            [oti.ui.routes :as routes]))
+            [oti.ui.routes :as routes]
+            [oti.db-states :as states]))
 
 (defn- registrations-table [registrations]
   (let [sm-names (re-frame/subscribe [:section-and-module-names])]
@@ -27,7 +28,7 @@
           (for [{:keys [sections id etunimet sukunimi lang participant-id payment-state]} registrations]
             [:tr {:key id}
              [:td
-              (when (#{"ERROR" "UNPAID"} payment-state)
+              (when (#{states/pmt-error states/pmt-unpaid} payment-state)
                 [:i.icon-attention {:class "error"
                                     :title "Ilmoittautuminen maksamatta"}])
               [:a {:href (routing/v-route "/henkilot/" participant-id)} (str etunimet " " sukunimi)]]

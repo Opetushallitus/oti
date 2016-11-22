@@ -12,7 +12,8 @@
             [oti.util.logging.audit :as audit]
             [oti.component.email-service :as email]
             [clojure.set :as set]
-            [oti.service.user-data :as user-data])
+            [oti.service.user-data :as user-data]
+            [oti.db-states :as states])
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]
            [java.util Locale]))
@@ -163,7 +164,7 @@
                          (valid-registration? config external-user-id conformed))
             price-type (rules/price-type-for-registration conformed)
             amount (price-type (payment-amounts config external-user-id))
-            reg-state (if (zero? amount) "OK" "INCOMPLETE")]
+            reg-state (if (zero? amount) states/reg-ok states/reg-incomplete)]
         (if valid?
           (try
             (store-address-to-service! api-client external-user-id participant-data conformed)
@@ -262,8 +263,8 @@
              :on :registration
              :op :update
              :before {:id registration-id
-                      :state "INCOMPLETE"}
-             :after {:id registration-id
-                     :state "ERROR"}
+                      :state states/reg-incomplete}
+             :after {:id    registration-id
+                     :state states/reg-cancelled}
              :msg "Registration cancelled.")
   (= 1 (dba/cancel-registration! db registration-id)))

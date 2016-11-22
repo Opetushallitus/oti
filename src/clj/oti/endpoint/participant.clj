@@ -14,7 +14,8 @@
             [oti.spec :as os]
             [clojure.spec :as s]
             [oti.util.request :as req]
-            [oti.component.url-helper :refer [url]]))
+            [oti.component.url-helper :refer [url]]
+            [oti.db-states :as states]))
 
 (def check-digits {0  0 16 "H"
                    1  1 17 "J"
@@ -73,8 +74,8 @@
           :unpaid session)
         ; If the payment was not found, check the status from the registration
         (condp = (dba/registration-state-by-id db registration-id)
-          "OK" (update-participant-session session :success "registration-complete")
-          "ERROR" (update-participant-session session :error "registration-payment-cancel")
+          states/reg-ok (update-participant-session session :success "registration-complete")
+          states/reg-cancelled (update-participant-session session :error "registration-payment-cancel")
           (update-participant-session session :error "registration-payment-error")))
       ; Other or missing registration status, just return the session as is
       session)))

@@ -7,7 +7,8 @@
             [clojure.set :as cs]
             [clojure.string :as str]
             [taoensso.timbre :as log :refer [error]]
-            [meta-merge.core :refer [meta-merge]])
+            [meta-merge.core :refer [meta-merge]]
+            [oti.db-states :as states])
   (:import [duct.component.hikaricp HikariCP]))
 
 (require-sql ["oti/queries.sql" :as q])
@@ -252,13 +253,13 @@
     (q/select-all-participants-by-ext-references {:ext-reference-ids ext-ids}
                                                  {:connection spec}))
   (confirm-registration-and-payment! [{:keys [spec]} params]
-    (update-payment-and-registration-state! spec params "OK" "OK"))
+    (update-payment-and-registration-state! spec params states/pmt-ok states/reg-ok))
   (cancel-registration-and-payment! [{:keys [spec]} params]
-    (update-payment-and-registration-state! spec params "ERROR" "ERROR"))
+    (update-payment-and-registration-state! spec params states/pmt-error states/reg-cancelled))
   (cancel-payment-set-reg-incomplete! [{:keys [spec]} params]
-    (update-payment-and-registration-state! spec params "ERROR" "INCOMPLETE"))
+    (update-payment-and-registration-state! spec params states/pmt-error states/reg-cancelled))
   (cancel-registration! [{:keys [spec]} id]
-    (q/update-registration-state! {:state "ERROR" :id id} {:connection spec}))
+    (q/update-registration-state! {:state states/reg-cancelled :id id} {:connection spec}))
   (next-order-number! [{:keys [spec]}]
     (-> (q/select-next-order-number-suffix {} {:connection spec})
         first

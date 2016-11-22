@@ -7,7 +7,8 @@
             [oti.spec :as os]
             [clojure.string :as s]
             [cljs-time.core :as time]
-            [oti.routing :as routing]))
+            [oti.routing :as routing]
+            [oti.db-states :as states]))
 
 (defn- exam-label [score-ts accepted?]
   (cond
@@ -29,13 +30,6 @@
   (when-let [rep (format-number number)]
     (str  rep " €")))
 
-(defn- format-state [state]
-  (condp = state
-    "UNPAID" "Ei maksettu"
-    "ERROR" "Peruutettu"
-    "OK" "Maksettu"
-    "Tuntematon"))
-
 (defn- past-session? [date]
   (-> (time/to-default-time-zone date)
       (time/before? (time/now))))
@@ -54,13 +48,13 @@
     (->> [[:tr
            (cond-> {:key session-id
                     :class (cond
-                             (= "ERROR" registration-state) "cancelled"
+                             (= states/reg-cancelled registration-state) "cancelled"
                              open? "open-row")}
                    editable? (assoc :on-click click-fn))
            [:td.date
-            (when (not= "OK" registration-state)
-              [:i.icon-attention {:class (if (= "INCOMPLETE" registration-state) "warn" "error")
-                                  :title (if (= "INCOMPLETE" registration-state) "Ilmoittautuminen maksamatta" "Ilmoittautuminen peruutettu")}])
+            (when (not= states/reg-ok registration-state)
+              [:i.icon-attention {:class (if (= states/reg-incomplete registration-state) "warn" "error")
+                                  :title (if (= states/reg-incomplete registration-state) "Ilmoittautuminen maksamatta" "Ilmoittautuminen peruutettu")}])
             (let [text (str (unparse-date session-date) " " start-time " - " end-time)]
               (if (past-session? session-date)
                 [:a {:href (routing/v-route "/tutkintotulokset/" registration-id)} text]
@@ -76,13 +70,13 @@
            {:key (str session-id "-functions")
             :style {"display" (if (and editable? open?) "table-row" "none")}}
            [:td {:colSpan (str (+ 3 (count module-titles)))}
-            (when (= "INCOMPLETE" registration-state)
+            (when (= states/reg-incomplete registration-state)
               [:button.button-small.button-danger
                {:on-click #(re-frame/dispatch
                              [:launch-confirmation-dialog "Haluatko varmasti poistaa ilmoittautumisen?" "Poista"
                               :cancel-registration registration-id participant-id])}
                "Poista ilmoittautuminen"])
-            (when (= "OK" registration-state)
+            (when (= states/reg-ok registration-state)
               [:span
                [:button.button-small.button-danger {} "Peruutettu hyväksytysti"]
                [:button.button-small.button-danger {} "Peruutettu"]])]]]
@@ -105,6 +99,13 @@
           (reduce (partial session-rows module-titles participant-id open-rows) [] sessions)]]
         [:div "Ei ilmoittautumisia"]))))
 
+(defn- format-payment-state [state]
+  (condp = state
+    states/pmt-unpaid "Ei maksettu"
+    states/pmt-error "Peruutettu"
+    states/pmt-ok "Maksettu"
+    "Tuntematon"))
+
 (defn payment-section [payments participant-id language]
   [:div.section.payments
    [:h3 "Maksutiedot"]
@@ -122,9 +123,9 @@
            [:tr {:key id}
             [:td.date (unparse-date created)]
             [:td.amount (format-price amount)]
-            [:td.state {:class (if (= state "ERROR") "error")} (format-state state)]
+            [:td.state {:class (if (= state states/pmt-error) "error")} (format-payment-state state)]
             [:td.functions
-             (when (= state "ERROR")
+             (when (= state states/pmt-error)
                [:button.button-small
                 {:on-click #(re-frame/dispatch [:confirm-payment order-number participant-id language])}
                 "Merkitse maksetuksi"])]]))]]
