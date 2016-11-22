@@ -101,9 +101,10 @@
 (re-frame/reg-event-fx
   :cancel-registration
   [re-frame/trim-v]
-  (fn [_ [registration-id participant-id]]
+  (fn [_ [registration-id cancel-state participant-id]]
     {:http-xhrio {:method          :delete
                   :uri             (routing/v-a-route "/registrations/" registration-id)
+                  :params          {:state cancel-state}
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:load-participant-details participant-id]

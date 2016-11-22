@@ -16,12 +16,6 @@
     (and score-ts (not accepted?)) "Hylätty"
     :else "Ei arvosteltu"))
 
-(defn- trim-module-name [name]
-  (if (> (count name) 6)
-    (str (apply str (take 6 name)) ".")
-    name)
-  name)
-
 (defn- format-number [number]
   (when (transit/bigdec? number)
     (-> number .-rep)))
@@ -41,14 +35,14 @@
    rows
    {:keys [session-date start-time end-time session-id registration-state street-address city score-ts accepted modules registration-id]}]
   (let [open? (@open-rows session-id)
-        editable? (not (past-session? session-date))
+        editable? (and (not (past-session? session-date)) (#{states/reg-ok states/reg-incomplete} registration-state))
         click-op (if open? disj conj)
         click-fn #(swap! open-rows click-op session-id)
         icon-class (if open? "icon-up-open" "icon-down-open")]
     (->> [[:tr
            (cond-> {:key session-id
                     :class (cond
-                             (= states/reg-cancelled registration-state) "cancelled"
+                             (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} registration-state) "cancelled"
                              open? "open-row")}
                    editable? (assoc :on-click click-fn))
            [:td.date
@@ -78,8 +72,20 @@
                "Poista ilmoittautuminen"])
             (when (= states/reg-ok registration-state)
               [:span
-               [:button.button-small.button-danger {} "Peruutettu hyväksytysti"]
-               [:button.button-small.button-danger {} "Peruutettu"]])]]]
+               [:button.button-small.button-danger
+                {:on-click #(re-frame/dispatch
+                              [:launch-confirmation-dialog
+                               "Haluatko varmasti merkitä ilmoittautumisen perutuksi hyväksytyllä syyllä?"
+                               "Peru ilmoittautuminen"
+                               :cancel-registration registration-id states/reg-absent-approved participant-id])}
+                "Peruutettu hyväksytysti"]
+               [:button.button-small.button-danger
+                {:on-click #(re-frame/dispatch
+                              [:launch-confirmation-dialog
+                               "Haluatko varmasti merkitä ilmoittautumisen perutuksi ilman hyväksyttyä syytä?"
+                               "Peru ilmoittautuminen"
+                               :cancel-registration registration-id states/reg-absent participant-id])}
+                "Peruutettu"]])]]]
          (concat rows))))
 
 (defn session-table [sessions module-titles participant-id]
@@ -94,7 +100,7 @@
            [:th "Koe"]
            (doall
              (for [{:keys [id name]} module-titles]
-               [:th.module-name {:key id :title name} (trim-module-name name)]))]]
+               [:th.module-name {:key id :title name} name]))]]
          [:tbody
           (reduce (partial session-rows module-titles participant-id open-rows) [] sessions)]]
         [:div "Ei ilmoittautumisia"]))))

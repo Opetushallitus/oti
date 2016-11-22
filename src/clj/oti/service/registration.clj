@@ -256,15 +256,15 @@
            regs))
     []))
 
-(defn cancel-registration! [{:keys [db]} registration-id {{authority :username} :identity}]
-  {:pre [(pos-int? registration-id)]}
+(defn cancel-registration! [{:keys [db]} registration-id state {{authority :username} :identity}]
+  {:pre [(pos-int? registration-id) (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} state)]}
   (audit/log :app :admin
              :who authority
              :on :registration
              :op :update
              :before {:id registration-id
-                      :state states/reg-incomplete}
+                      :state (dba/registration-state-by-id db registration-id)}
              :after {:id    registration-id
-                     :state states/reg-cancelled}
+                     :state state}
              :msg "Registration cancelled.")
-  (= 1 (dba/cancel-registration! db registration-id)))
+  (= 1 (dba/update-registration-state! db registration-id state)))

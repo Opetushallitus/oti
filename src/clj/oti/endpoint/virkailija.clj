@@ -209,8 +209,8 @@
       (if (payment/confirm-payment-manually! config order-number lang session)
         (response {:success true})
         (not-found {:error "Payment not found"})))
-    (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session}]
-      (if (registration/cancel-registration! config id session)
+    (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session {state :state} :body-params}]
+      (if (registration/cancel-registration! config id state session)
         (response {:success true})
         (not-found {:error "Registration not found"})))))
 
