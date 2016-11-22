@@ -549,8 +549,8 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 @font-face {
   font-family: 'oti-icons';
-  src: url('../font/oti-icons.eot?92305122');
-  src: url('../font/oti-icons.eot?92305122#iefix') format('embedded-opentype'), url('../font/oti-icons.woff2?92305122') format('woff2'), url('../font/oti-icons.woff?92305122') format('woff'), url('../font/oti-icons.ttf?92305122') format('truetype'), url('../font/oti-icons.svg?92305122#oti-icons') format('svg');
+  src: url('../font/oti-icons.eot?13036337');
+  src: url('../font/oti-icons.eot?13036337#iefix') format('embedded-opentype'), url('../font/oti-icons.woff2?13036337') format('woff2'), url('../font/oti-icons.woff?13036337') format('woff'), url('../font/oti-icons.ttf?13036337') format('truetype'), url('../font/oti-icons.svg?13036337#oti-icons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -574,38 +574,34 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   /* Animation center compensation - margins should be symmetric */
   /* remove if not needed */
   margin-left: .2em;
-  /* you can be more comfortable with increased icons size */
-  /* font-size: 120%; */
   /* Font smoothing. That was taken from TWBS */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Uncomment for 3D effect */
-  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
 .icon-calendar:before {
   content: '\e800';
 }
-/* '' */
 .icon-ok:before {
   content: '\e801';
 }
-/* '' */
 .icon-cancel:before {
   content: '\e802';
 }
-/* '' */
 .icon-attention:before {
   content: '\e803';
 }
-/* '' */
 .icon-info:before {
   content: '\e804';
 }
-/* '' */
 .icon-spin3:before {
   content: '\e832';
 }
-/* '' */
+.icon-down-open:before {
+  content: '\f004';
+}
+.icon-up-open:before {
+  content: '\f005';
+}
 .registrations {
   margin-top: 2em;
 }
@@ -797,9 +793,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details table .icon-cancel {
   font-size: 1.7rem;
   color: #eb2730;
-  position: absolute;
-  top: 5px;
-  right: -35px;
   cursor: pointer;
 }
 .participant-details table .date {
@@ -819,13 +812,33 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .participant-details table .module-name {
   text-align: right;
 }
-.participant-details table .cancellation {
+.participant-details table .show-functions {
   width: 0;
   padding: 0;
+}
+.participant-details table .show-functions i {
+  font-size: 1.2rem;
+  color: #525252;
+  cursor: pointer;
+  position: absolute;
+  top: 9px;
+  right: -30px;
+}
+.participant-details table .session-functions {
+  background-color: #f5f5f5;
+}
+.participant-details table .session-functions td {
+  border-bottom: 1px solid black;
+  padding-left: 5px;
 }
 .participant-details table tr.cancelled td,
 .participant-details table tr.cancelled span {
   text-decoration: line-through;
+}
+.participant-details table tr.open-row td {
+  background-color: #f5f5f5;
+  border-bottom: none;
+  border-top: 2px solid grey;
 }
 .participant-details .payments {
   margin-bottom: 2em;

@@ -5,7 +5,9 @@
             [cognitect.transit :as transit]
             [meta-merge.core :refer [meta-merge]]
             [oti.spec :as os]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [cljs-time.core :as time]
+            [oti.routing :as routing]))
 
 (defn- exam-label [score-ts accepted?]
   (cond
@@ -34,39 +36,74 @@
     "OK" "Maksettu"
     "Tuntematon"))
 
-(defn session-table [sessions module-titles participant-id]
-  (if (seq sessions)
-    [:table
-     [:thead
-      [:tr
-       [:th "Päivämäärä ja aika"]
-       [:th "Katuosoite"]
-       [:th "Koe"]
-       (doall
-         (for [{:keys [id name]} module-titles]
-           [:th.module-name {:key id :title name} (trim-module-name name)]))]]
-     [:tbody
-      (doall
-        (for [{:keys [session-date start-time end-time session-id registration-state
-                      street-address city score-ts accepted modules registration-id]} sessions]
-          [:tr {:key session-id :class (when (= "ERROR" registration-state) "cancelled")}
+(defn- past-session? [date]
+  (-> (time/to-default-time-zone date)
+      (time/before? (time/now))))
+
+(defn- session-rows
+  [module-titles
+   participant-id
+   open-rows
+   rows
+   {:keys [session-date start-time end-time session-id registration-state street-address city score-ts accepted modules registration-id]}]
+  (let [open? (@open-rows session-id)
+        editable? (not (past-session? session-date))
+        click-op (if open? disj conj)
+        click-fn #(swap! open-rows click-op session-id)
+        icon-class (if open? "icon-up-open" "icon-down-open")]
+    (->> [[:tr
+           (cond-> {:key session-id
+                    :class (cond
+                             (= "ERROR" registration-state) "cancelled"
+                             open? "open-row")}
+                   editable? (assoc :on-click click-fn))
            [:td.date
             (when (not= "OK" registration-state)
               [:i.icon-attention {:class (if (= "INCOMPLETE" registration-state) "warn" "error")
                                   :title (if (= "INCOMPLETE" registration-state) "Ilmoittautuminen maksamatta" "Ilmoittautuminen peruutettu")}])
-            [:span (str (unparse-date session-date) " " start-time " - " end-time)]]
+            (let [text (str (unparse-date session-date) " " start-time " - " end-time)]
+              (if (past-session? session-date)
+                [:a {:href (routing/v-route "/tutkintotulokset/" registration-id)} text]
+                [:span text]))]
            [:td.location (str city ", " street-address)]
            [:td.section-result (exam-label score-ts accepted)]
            (for [{:keys [id name]} module-titles]
              [:td.score {:key id :title name} (or (format-number (get-in modules [id :points])) "\u2014")])
-           [:td.cancellation
+           [:td.show-functions
+            (when editable?
+              [:i {:class icon-class :on-click click-fn :title "Näytä toiminnot"}])]]
+          [:tr.session-functions
+           {:key (str session-id "-functions")
+            :style {"display" (if (and editable? open?) "table-row" "none")}}
+           [:td {:colSpan (str (+ 3 (count module-titles)))}
             (when (= "INCOMPLETE" registration-state)
-              [:i.icon-cancel
-               {:title "Peru ilmoittautuminen"
-                :on-click #(re-frame/dispatch
-                            [:launch-confirmation-dialog "Haluatko varmasti poistaa ilmoittautumisen?" "Poista"
-                             :cancel-registration registration-id participant-id])}])]]))]]
-    [:div "Ei ilmoittautumisia"]))
+              [:button.button-small.button-danger
+               {:on-click #(re-frame/dispatch
+                             [:launch-confirmation-dialog "Haluatko varmasti poistaa ilmoittautumisen?" "Poista"
+                              :cancel-registration registration-id participant-id])}
+               "Poista ilmoittautuminen"])
+            (when (= "OK" registration-state)
+              [:span
+               [:button.button-small.button-danger {} "Peruutettu hyväksytysti"]
+               [:button.button-small.button-danger {} "Peruutettu"]])]]]
+         (concat rows))))
+
+(defn session-table [sessions module-titles participant-id]
+  (let [open-rows (r/atom #{})]
+    (fn [sessions module-titles participant-id]
+      (if (seq sessions)
+        [:table
+         [:thead
+          [:tr
+           [:th "Päivämäärä ja aika"]
+           [:th "Katuosoite"]
+           [:th "Koe"]
+           (doall
+             (for [{:keys [id name]} module-titles]
+               [:th.module-name {:key id :title name} (trim-module-name name)]))]]
+         [:tbody
+          (reduce (partial session-rows module-titles participant-id open-rows) [] sessions)]]
+        [:div "Ei ilmoittautumisia"]))))
 
 (defn payment-section [payments participant-id language]
   [:div.section.payments

@@ -1,3 +1,5 @@
+@highlight-color: #f5f5f5;
+
 .participant-details {
   span {
     display: inline-block;
@@ -14,7 +16,7 @@
     margin-top: 2em;
   }
   .accreditations {
-    background-color: #f5f5f5;
+    background-color: @highlight-color;
     padding: 10px 5px;
     h4 {
       margin-top: 0;
@@ -54,9 +56,6 @@
     .icon-cancel {
       font-size: 1.7rem;
       color: @oph-red;
-      position: absolute;
-      top: 5px;
-      right: -35px;
       cursor: pointer;
     }
     .date {
@@ -75,13 +74,35 @@
     .score, .module-name {
       text-align: right;
     }
-    .cancellation {
+    .show-functions {
       width: 0;
       padding: 0;
+      i {
+        font-size: 1.2rem;
+        color: #525252;
+        cursor: pointer;
+        position: absolute;
+        top: 9px;
+        right: -30px;
+      }
+    }
+    .session-functions {
+      background-color: @highlight-color;
+      td {
+        border-bottom: 1px solid black;
+        padding-left: 5px;
+      }
     }
     tr.cancelled {
       td, span {
         text-decoration: line-through;
+      }
+    }
+    tr.open-row {
+      td {
+        background-color: @highlight-color;
+        border-bottom: none;
+        border-top: 2px solid grey;
       }
     }
   }
