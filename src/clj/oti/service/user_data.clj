@@ -36,7 +36,7 @@
           (swap! C cache/miss oidHenkilo cache-user))))))
 
 (defn api-user-data-by-oid [api-client user-oids]
-  (let [must-fetch-oids (filter api-fetch-required? user-oids)]
+  (let [must-fetch-oids (filter api-fetch-required? (distinct user-oids))]
     (fetch-oids! api-client must-fetch-oids)
     (select-keys @C user-oids)))
 

@@ -69,6 +69,7 @@
    :id (some :id participant-data)
    :exam-session-id (some :exam_session_id participant-data)
    :registration-id (some :registration_id participant-data)
+   :registration-state (some :registration_state participant-data)
    :data participant-data})
 
 (defn- conforms-filter

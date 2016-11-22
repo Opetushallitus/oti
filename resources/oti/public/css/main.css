@@ -971,14 +971,31 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   width: 70%;
   max-width: 600px;
 }
+.personal-details .personal-details-group .attendance input {
+  margin-right: 10px;
+}
+.personal-details .personal-details-group .attendance label {
+  width: 350px;
+  margin-top: 10px;
+}
+.personal-details .personal-details-group .attendance .attendance-checkbox {
+  margin-left: 175px;
+}
+.personal-details .personal-details-group .attendance .attendance-reason-radios {
+  margin-left: 215px;
+}
+.personal-details .personal-details-group .attendance .attendance-reason-radios .radio {
+  display: inline-block;
+  width: 175px;
+}
 .scoring-form .accepted-radio-group .radio {
   display: inline-block;
 }
-.scoring-form .accepted-radio-group .radio:not(:first-child) {
-  margin-left: 20px;
-}
 .scoring-form .accepted-radio-group .radio span {
   margin-left: 10px;
+}
+.scoring-form .sections .section .radio {
+  width: 155px;
 }
 .scoring-form .modules {
   margin-top: 10px;

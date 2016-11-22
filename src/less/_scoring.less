@@ -16,20 +16,41 @@
       width: 70%;
       max-width: 600px;
     }
+
+    .attendance {
+      input {
+          margin-right: @scoring-column-whitespace / 2;
+      }
+      label {
+        width: @scoring-label-width * 2;
+        margin-top: @scoring-row-whitespace;
+      }
+      .attendance-checkbox {
+        margin-left: @scoring-label-width;
+      }
+      .attendance-reason-radios {
+        margin-left: @scoring-label-width + (@scoring-column-whitespace * 2);
+        .radio {
+          display: inline-block;
+          width: @scoring-label-width;
+        }
+      }
+    }
   }
+
 }
 
 .scoring-form {
   .accepted-radio-group {
     .radio {
-      &:not(:first-child) {
-        margin-left: @scoring-column-whitespace;
-      }
       display: inline-block;
       span {
         margin-left: @scoring-column-whitespace / 2;
       }
     }
+  }
+  .sections .section .radio {
+    width: @scoring-label-width - @scoring-column-whitespace;
   }
   .modules {
     margin-top: @scoring-row-whitespace;

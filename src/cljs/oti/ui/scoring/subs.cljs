@@ -32,6 +32,13 @@
    (get-in db [:scoring :selected-participant])))
 
 (rf/reg-sub
+ :current-participant-form-data
+ (fn [db]
+   (let [sp (get-in db [:scoring :selected-participant])
+         se (get-in db [:scoring :selected-exam-session])]
+     (get-in db [:scoring :form-data se sp]))))
+
+(rf/reg-sub
  :scoring-form-data
  (fn [db _ [exam-session-id participant-id]]
    (get-in db [:scoring :form-data exam-session-id participant-id])))

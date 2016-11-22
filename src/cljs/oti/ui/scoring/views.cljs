@@ -44,6 +44,60 @@
     (apply (partial assoc map) keys)
     map))
 
+(defn radio [{:keys [name value checked on-change disabled?]} text]
+  [:div.radio
+   [:label
+    [:input {:type "radio"
+             :name name
+             :value value
+             :checked checked
+             :disabled disabled?
+             :on-change on-change}]
+    [:span {:class (when disabled? "disabled")} text]]])
+
+(defn- ok? [state]
+  (if (= state "OK")
+         true
+         false))
+
+(defn- not-ok? [state]
+  (not (ok? state)))
+
+(defn- valid-reason? [state]
+  (if (= state "ABSENT_APPROVED")
+    true
+    false))
+
+(defn- cancelled-registration? [fd]
+  (= "CANCELLED" (:registration-state fd)))
+
+(defn- attendance []
+  (let [current-fd (rf/subscribe [:current-participant-form-data])]
+    (fn []
+      (let [registration-state (:registration-state @current-fd)
+            attendance-on-change #(rf/dispatch [:set-input-value :attendance {} (.. % -target -value)])
+            reason-on-change #(rf/dispatch [:set-radio-value :attendance {} (.. % -target -value)])]
+        (when-not (cancelled-registration? @current-fd)
+          [:div.attendance
+           [:div.attendance-checkbox
+            [:label
+             [:input {:type "checkbox"
+                      :value registration-state
+                      :on-change attendance-on-change
+                      :checked (not-ok? registration-state)}]
+             [:span "Ei osallistunut kokeeseen"]]]
+           [:div.attendance-reason-radios
+            [radio {:name "reason"
+                    :value true
+                    :on-change reason-on-change
+                    :disabled? (ok? registration-state)
+                    :checked (valid-reason? registration-state)} "Hyväksyttävä syy"]
+            [radio {:name "reason"
+                    :value false
+                    :on-change reason-on-change
+                    :disabled? (ok? registration-state)
+                    :checked (not (valid-reason? registration-state))} "Ei hyväksyttävä syy"]]])))))
+
 (defn personal-details [selected-exam-session-id selected-participant-id participants exam-sessions]
   [:div.personal-details
    [:h3 "Henkilötiedot"]
@@ -83,17 +137,9 @@
            (str (unparse-date date) " " start-time " - " end-time " "
                 city ", " street-address ", " other-location-info)]))]])
    [:div.personal-details-group
-    [:div.attendance
-     [:input {:type "checkbox"}] [:label "Ei osallistunut kokeeseen"]]]])
+    [attendance]]])
 
-(defn radio [{:keys [name value checked on-change]} text]
-  [:div.radio
-   [:input {:type "radio"
-            :name name
-            :value value
-            :checked checked
-            :on-change on-change}]
-   [:span text]])
+
 
 (defn accepted-radio [type obj form-data]
   (let [{:keys [name value]} (condp = type
@@ -208,12 +254,20 @@
         initial-form-data     (rf/subscribe [:initial-form-data] [selected-exam-session selected-participant])]
     (fn []
       (if (seq @exam-sessions)
-        [:div.scoring-panel
-         [personal-details @selected-exam-session
-                           @selected-participant
-                           @participants
-                           @exam-sessions]
-         [scoring-form @exam @form-data]
-         [button-bar @form-data @initial-form-data @participants]]
+        (if (cancelled-registration? @form-data)
+          [:div.scoring-panel
+           [personal-details @selected-exam-session
+            @selected-participant
+            @participants
+            @exam-sessions]
+           [:h2 "Ilmoittautuminen peruuntunut maksuvirheen tai virkailijan toimesta."]
+           [button-bar @form-data @initial-form-data @participants]]
+          [:div.scoring-panel
+           [personal-details @selected-exam-session
+            @selected-participant
+            @participants
+            @exam-sessions]
+           [scoring-form @exam @form-data]
+           [button-bar @form-data @initial-form-data @participants]])
         [:div.scoring-panel
          [:h2 "Ei arvioitavia tutkintotapahtumia"]]))))

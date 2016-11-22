@@ -219,7 +219,14 @@
  (fn [db [type {:keys [id section-id]} value]]
    (let [exam-session-id (get-in db [:scoring :selected-exam-session])
          participant-id (get-in db [:scoring :selected-participant])]
-     (condp = type
+     (case type
+       :attendance (update-in db [:scoring :form-data exam-session-id participant-id :registration-state]
+                              (fn [state]
+                                (if (= state "CANCELLED")
+                                  state
+                                  (if (str->boolean value)
+                                    "ABSENT_APPROVED"
+                                    "ABSENT"))))
        :section (update-in db [:scoring :form-data exam-session-id participant-id :scores]
                            (fn [scores]
                              (assoc-in scores [id ::spec/section-score-accepted] (str->boolean value))))
@@ -242,7 +249,14 @@
                (throw (js/Error. "Sections aren't scored as whole. Check your dispatch type."))
        :module (update-in db [:scoring :form-data exam-session-id participant-id :scores]
                           (fn [scores]
-                            (assoc-in scores [section-id :modules id ::spec/module-score-points] (filter-chars value))))))))
+                            (assoc-in scores [section-id :modules id ::spec/module-score-points] (filter-chars value))))
+       :attendance (update-in db [:scoring :form-data exam-session-id participant-id :registration-state]
+                              (fn [state]
+                                (if (= state "CANCELLED")
+                                  state
+                                  (if (= state "OK")
+                                    "ABSENT"
+                                    "OK"))))))))
 
 (rf/reg-event-fx
  :persist-scores
