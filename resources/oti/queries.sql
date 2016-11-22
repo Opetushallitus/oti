@@ -13,7 +13,7 @@ SELECT es.id,
        count(r.id) AS registration_count
 FROM exam_session es
   JOIN exam_session_translation est ON es.id = est.exam_session_id
-  LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state != 'ERROR'::registration_state
+  LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state)
 WHERE session_date >= :start-date AND session_date <= :end-date
 GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
   est.street_address, est.language_code, est.other_location_info
@@ -34,7 +34,7 @@ SELECT es.id,
   count(r.id) AS registration_count
 FROM exam_session es
   JOIN exam_session_translation est ON es.id = est.exam_session_id
-  LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state != 'ERROR'::registration_state
+  LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state)
 WHERE es.id = :id
 GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
   est.street_address, est.language_code, est.other_location_info;
@@ -54,7 +54,7 @@ SELECT es.id,
   (es.max_participants - COUNT(r.id)) AS available
 FROM exam_session es
   JOIN exam_session_translation est ON es.id = est.exam_session_id
-  LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state != 'ERROR'::registration_state
+  LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state)
 WHERE session_date > now() AND es.published = TRUE
 GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
   est.street_address, est.language_code, est.other_location_info
@@ -159,7 +159,7 @@ FROM exam e
   LEFT JOIN participant p ON p.ext_reference_id = :external-user-id
   LEFT JOIN section_score ss ON (ss.section_id = s.id AND ss.participant_id = p.id)
   LEFT JOIN module_score ms ON (ms.module_id = m.id AND ms.section_score_id = ss.id)
-  LEFT JOIN registration r ON (r.exam_session_id = es.id AND r.participant_id = p.id AND r.state != 'ERROR'::registration_state)
+  LEFT JOIN registration r ON (r.exam_session_id = es.id AND r.participant_id = p.id AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state))
   LEFT JOIN registration_exam_content_section recs ON (r.id = recs.registration_id AND recs.section_id = s.id)
   LEFT JOIN registration_exam_content_module recm ON (r.id = recm.registration_id AND recm.module_id = m.id)
   LEFT JOIN accredited_exam_module aem ON (m.id = aem.module_id AND aem.participant_id = p.id)
@@ -409,7 +409,7 @@ FROM registration r
   LEFT JOIN registration_exam_content_section recs ON r.id = recs.registration_id
   LEFT JOIN module m ON recs.section_id = m.section_id
   LEFT JOIN registration_exam_content_module recm ON r.id = recm.registration_id AND m.id = recm.module_id
-WHERE r.exam_session_id = :exam-session-id AND r.state != 'ERROR'::registration_state
+WHERE r.exam_session_id = :exam-session-id AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state)
 ORDER BY r.id, recs.section_id, recm.module_id;
 
 -- name: select-registration-state-by-id
