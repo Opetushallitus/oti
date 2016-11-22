@@ -5,8 +5,8 @@
             [cheshire.core :as json]
             [cheshire.generate :as gen]))
 
-(def ^:private ParticipantAudit (Audit. "oti" ApplicationType/OPISKELIJA))
-(def ^:private AdminAudit       (Audit. "oti" ApplicationType/VIRKAILIJA))
+(defonce ^:private ParticipantAudit (Audit. "oti" ApplicationType/OPISKELIJA))
+(defonce ^:private AdminAudit       (Audit. "oti" ApplicationType/VIRKAILIJA))
 
 (gen/add-encoder java.time.LocalDate gen/encode-str)
 
