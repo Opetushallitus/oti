@@ -89,7 +89,7 @@
   (or (q/insert-exam-session<! exam-session {:connection tx})
       (throw (Exception. "Could not create new exam session."))))
 
-(defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state existing-reg-id]
+(defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state existing-reg-id retry?]
   (let [conn {:connection tx}]
     (q/insert-participant! {:external-user-id external-user-id :email email} conn)
     (doseq [[section-id _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
@@ -99,6 +99,7 @@
         (if-let [reg-id (or existing-reg-id
                             (:id (q/insert-registration<! {:session-id session-id
                                                            :external-user-id external-user-id
+                                                           :retry retry?
                                                            :state state
                                                            :language-code (name language-code)} conn)))]
           (do
@@ -139,8 +140,7 @@
   (exam-session [db id])
   (exam-sessions-full [db lang])
   (sections-and-modules-available-for-user [db external-user-id])
-  (valid-full-payments-for-user [db external-user-id])
-  (register! [db registration-data external-user-id state payment-data existing-reg-id])
+  (register! [db registration-data external-user-id state payment-data existing-reg-id retry?])
   (registrations-for-session [db exam-session])
   (existing-registration-id [db exam-session-id external-user-id])
   (section-and-module-names [db])
@@ -176,7 +176,8 @@
   (upsert-module-score [db module-score])
   (module-score [db params])
   (section-score [db params])
-  (delete-scores-by-score-ids [db ids]))
+  (delete-scores-by-score-ids [db ids])
+  (registration-by-participant-id [db id]))
 
 (extend-type HikariCP
   DbAccess
@@ -206,13 +207,9 @@
   (sections-and-modules-available-for-user [{:keys [spec]} external-user-id]
     (->> (q/select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
          group-sections-and-modules))
-  (valid-full-payments-for-user [{:keys [spec]} external-user-id]
-    (-> (q/select-valid-payment-count-for-user {:external-user-id external-user-id} {:connection spec})
-        first
-        :count))
-  (register! [{:keys [spec]} registration-data external-user-id state payment-data existing-reg-id]
+  (register! [{:keys [spec]} registration-data external-user-id state payment-data existing-reg-id retry?]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-      (let [reg-id (store-registration! tx registration-data external-user-id state existing-reg-id)]
+      (let [reg-id (store-registration! tx registration-data external-user-id state existing-reg-id retry?)]
         (when payment-data
           (-> (assoc payment-data :registration-id reg-id)
               (q/insert-payment! {:connection tx})))
@@ -349,4 +346,6 @@
                                            (q/delete-module-score! {:id module-score-id} {:connection tx})))
             deleted-section-scores (doall (for [section-score-id section-score-ids]
                                             (q/delete-section-score! {:id section-score-id} {:connection tx})))]
-        (into deleted-module-scores deleted-section-scores)))))
+        (into deleted-module-scores deleted-section-scores))))
+  (registration-by-participant-id [{:keys [spec]} id]
+    (q/select-registrations-by-participant-id {:id id} {:connection spec})))

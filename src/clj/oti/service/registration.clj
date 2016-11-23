@@ -1,6 +1,7 @@
 (ns oti.service.registration
   (:require [clojure.spec :as s]
             [clojure.string :as str]
+            [clojure.set :as set]
             [oti.boundary.db-access :as dba]
             [oti.component.localisation :as loc]
             [oti.spec :as os]
@@ -145,10 +146,57 @@
                                                :created timestamp})
   payment-params)
 
-(defn payment-amounts [{:keys [payments db]} external-user-id]
-  (let [paid? (and external-user-id (pos? (dba/valid-full-payments-for-user db external-user-id)))]
-    {:full (if paid? 0 (-> payments :amounts :full))
-     :retry (-> payments :amounts :retry)}))
+(defn- participant-has-valid-full-payment?
+  "Checks if the participant's full payment is still valid for registration:
+   1) Participant's first accredited or accepted section has been completed less than 2 years ago, or the participant
+      has not completed anything.
+   2) Participant has made a successful full payment and has not been absent without approval from the original registration
+   3) There's still a section that the participant has not registered to or requested approval for (approved absence counts as no),
+      as the original full payment allows only one try per section, and possible non-approved absence will lead to a new full payment."
+  [{:keys [db]} {:keys [payments sections]}]
+  (let [ref-ts (-> (LocalDateTime/now) (.minusYears 2))
+        still-valid? (not-any? (fn [{:keys [accepted score-ts accreditation-date]}]
+                                 (or (and accepted (-> (.toLocalDateTime score-ts) (.isBefore ref-ts)))
+                                     (and accreditation-date (-> (.toLocalDate accreditation-date) (.atStartOfDay) (.isBefore ref-ts)))))
+                               sections)
+        required-sections (->> (dba/section-and-module-names db) :sections keys set)
+        valid-full-payment? (some (fn [{:keys [registration-state registration-id state type]}]
+                                    (and (or (nil? registration-id) (#{states/reg-ok states/reg-absent-approved} registration-state))
+                                         (= states/pmt-ok state)
+                                         (= "FULL" type)))
+                                  payments)
+        attempted-sections (->> sections
+                                (filter (fn [{:keys [sessions accreditation-requested?]}]
+                                          (or accreditation-requested?
+                                              (->> sessions
+                                                   (filter #(#{states/reg-absent states/reg-ok} (:registration-state %)))
+                                                   seq))))
+                                (map :id)
+                                set)
+        something-not-attempted? (seq (set/difference required-sections attempted-sections))]
+    (and still-valid? valid-full-payment? something-not-attempted?)))
+
+(defn- participant-has-valid-retry-payment?
+  "Checks if the participant has a valid retry payment. This is only possible if the
+   participant has been absent from a retry exam with approval."
+  [{:keys [db]} {:keys [payments id]}]
+  (let [refund-count (->> payments
+                          (filter (fn [{:keys [payment-state payment-type registration-state]}]
+                                    (and (= states/pmt-ok payment-state)
+                                         (= "PARTIAL" payment-type)
+                                         (= states/reg-absent-approved registration-state))))
+                          count)
+        unpaid-retry-count (->> (dba/registration-by-participant-id db id)
+                                (filter #(and (:retry %) (nil? (:payment_type %)) (#{states/reg-ok states/reg-absent} (:state %))))
+                                count)]
+    (> refund-count unpaid-retry-count)))
+
+(defn payment-amounts [{{{:keys [full retry]} :amounts} :payments :as config} participant-id]
+  (if-let [user-data (when participant-id (user-data/participant-data config participant-id))]
+    {:full (if (participant-has-valid-full-payment? config user-data) 0 full)
+     :retry (if (participant-has-valid-retry-payment? config user-data) 0 retry)}
+    {:full full
+     :retry retry}))
 
 (defn register! [{:keys [db api-client vetuma-payment] :as config}
                  {old-session :session {:keys [registration-data ui-lang]} :body-params}]
@@ -163,7 +211,7 @@
             valid?  (and external-user-id
                          (valid-registration? config external-user-id conformed))
             price-type (rules/price-type-for-registration conformed)
-            amount (price-type (payment-amounts config external-user-id))
+            amount (price-type (payment-amounts config (:id participant-data)))
             reg-state (if (zero? amount) states/reg-ok states/reg-incomplete)]
         (if valid?
           (try
@@ -176,7 +224,7 @@
                   ; If the participant has registered to this session before, we fetch the existing reg id and add the
                   ; additional sections / modules to it
                   existing-registration-id (dba/existing-registration-id db (::os/session-id conformed) external-user-id)
-                  registration-id (dba/register! db conformed external-user-id reg-state db-pmt existing-registration-id)]
+                  registration-id (dba/register! db conformed external-user-id reg-state db-pmt existing-registration-id (= price-type :retry))]
               (audit/log :app :participant
                          :who external-user-id
                          :op :create
