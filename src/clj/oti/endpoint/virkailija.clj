@@ -204,7 +204,11 @@
             (catch AssertionError _
               {:status 400 :body {:error "Invalid parameters"}})))
      (POST "/scores" request
-           (scoring/upsert-scores config request id)))
+       (scoring/upsert-scores config request id))
+     (DELETE "/scores" request
+       (scoring/delete-scores config request id))
+     (PUT "/registration" request
+       (scoring/update-registration-state config request id)))
     (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]
       (if (payment/confirm-payment-manually! config order-number lang session)
         (response {:success true})

@@ -5,6 +5,7 @@
             [oti.routing :as routing]
             [oti.ui.handlers :as handlers]
             [oti.spec :as spec]
+            [oti.db-states :as states]
             [ajax.core :as ajax]))
 
 ;; HELPER FUNCTIONS
@@ -26,8 +27,9 @@
       (apply str (butlast s)))))
 
 (defn- prepare-updated-modules [modules]
-  (into {} (mapv (fn [[module-id {:keys [module-id module-score-accepted module-score-points]}]]
+  (into {} (mapv (fn [[module-id {:keys [module-id module-score-accepted module-score-points module-score-id]}]]
                    [module-id {::spec/module-id module-id
+                               ::spec/module-score-id module-score-id
                                ::spec/module-score-accepted module-score-accepted
                                ::spec/module-score-points (bigdec->str module-score-points)}]) modules)))
 
@@ -222,11 +224,11 @@
      (case type
        :attendance (update-in db [:scoring :form-data exam-session-id participant-id :registration-state]
                               (fn [state]
-                                (if (= state "CANCELLED")
+                                (if (= state states/reg-cancelled)
                                   state
                                   (if (str->boolean value)
-                                    "ABSENT_APPROVED"
-                                    "ABSENT"))))
+                                    states/reg-absent-approved
+                                    states/reg-absent))))
        :section (update-in db [:scoring :form-data exam-session-id participant-id :scores]
                            (fn [scores]
                              (assoc-in scores [id ::spec/section-score-accepted] (str->boolean value))))
@@ -252,11 +254,11 @@
                             (assoc-in scores [section-id :modules id ::spec/module-score-points] (filter-chars value))))
        :attendance (update-in db [:scoring :form-data exam-session-id participant-id :registration-state]
                               (fn [state]
-                                (if (= state "CANCELLED")
+                                (if (= state states/reg-cancelled)
                                   state
-                                  (if (= state "OK")
-                                    "ABSENT"
-                                    "OK"))))))))
+                                  (if (= state states/reg-ok)
+                                    states/reg-absent
+                                    states/reg-ok))))))))
 
 (rf/reg-event-fx
  :persist-scores
@@ -277,6 +279,99 @@
                                    initial-scores]}
     :loader     true}))
 
+(rf/reg-event-fx
+ :delete-scores
+ [trim-v]
+ (fn [{:keys [db]} [exam-session-id participant-id scores initial-scores]]
+   {:http-xhrio {:method          :delete
+                 :uri             (routing/v-a-route "/participant/" participant-id "/scores")
+                 :params          {:exam-session-id exam-session-id
+                                   :scores scores}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:handle-delete-scores-success
+                                   exam-session-id
+                                   participant-id]
+                 :on-failure      [:handle-delete-scores-failure
+                                   exam-session-id
+                                   participant-id
+                                   initial-scores]}
+    :loader     true}))
+
+(rf/reg-event-fx
+ :persist-registration-state
+ [trim-v]
+ (fn [{:keys [db]} [exam-session-id participant-id registration-state initial-registration-state]]
+   {:http-xhrio {:method          :put
+                 :uri             (routing/v-a-route "/participant/" participant-id "/registration")
+                 :params          {:exam-session-id exam-session-id
+                                   :registration-id (get-in db [:scoring :exam-sessions exam-session-id :participants participant-id :registration-id])
+                                   :registration-state registration-state}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:handle-persist-registration-state-success
+                                   exam-session-id
+                                   participant-id
+                                   registration-state]
+                 :on-failure      [:handle-persist-registration-state-failure
+                                   exam-session-id
+                                   participant-id
+                                   initial-registration-state]}
+    :loader     true}))
+
+(rf/reg-event-db
+ :handle-persist-registration-state-success
+ [trim-v]
+ (fn [db [exam-session-id participant-id registration-state response]]
+   (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :registration-state] registration-state)
+       (assoc-in [:scoring :initial-form-data exam-session-id participant-id :registration-state] registration-state))))
+
+(rf/reg-event-db
+ :handle-persist-registration-state-failure
+ [trim-v]
+ (fn [db [exam-session-id participant-id initial-registration-state response]]
+   (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :registration-state] initial-registration-state)))
+
+(rf/reg-event-db
+ :handle-delete-scores-success
+ [trim-v]
+ (fn [db [exam-session-id participant-id response]]
+   (-> (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] {})
+       (assoc-in [:scoring :form-data exam-session-id participant-id :scores] {}))))
+
+(rf/reg-event-db
+ :handle-delete-scores-failure
+ [trim-v]
+ (fn [db [exam-session-id participant-id initial-scores response]]
+   (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] initial-scores)))
+
+(rf/reg-event-db
+ :delete-scores-and-update-registration-state
+ [trim-v]
+ (fn [db [exam-session-id participant-id scores initial-scores registration-state initial-registration-state]]
+   (when (or (some ::spec/section-score-id (vals scores))
+             (some ::spec/module-score-id (mapcat (fn [s]
+                                                    (:modules s)) (vals scores))))
+     (rf/dispatch [:delete-scores exam-session-id participant-id scores initial-scores]))
+   (rf/dispatch [:persist-registration-state
+                 exam-session-id
+                 participant-id
+                 registration-state
+                 initial-registration-state])
+   db))
+
+(rf/reg-event-db
+ :persist-scores-and-update-registration-state
+ [trim-v]
+ (fn [db [exam-session-id participant-id scores initial-scores registration-state initial-registration-state]]
+   (rf/dispatch [:persist-scores exam-session-id participant-id scores initial-scores])
+   (rf/dispatch [:persist-registration-state
+                 exam-session-id
+                 participant-id
+                 registration-state
+                 initial-registration-state])
+   db))
+
 (rf/reg-event-db
  :handle-persist-scores-success
  [trim-v]
@@ -296,14 +391,62 @@
  (fn [{:keys [db]} _]
    (let [selected-exam-session (get-in db [:scoring :selected-exam-session])
          selected-participant (get-in db [:scoring :selected-participant])
-         current-scores (get-in db [:scoring :form-data selected-exam-session selected-participant :scores])
-         initial-scores (get-in db [:scoring :initial-form-data selected-exam-session selected-participant :scores])]
-     {:db (assoc-in db [:scoring :initial-form-data selected-exam-session selected-participant :scores] current-scores)
-      :dispatch [:persist-scores
-                 selected-exam-session
-                 selected-participant
-                 current-scores
-                 initial-scores]})))
+         participant (get-in db [:scoring :form-data selected-exam-session selected-participant])
+         initial-participant (get-in db [:scoring :initial-form-data selected-exam-session selected-participant])
+         current-scores (get participant :scores)
+         initial-scores (get initial-participant :scores)
+         registration-state (get participant :registration-state)
+         initial-registration-state (get initial-participant :registration-state)
+         registration-state-changed (not= registration-state initial-registration-state)
+         scores-changed (not= current-scores initial-scores)]
+     (println "SC" scores-changed)
+     (println "RSC" registration-state-changed)
+     (println "RS" registration-state)
+     (cond
+
+       ;; Only scores changed
+       (and (= registration-state states/reg-ok)
+              (not registration-state-changed)
+              scores-changed) {:db (assoc-in db [:scoring :initial-form-data selected-exam-session selected-participant :scores] current-scores)
+                               :dispatch [:persist-scores
+                                          selected-exam-session
+                                          selected-participant
+                                          current-scores
+                                          initial-scores]}
+
+       ;; Registration changed to absent or absent approved
+       (and (#{states/reg-absent states/reg-absent-approved} registration-state)
+            registration-state-changed) {:db (assoc-in db [:scoring :initial-form-data selected-exam-session selected-participant :scores] {})
+                                         :dispatch [:delete-scores-and-update-registration-state
+                                                    selected-exam-session
+                                                    selected-participant
+                                                    current-scores
+                                                    initial-scores
+                                                    registration-state
+                                                    initial-registration-state]}
+
+       ;; Registration changed to OK and scores did not change
+       (and registration-state-changed
+            (#{states/reg-ok} registration-state)
+            (not scores-changed)) {:db (-> (assoc-in db [:scoring :initial-form-data selected-exam-session selected-participant :registration-state] registration-state))
+                                   :dispatch [:persist-registration-state
+                                              selected-exam-session
+                                              selected-participant
+                                              registration-state
+                                              initial-registration-state]}
+
+       ;; Registration changed to OK and scores changed
+       (and registration-state-changed
+            (#{states/reg-ok} registration-state)
+            scores-changed) {:db (-> (assoc-in db [:scoring :initial-form-data selected-exam-session selected-participant :scores] current-scores)
+                                     (assoc-in [:scoring :initial-form-data selected-exam-session selected-participant :registration-state] registration-state))
+                             :dispatch [:persist-scores-and-update-registration-state
+                                        selected-exam-session
+                                        selected-participant
+                                        current-scores
+                                        initial-scores
+                                        registration-state
+                                        initial-registration-state]}))))
 
 (rf/reg-event-fx
  :save-participant-scores-and-select-next

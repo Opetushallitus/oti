@@ -8,6 +8,7 @@
 
 (defn- upsert-module-scores [db evaluator upserted-section [module-id {::spec/keys [module-score-points
                                                                                     module-score-accepted] :as module}]]
+
   (let [old-module (dba/module-score db {:module-id module-id
                                          :section-score-id (:section-score-id upserted-section)})
         upserted-module (dba/upsert-module-score db {:evaluator evaluator
@@ -47,7 +48,10 @@
                  :before old-section
                  :after upserted-section
                  :msg "Inserted or updated a section score."))
-    (when (and upserted-section (seq upserted-modules))
+    (when (and upserted-section
+               (if (seq (:modules section))
+                 (seq upserted-modules)
+                 true))
       [section-id (assoc upserted-section :modules upserted-modules)])))
 
 (defn upsert-scores [{:keys [db]} request participant-id]
@@ -63,6 +67,44 @@
       (response {:scores upserted-scores})
       {:status 400
        :body {:errors [:upsert-failed]}})))
+
+(defn delete-scores [{:keys [db]} {{:keys [scores]} :params :as request} participant-id]
+  (let [who (get-in request [:session :identity :username])
+        section-score-ids (remove nil? (map ::spec/section-score-id (vals scores)))
+        module-score-ids (remove nil? (mapv ::spec/module-score-id (mapcat (fn [s]
+                                                                             (vals (:modules s))) (vals scores))))
+        deletions (when (or (seq section-score-ids)
+                            (seq module-score-ids))
+                    (dba/delete-scores-by-score-ids db {:section-score-ids section-score-ids
+                                                        :module-score-ids module-score-ids}))]
+
+    (if (seq deletions)
+      (do (doall (for [id module-score-ids]
+                   (audit/log :app :admin
+                              :who who
+                              :op :delete
+                              :on :module-score
+                              :before {:module-score-id id}
+                              :after nil
+                              :msg "Deleting a module score.")))
+          (doall (for [id section-score-ids]
+                   (audit/log :app :admin
+                              :who who
+                              :op :delete
+                              :on :section-score
+                              :before {:section-score-id id}
+                              :after nil
+                              :msg "Deleting a section score.")))
+          (response {:success true}))
+      {:status 400
+       :body {:errors [:score-deletion-failed]}})))
+
+(defn update-registration-state
+  [{:keys [db]} {{:keys [exam-session-id registration-id registration-state]} :params} participant-id]
+  (if-not (zero? (dba/update-registration-state! db registration-id registration-state))
+    (response {:success true})
+    {:status 400
+     :body {:errors [:registration-state-update-failed]}}))
 
 (defn- as-participants [[ext-reference-id participant-data]]
   {:ext-reference-id ext-reference-id

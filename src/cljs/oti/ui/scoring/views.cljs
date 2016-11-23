@@ -3,6 +3,7 @@
             [oti.ui.scoring.handlers]
             [oti.ui.scoring.subs]
             [oti.spec :as spec]
+            [oti.db-states :as states]
             [oti.ui.exam-sessions.utils :refer [unparse-date]]))
 
 
@@ -56,7 +57,7 @@
     [:span {:class (when disabled? "disabled")} text]]])
 
 (defn- ok? [state]
-  (if (= state "OK")
+  (if (= state states/reg-ok)
          true
          false))
 
@@ -64,12 +65,15 @@
   (not (ok? state)))
 
 (defn- valid-reason? [state]
-  (if (= state "ABSENT_APPROVED")
+  (if (= state states/reg-absent-approved)
     true
     false))
 
 (defn- cancelled-registration? [fd]
-  (= "CANCELLED" (:registration-state fd)))
+  (= states/reg-cancelled (:registration-state fd)))
+
+(defn- attended? [fd]
+  (= states/reg-ok (:registration-state fd)))
 
 (defn- attendance []
   (let [current-fd (rf/subscribe [:current-participant-form-data])]
@@ -219,8 +223,19 @@
   [:a.button {:href uri
               :class class} text])
 
+(defn- changes? [form-data initial-form-data]
+  (let [registration-state (:registration-state form-data)
+        initial-registration-state (:registration-state initial-form-data)
+        scores (:scores form-data)
+        initial-scores (:scores initial-form-data)
+        registration-changed (not= registration-state initial-registration-state)
+        scores-changed (not= scores initial-scores)]
+    (if (not= registration-state states/reg-ok)
+      registration-changed
+      (or registration-changed scores-changed))))
+
 (defn button-bar [form-data initial-form-data participants]
-  (let [changes? (not= form-data initial-form-data)
+  (let [changes? (changes? form-data initial-form-data)
         more-than-one-participant? (> (count participants) 1)]
     [:div.button-bar
      [link-button "/" "Peruuta" "abort-button"]
@@ -267,7 +282,8 @@
             @selected-participant
             @participants
             @exam-sessions]
-           [scoring-form @exam @form-data]
+           (when (attended? @form-data)
+             [scoring-form @exam @form-data])
            [button-bar @form-data @initial-form-data @participants]])
         [:div.scoring-panel
          [:h2 "Ei arvioitavia tutkintotapahtumia"]]))))

@@ -367,6 +367,12 @@ SELECT id AS module_score_id, accepted AS module_score_accepted, points AS modul
 FROM module_score
 WHERE module_id = :module-id AND section_score_id = :section-score-id;
 
+-- name: delete-module-score!
+DELETE FROM module_score WHERE id = :id;
+
+-- name: delete-section-score!
+DELETE FROM section_score WHERE id = :id;
+
 -- REGISTRATION
 
 -- name: insert-registration<!

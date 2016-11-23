@@ -175,7 +175,8 @@
   (upsert-section-score [db section-score])
   (upsert-module-score [db module-score])
   (module-score [db params])
-  (section-score [db params]))
+  (section-score [db params])
+  (delete-scores-by-score-ids [db ids]))
 
 (extend-type HikariCP
   DbAccess
@@ -341,4 +342,11 @@
   (section-score [{:keys [spec]} params]
     (snake-keys (first (q/select-section-score params {:connection spec}))))
   (module-score [{:keys [spec]} params]
-    (snake-keys (first (q/select-module-score params {:connection spec})))))
+    (snake-keys (first (q/select-module-score params {:connection spec}))))
+  (delete-scores-by-score-ids [{:keys [spec]} {:keys [section-score-ids module-score-ids]}]
+    (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+      (let [deleted-module-scores (doall (for [module-score-id module-score-ids]
+                                           (q/delete-module-score! {:id module-score-id} {:connection tx})))
+            deleted-section-scores (doall (for [section-score-id section-score-ids]
+                                            (q/delete-section-score! {:id section-score-id} {:connection tx})))]
+        (into deleted-module-scores deleted-section-scores)))))
