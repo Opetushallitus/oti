@@ -15,7 +15,7 @@
 
 (defn- translation-by-key-fn [key]
   (fn [ts e]
-    (assoc ts (keyword (:language_code e)) (key e))))
+    (assoc ts (keyword (or (:language_code e) (:lang e))) (key e))))
 
 (defn- group-exam-session-translations [exam-sessions]
   (->> (partition-by :id exam-sessions)
@@ -30,24 +30,24 @@
 
 (defn- group-modules [module-groups]
   (map (fn [modules]
-         (let [{:keys [module_id module_accepted module_score_id]} (apply merge modules)
+         (let [{:keys [module_id module_score_id]} (apply merge modules)
                name (reduce (translation-by-key-fn :module_name) {} modules)]
            {:id module_id
             :previously-attempted? module_score_id
-            :accepted module_accepted
+            :accepted? false
             :name name}))
        module-groups))
 
 (defn- group-sections-and-modules [resultset]
   (->> (partition-by :section_id resultset)
        (map (fn [sections]
-              (let [{:keys [section_id section_accepted section_score_id]} (apply merge sections)
+              (let [{:keys [section_id section_score_id]} (apply merge sections)
                     name (reduce (translation-by-key-fn :section_name) {} sections)
                     modules (->> (partition-by :module_id sections)
                                  group-modules)]
                 {:id section_id
                  :previously-attempted? section_score_id
-                 :accepted? section_accepted
+                 :accepted? false
                  :name name
                  :modules modules})))))
 
