@@ -27,19 +27,25 @@
       (apply str (butlast s)))))
 
 (defn- prepare-updated-modules [modules]
-  (into {} (mapv (fn [[module-id {:keys [module-id module-score-accepted module-score-points module-score-id]}]]
+  (into {} (mapv (fn [[module-id {:keys [module-id module-score-accepted module-score-points module-score-id
+                                         module-score-created module-score-updated]}]]
                    [module-id {::spec/module-id module-id
                                ::spec/module-score-id module-score-id
                                ::spec/module-score-accepted module-score-accepted
+                               ::spec/module-score-created module-score-created
+                               ::spec/module-score-updated module-score-updated
                                ::spec/module-score-points (bigdec->str module-score-points)}]) modules)))
 
 (defn- prepare-updated-scores [updated-scores]
   (when updated-scores
-    (into {} (mapv (fn [[section-id {:keys [section-id section-score-accepted section-score-id modules]}]]
+    (into {} (mapv (fn [[section-id {:keys [section-id section-score-accepted section-score-id modules
+                                            section-score-created section-score-updated]}]]
                      [section-id
                       (update {::spec/section-id section-id
                                ::spec/section-score-accepted section-score-accepted
                                ::spec/section-score-id section-score-id
+                               ::spec/section-score-created section-score-created
+                               ::spec/section-score-updated section-score-updated
                                :modules modules} :modules prepare-updated-modules)]) updated-scores))))
 
 (defn- format-module-scores [section-score]

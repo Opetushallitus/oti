@@ -32,6 +32,12 @@
              (inst-ms x)
              ::s/invalid)))
 
+(defn datetime-conformer [x]
+  #?(:clj (if (instance? java.sql.Timestamp x)
+            (.format (java.text.SimpleDateFormat. "MM.dd.yyyy HH:mm") x)
+            ::s/invalid)
+     :cljs x))
+
 (defn valid-time-string? [x]
   (and (string? x) (re-matches time-regexp x)))
 
@@ -249,15 +255,23 @@
 (s/def ::module-score-id ::id)
 (s/def ::module-id ::id)
 (s/def ::module-score-points (s/nilable number?))
+(s/def ::module-score-updated (s/nilable (s/conformer datetime-conformer)))
+(s/def ::module-score-created (s/conformer datetime-conformer))
 (s/def ::module-score-accepted (s/nilable boolean?))
 
 (s/def ::module-score (s/keys :req [::module-score-id
                                     ::module-id
+                                    ::module-score-created
+                                    ::module-score-updated
                                     ::module-score-points
                                     ::module-score-accepted]))
 (s/def ::section-score-id ::id)
 (s/def ::section-id ::id)
-(s/def ::section-score-accepted ::boolean)
+
+(s/def ::section-score-updated (s/nilable (s/conformer datetime-conformer)))
+(s/def ::section-score-created (s/conformer datetime-conformer))
+(s/def ::section-score-accepted (s/nilable ::boolean))
+
 (s/def ::exam-session-id ::id)
 (s/def ::ext-reference-id ::non-blank-string)
 (s/def ::participant-id ::id)
@@ -268,6 +282,8 @@
 (s/def ::section-score (s/keys :req [::section-score-id
                                      ::section-id
                                      ::section-score-accepted
+                                     ::section-score-created
+                                     ::section-score-updated
                                      ::exam-session-id
                                      ::participant-id
                                      ::ext-reference-id]))
@@ -308,10 +324,13 @@
 
 (s/def ::module-score-conformer
   (s/conformer (fn [{:keys [module_score_id module_id module_score_points
-                            module_score_accepted section_score_id]}]
+                            module_score_accepted section_score_id module_score_created
+                            module_score_updated]}]
                  (let [module-score {::module-score-id module_score_id
                                      ::module-id module_id
                                      ::module-score-points module_score_points
+                                     ::module-score-created  module_score_created
+                                     ::module-score-updated  module_score_updated
                                      ::module-score-accepted module_score_accepted
                                      ::section-score-id section_score_id}]
                    (if (s/valid? ::module-score module-score)
@@ -321,12 +340,16 @@
 (s/def ::section-score-conformer
   (s/conformer (fn [{:keys [section_score_id
                             section_id
+                            section_score_created
+                            section_score_updated
                             section_score_accepted
                             exam_session_id
                             id
                             ext_reference_id]}]
                  (let [section-score {::section-score-id section_score_id
                                       ::section-id section_id
+                                      ::section-score-created section_score_created
+                                      ::section-score-updated section_score_updated
                                       ::section-score-accepted section_score_accepted
                                       ::exam-session-id exam_session_id
                                       ::participant-id id

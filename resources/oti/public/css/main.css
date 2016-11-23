@@ -994,6 +994,15 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .scoring-form .accepted-radio-group .radio span {
   margin-left: 10px;
 }
+.scoring-form .section h3 {
+  display: inline-block;
+}
+.scoring-form .datetimes {
+  display: inline-block;
+}
+.scoring-form .datetimes i {
+  font-size: 0.8em;
+}
 .scoring-form .sections .section .radio {
   width: 155px;
 }

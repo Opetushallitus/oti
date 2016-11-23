@@ -28,6 +28,16 @@
     :section (get-in fd [:accreditations :sections (:id o) ::spec/section-accreditation-date])
     :module (get-in fd [:accreditations :modules (:id o) ::spec/module-accreditation-date])))
 
+(defn- created-datetime [type o fd]
+  (condp = type
+    :section (get-in fd [:scores :sections (:id o) ::spec/section-score-created])
+    :module (get-in fd [:scores :modules (:id o) ::spec/module-score-created])))
+
+(defn- updated-datetime [type o fd]
+  (condp = type
+    :section (get-in fd [:scores :sections (:id o) ::spec/section-score-updated])
+    :module (get-in fd [:scores :modules (:id o) ::spec/module-score-updated])))
+
 (defn- section-accreditation-date [s fd]
   (accreditation-date :section s fd))
 
@@ -194,10 +204,17 @@
 (defn section [section form-data]
   (if-not (accredited-section? section form-data)
     (when (included-section? section form-data)
-      [:div.section
-       [:h3 (str "OSIO " (:name section))]
-       [accepted-radio :section section form-data]
-       [modules section form-data]])
+      (let [created (created-datetime :section section form-data)
+            updated (updated-datetime :section section form-data)]
+        [:div.section
+         [:h3 (str "OSIO " (:name section))]
+         [:span.datetimes
+          (when created
+            [:i (str "Arvioitu " created)])
+          (when updated
+            [:i (str ", Muokattu " updated)])]
+         [accepted-radio :section section form-data]
+         [modules section form-data]]))
     [:div.section
      [:h3 (str "OSIO " (:name section) ", korvaavuus myönnetty " (unparse-date (section-accreditation-date section form-data)))]]))
 
