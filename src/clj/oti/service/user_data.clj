@@ -127,7 +127,7 @@
                                     (sort-by :id)
                                     (distinct))]
              (-> (sec-or-mod-props "section" section-rows)
-                 (select-keys [:id :name :accreditation-requested? :accreditation-date :accreditation-type :accepted])
+                 (select-keys [:id :name :accreditation-requested? :accreditation-date :accreditation-type :accepted :score-ts])
                  (assoc :sessions sessions
                         :accredited-modules accredited-modules
                         :module-titles module-titles)))))))
@@ -136,12 +136,14 @@
   (->> (group-by :payment_id participant-rows)
        (map
          (fn [[id payment-rows]]
-           (let [{:keys [payment_id amount payment_state payment_created order_number]} (first payment-rows)]
+           (let [{:keys [payment_id amount payment_state payment_created order_number payment_type]} (first payment-rows)]
              (when payment_id
                {:id payment_id
                 :amount amount
                 :state payment_state
                 :order-number order_number
+                :type payment_type
+                :registration-state (some :registration_state payment-rows)
                 :created payment_created}))))
        (remove nil?)))
 

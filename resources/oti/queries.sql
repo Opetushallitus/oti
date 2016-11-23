@@ -170,23 +170,12 @@ GROUP BY s.id, m.id, section_name, st.language_code, module_name, ss.id,  module
 HAVING count(recm.id) = 0 AND count(recs.id) = 0 AND count(aem.id) = 0 AND count(aes.id) = 0
 ORDER BY section_id, module_id, language_code;
 
--- name: modules
-SELECT m.id, json_object_agg(mt.language_code, mt.name) AS NAMES
-FROM (SELECT language_code, name FROM module_translation WHERE module_id = 1) AS mt, module m
-GROUP BY m.id;
-
--- name: select-valid-payment-count-for-user
-SELECT
-  COUNT(*)
-FROM payment p
-JOIN participant pp ON p.participant_id = pp.id
-LEFT JOIN registration r ON p.registration_id = r.id
-LEFT JOIN exam_session e ON r.exam_session_id = e.id
-LEFT JOIN section_score ss ON (ss.exam_session_id = e.id AND ss.participant_id = p.id)
-LEFT JOIN module_score ms ON ms.section_score_id = ss.id
-WHERE pp.ext_reference_id = :external-user-id AND p.state = 'OK' AND p.type = 'FULL' AND
-      (((ss.accepted IS NULL OR ss.accepted = FALSE ) AND (ms.accepted IS NULL OR ms.accepted = FALSE))
-        OR (ss.created >= (SELECT current_date - interval '2 years'))) ;
+-- name: select-registrations-by-participant-id
+SELECT r.state, r.retry, p.type AS payment_type
+  FROM registration r
+LEFT JOIN payment p ON r.id = p.registration_id
+WHERE r.participant_id = :id AND
+      p.state = 'OK';
 
 -- name: insert-participant!
 INSERT INTO participant (ext_reference_id, email)
@@ -377,8 +366,8 @@ WITH pp AS (
       WHERE es.id = :session-id
     GROUP BY (es.id) HAVING (es.max_participants - COUNT(r.id)) > 0
 )
-INSERT INTO registration (state, exam_session_id, participant_id, language_code)
-  SELECT :state::registration_state, session.id, pp.id, :language-code FROM pp, session
+INSERT INTO registration (state, retry, exam_session_id, participant_id, language_code)
+  SELECT :state::registration_state, :retry, session.id, pp.id, :language-code FROM pp, session
 RETURNING registration.id;
 
 -- name: insert-section-registration!
