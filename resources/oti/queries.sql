@@ -185,8 +185,7 @@ ORDER BY section_id, module_id;
 SELECT r.state, r.retry, p.type AS payment_type
   FROM registration r
 LEFT JOIN payment p ON r.id = p.registration_id
-WHERE r.participant_id = :id AND
-      p.state = 'OK';
+WHERE r.participant_id = :id;
 
 -- name: insert-participant!
 INSERT INTO participant (ext_reference_id, email)

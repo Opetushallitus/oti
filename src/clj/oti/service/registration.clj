@@ -181,9 +181,9 @@
    participant has been absent from a retry exam with approval."
   [{:keys [db]} {:keys [payments id]}]
   (let [refund-count (->> payments
-                          (filter (fn [{:keys [payment-state payment-type registration-state]}]
-                                    (and (= states/pmt-ok payment-state)
-                                         (= "PARTIAL" payment-type)
+                          (filter (fn [{:keys [state type registration-state]}]
+                                    (and (= states/pmt-ok state)
+                                         (= "PARTIAL" type)
                                          (= states/reg-absent-approved registration-state))))
                           count)
         unpaid-retry-count (->> (dba/registration-by-participant-id db id)
