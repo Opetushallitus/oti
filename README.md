@@ -15,6 +15,21 @@ lein setup
 This will create files for local configuration, and prep your system
 for the project.
 
+### Configuration
+
+The application uses [Duct framework](https://github.com/duct-framework/duct) which is based on
+[Component framework](https://github.com/stuartsierra/component). This means, that the application configuration and
+component dependencies are managed in external edn files.
+
+The main configuration file is /resources/oti/system.edn. This contains configuration shared by all environments.
+This configuration is augmented (and overwritten) by environment specific config files. For local development
+environment these include /dev/resources/dev.edn and /dev/resources/local.edn (which is ignored by git).
+
+Server configuration is created during deploy by filling the variables in the Ansible template 
+/oph-configuration/config.edn.template.
+
+URLs for accessing other OPH services are stored in /resources/oti/oti_url.properties.
+
 ### Environment
 
 To begin developing, start with a REPL.
@@ -137,8 +152,20 @@ nil
 
 ## Deploying
 
-FIXME: steps to deploy
+Commits pushed to master and develop branches will cause a build to happen in 
+[Bamboo](https://bamboo.oph.ware.fi/browse/OTI-OB). A successful build can be deployed to the different environments
+via the Bamboo GUI.
 
-## Legal
+## License
 
-Copyright © 2016 Opetushallitus
+Copyright © 2016 The Finnish National Board of Education - Opetushallitus
+
+This program is free software: Licensed under the EUPL, Version 1.1 or - as soon as they will be 
+approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+
+You may not use this work except in compliance with the Licence. You may obtain a copy of the 
+Licence at: http://www.osor.eu/eupl/
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+See the European Union Public Licence for more details.
