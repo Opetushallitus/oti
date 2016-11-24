@@ -148,34 +148,44 @@ ORDER BY es.id;
 
 -- name: select-modules-available-for-user
 SELECT
-  s.id AS section_id, m.id AS module_id, st.name AS section_name, st.language_code, mt.name AS module_name,
-  ss.id AS section_score_id, ms.id AS module_score_id, ss.accepted AS section_accepted, ms.accepted AS module_accepted
-FROM exam e
-  JOIN section s ON e.id = s.exam_id
-  JOIN module m ON m.section_id = s.id
+  s.id AS section_id,
+  m.id AS module_id,
+  st.name AS section_name,
+  mt.name AS module_name,
+  st.language_code,
+  max(section_score_id) AS section_score_id,
+  max(module_score_id) AS module_score_id
+FROM section s
+  JOIN module m ON s.id = m.section_id
   JOIN section_translation st ON s.id = st.section_id
   JOIN module_translation mt ON (m.id = mt.module_id AND mt.language_code = st.language_code)
-  JOIN exam_session es ON (e.id = es.exam_id AND es.session_date > current_date AND es.published = TRUE)
-  LEFT JOIN participant p ON p.ext_reference_id = :external-user-id
-  LEFT JOIN section_score ss ON (ss.section_id = s.id AND ss.participant_id = p.id)
-  LEFT JOIN module_score ms ON (ms.module_id = m.id AND ms.section_score_id = ss.id)
-  LEFT JOIN registration r ON (r.exam_session_id = es.id AND r.participant_id = p.id AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state))
-  LEFT JOIN registration_exam_content_section recs ON (r.id = recs.registration_id AND recs.section_id = s.id)
-  LEFT JOIN registration_exam_content_module recm ON (r.id = recm.registration_id AND recm.module_id = m.id)
-  LEFT JOIN accredited_exam_module aem ON (m.id = aem.module_id AND aem.participant_id = p.id)
-  LEFT JOIN accredited_exam_section aes ON (s.id = aes.section_id AND aes.participant_id = p.id)
-WHERE (ss.accepted IS NULL OR ss.accepted = FALSE OR ms.accepted IS NULL OR ms.accepted = FALSE)
-      AND e.id = 1
-GROUP BY s.id, m.id, section_name, st.language_code, module_name, ss.id,  module_score_id, section_accepted, module_accepted
-HAVING count(recm.id) = 0 AND count(recs.id) = 0 AND count(aem.id) = 0 AND count(aes.id) = 0
-ORDER BY section_id, module_id, language_code;
+  LEFT JOIN all_participant_data a
+    ON a.ext_reference_id = :external-user-id AND
+       a.section_id = s.id AND
+       a.module_id = m.id AND
+       (a.registration_state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state) OR
+        a.registration_id IS NULL)
+GROUP BY
+  s.id,
+  m.id,
+  st.name,
+  mt.name,
+  st.language_code
+HAVING
+  max(section_accreditation_section_id) IS NULL AND
+  max(module_accreditation_module_id) IS NULL AND
+  COALESCE(bool_or(section_score_accepted), FALSE) IS FALSE AND
+  (COALESCE(bool_or(module_score_accepted), FALSE) IS FALSE OR bool_and(s.executed_as_whole) IS TRUE) AND
+  (max(session_date) IS NULL OR
+   (max(session_date) < current_date AND
+    (max(section_score_id) IS NOT NULL OR max(module_score_id) IS NOT NULL)))
+ORDER BY section_id, module_id;
 
 -- name: select-registrations-by-participant-id
 SELECT r.state, r.retry, p.type AS payment_type
   FROM registration r
 LEFT JOIN payment p ON r.id = p.registration_id
-WHERE r.participant_id = :id AND
-      p.state = 'OK';
+WHERE r.participant_id = :id;
 
 -- name: insert-participant!
 INSERT INTO participant (ext_reference_id, email)
