@@ -84,8 +84,8 @@
      :accreditation-type (some #(get-fn % "accreditation_type") rows)
      :registered-to? (some #(get-fn % "registration_id") rows)}))
 
-(defn- group-by-session [rows]
-  (->> (partition-by :exam_session_id rows)
+(defn- group-by-registration [rows]
+  (->> (partition-by :registration_id rows)
        (map
          (fn [session-rows]
            (let [modules (->> (partition-by :module_id session-rows)
@@ -109,8 +109,6 @@
                       :registration-id registration_id}))))))
        (remove nil?)))
 
-
-
 (defn- group-by-section [participant-rows]
   (->> (partition-by :section_id participant-rows)
        (map
@@ -118,7 +116,7 @@
            (let [accredited-modules (->> (partition-by :module_id section-rows)
                                            (map #(sec-or-mod-props "module" %))
                                            (filter :accreditation-requested?))
-                 sessions (group-by-session section-rows)
+                 sessions (group-by-registration section-rows)
                  module-titles (->> (reduce (fn [mods {:keys [modules]}]
                                               (->> (map #(select-keys (second %) [:id :name]) modules)
                                                    (concat mods)))

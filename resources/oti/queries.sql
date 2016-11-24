@@ -318,11 +318,12 @@ ORDER BY id;
 -- name: select-participant-by-id
 SELECT * FROM all_participant_data
 WHERE id = :id AND lang = 'fi'
-ORDER BY section_id, session_date, exam_session_id, module_id;
+ORDER BY section_id, session_date, registration_id, module_id;
 
 -- name: select-participant-by-payment-order-number
 SELECT * FROM all_participant_data
-WHERE order_number = :order-number AND lang = :lang;
+WHERE order_number = :order-number AND lang = :lang
+ORDER BY section_id, session_date, registration_id, module_id;
 
 -- name: update-participant-diploma!
 UPDATE participant SET diploma_date = current_date, diploma_signer = :signer, diploma_signer_title = :title
@@ -425,7 +426,9 @@ SELECT state FROM registration WHERE id = :id;
 -- name: select-existing-registration-id
 SELECT r.id FROM registration r
 JOIN participant p ON r.participant_id = p.id
-WHERE p.ext_reference_id = :external-user-id AND r.exam_session_id = :exam-session-id;
+WHERE p.ext_reference_id = :external-user-id AND
+      r.exam_session_id = :exam-session-id AND
+      r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state);
 
 -- name: select-section-and-module-names
 SELECT st.section_id, st.name AS section_name, mt.module_id, mt.name AS module_name
@@ -463,7 +466,7 @@ WHERE id = :id;
 UPDATE registration
 SET state = :state::registration_state
 FROM payment p
-WHERE registration.id = p.registration_id  AND p.order_number = :order-number;
+WHERE registration.id = p.registration_id AND p.order_number = :order-number;
 
 -- name: select-next-order-number-suffix
 SELECT nextval('payment_order_number_seq');

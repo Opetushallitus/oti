@@ -40,7 +40,7 @@
         click-fn #(swap! open-rows click-op session-id)
         icon-class (if open? "icon-up-open" "icon-down-open")]
     (->> [[:tr
-           (cond-> {:key session-id
+           (cond-> {:key (str session-id "-" registration-id)
                     :class (cond
                              (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} registration-state) "cancelled"
                              open? "open-row")}
@@ -61,7 +61,7 @@
             (when editable?
               [:i {:class icon-class :on-click click-fn :title "Näytä toiminnot"}])]]
           [:tr.session-functions
-           {:key (str session-id "-functions")
+           {:key (str session-id "-" registration-id "-functions")
             :style {"display" (if (and editable? open?) "table-row" "none")}}
            [:td {:colSpan (str (+ 3 (count module-titles)))}
             (when (= states/reg-incomplete registration-state)
