@@ -174,7 +174,7 @@
   (let [updated-session (session-participant config session)]
     {:status 200 :body (:participant updated-session) :session updated-session}))
 
-(defn- registration-options [{:keys [db] :as config} {{:keys [id external-user-id]} :participant :as session}]
+(defn- registration-options [{:keys [db] :as config} {{:keys [id external-user-id]} :participant}]
   ; user ids are nil at this stage if the user is new
   (->> {:sections (dba/sections-and-modules-available-for-user db external-user-id)
         :payments (registration/payment-amounts config id)}
