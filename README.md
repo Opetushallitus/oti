@@ -15,6 +15,10 @@ lein setup
 This will create files for local configuration, and prep your system
 for the project.
 
+Running the application will require a PostgreSQL DB instance with a database named oti to be up and running, and
+working connections to OPH services (translations, LDAP, CAS etc.), so a VPN configuration and valid credentials are 
+required.
+
 ### Configuration
 
 The application uses [Duct framework](https://github.com/duct-framework/duct) which is based on
@@ -29,6 +33,32 @@ Server configuration is created during deploy by filling the variables in the An
 /oph-configuration/config.edn.template.
 
 URLs for accessing other OPH services are stored in /resources/oti/oti_url.properties.
+
+### Localisation
+
+The registration / participant app supports Finnish and Swedish. The translated strings are fetched from OPH
+localisation service on application start-up. Doing a GET request to /oti/api/participant/translations/refresh
+will reload the translations from the service.
+
+The category for the strings is "oti".
+
+### Email templates
+
+The application sends HTML emails through OPH messaging service. The emails are constructed from templates located in
+/resources/oti/email-templates. Localised email subjects are in a Clojure map in the file email-subjects.edn. This file
+must contain a valid data structure in the following format:
+
+    {:some-email-template-id {:fi "Subject in Finnish"
+                              :sv "Subject in Swedish"}
+     :another-template-id    {:fi "Subject in Finnish"
+                              :sv "Subject in Swedish"}}
+
+Base template used for all emails is in the file email-base.html. Template specific HTML markup is in files named after
+the template id and language, e.g. some-email-template-id.fi.html. Email construction is handled in the namespace 
+oti.service.email-templates.
+
+The messaging service will strip any `<style>` elements and links to external stylesheets (which aren't supported by
+all email services anyway), so styling has to be done inline in element attributes. 
 
 ### Environment
 
@@ -155,6 +185,12 @@ nil
 Commits pushed to master and develop branches will cause a build to happen in 
 [Bamboo](https://bamboo.oph.ware.fi/browse/OTI-OB). A successful build can be deployed to the different environments
 via the Bamboo GUI.
+
+### Health check
+
+OTI provides two URLs for checking the application status. The path /oti/version will show the build number
+and the git commit revision of the running application. The path /oti/health will check that the database connection
+is working, and if so, respond with OK.
 
 ## License
 
