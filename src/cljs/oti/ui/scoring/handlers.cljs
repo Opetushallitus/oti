@@ -325,31 +325,35 @@
                                    initial-registration-state]}
     :loader     true}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-persist-registration-state-success
  [trim-v]
- (fn [db [exam-session-id participant-id registration-state response]]
-   (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :registration-state] registration-state)
-       (assoc-in [:scoring :initial-form-data exam-session-id participant-id :registration-state] registration-state))))
+ (fn [{:keys [db]} [exam-session-id participant-id registration-state response]]
+   {:db (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :registration-state] registration-state)
+            (assoc-in [:scoring :initial-form-data exam-session-id participant-id :registration-state] registration-state))
+    :show-flash [:success "Rekisteröitymisen tila tallennettu onnistuneesti"]}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-persist-registration-state-failure
  [trim-v]
- (fn [db [exam-session-id participant-id initial-registration-state response]]
-   (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :registration-state] initial-registration-state)))
+ (fn [{:keys [db]} [exam-session-id participant-id initial-registration-state response]]
+   {:db (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :registration-state] initial-registration-state)
+    :show-flash [:error "Rekisteröitymisen tilan tallennus epäonnistui"]}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-delete-scores-success
  [trim-v]
- (fn [db [exam-session-id participant-id response]]
-   (-> (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] {})
-       (assoc-in [:scoring :form-data exam-session-id participant-id :scores] {}))))
+ (fn [{:keys [db]} [exam-session-id participant-id response]]
+   {:db (-> (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] {})
+            (assoc-in [:scoring :form-data exam-session-id participant-id :scores] {}))
+    :show-flash [:success "Tallennus onnistui"]}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-delete-scores-failure
  [trim-v]
- (fn [db [exam-session-id participant-id initial-scores response]]
-   (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] initial-scores)))
+ (fn [{:keys [db]} [exam-session-id participant-id initial-scores response]]
+   {:db (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] initial-scores)
+    :show-flash [:error "Tallennus epäonnistui"]}))
 
 (rf/reg-event-db
  :delete-scores-and-update-registration-state
@@ -378,12 +382,13 @@
                  initial-registration-state])
    db))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-persist-scores-success
  [trim-v]
- (fn [db [exam-session-id participant-id response]]
-   (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response)))
-       (assoc-in [:scoring :initial-form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response))))))
+ (fn [{:keys [db]} [exam-session-id participant-id response]]
+   {:db (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response)))
+            (assoc-in [:scoring :initial-form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response))))
+    :show-flash [:success "Tutkintotulokset tallennettu"]}))
 
 (rf/reg-event-db
  :handle-persist-scores-failure
@@ -405,11 +410,7 @@
          initial-registration-state (get initial-participant :registration-state)
          registration-state-changed (not= registration-state initial-registration-state)
          scores-changed (not= current-scores initial-scores)]
-     (println "SC" scores-changed)
-     (println "RSC" registration-state-changed)
-     (println "RS" registration-state)
      (cond
-
        ;; Only scores changed
        (and (= registration-state states/reg-ok)
               (not registration-state-changed)
