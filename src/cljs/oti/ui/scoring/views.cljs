@@ -255,7 +255,10 @@
   (let [changes? (changes? form-data initial-form-data)
         more-than-one-participant? (> (count participants) 1)]
     [:div.button-bar
-     [link-button "/" "Peruuta" "abort-button"]
+     [button
+      "Peruuta"
+      "abort-button"
+      #(-> js/window .-history .back)]
      [button (if changes?
                "Tallenna ja hae seuraava henkilö"
                "Hae seuraava henkilö")
