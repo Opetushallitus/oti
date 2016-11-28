@@ -1,6 +1,7 @@
 (ns oti.ui.registration.views.authentication
   (:require [oti.ui.i18n :refer [t]]
             [oti.routing :as routing]
+            [oti.ui.config :refer [debug?]]
             [re-frame.core :as rf]
             [clojure.string :as str]
             [reagent.core :as r]))
