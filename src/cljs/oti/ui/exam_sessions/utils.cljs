@@ -7,6 +7,7 @@
             [cljs.spec :as s]))
 
 (def date-format (ctf/formatter "d.M.yyyy"))
+(def datetime-format (ctf/formatter "d.M.yyyy HH:mm:ss"))
 
 (defn parse-date [date-str]
   (when-not (str/blank? date-str)
@@ -18,6 +19,10 @@
 (defn unparse-date [date]
   (->> (time/to-default-time-zone date)
        (ctf/unparse date-format)))
+
+(defn unparse-datetime [date]
+  (->> (time/to-default-time-zone date)
+       (ctf/unparse datetime-format)))
 
 (defn invalid-keys [form-data form-spec]
   (let [problems (::s/problems (s/explain-data form-spec @form-data))]

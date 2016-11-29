@@ -4,7 +4,7 @@
             [oti.ui.scoring.subs]
             [oti.spec :as spec]
             [oti.db-states :as states]
-            [oti.ui.exam-sessions.utils :refer [unparse-date]]))
+            [oti.ui.exam-sessions.utils :refer [unparse-date unparse-datetime]]))
 
 
 (defn- accredited? [type o fd]
@@ -30,13 +30,13 @@
 
 (defn- created-datetime [type o fd]
   (condp = type
-    :section (get-in fd [:scores :sections (:id o) ::spec/section-score-created])
-    :module (get-in fd [:scores :modules (:id o) ::spec/module-score-created])))
+    :section (get-in fd [:scores (:id o) ::spec/section-score-created])
+    :module (get-in fd [:scores (:id o) ::spec/module-score-created])))
 
 (defn- updated-datetime [type o fd]
   (condp = type
-    :section (get-in fd [:scores :sections (:id o) ::spec/section-score-updated])
-    :module (get-in fd [:scores :modules (:id o) ::spec/module-score-updated])))
+    :section (get-in fd [:scores (:id o) ::spec/section-score-updated])
+    :module (get-in fd [:scores (:id o) ::spec/module-score-updated])))
 
 (defn- section-accreditation-date [s fd]
   (accreditation-date :section s fd))
@@ -186,12 +186,19 @@
 (defn module [m form-data]
   (if-not (accredited-module? m form-data)
     (when (included-module? m form-data)
-      [:div.module
-       [:label (:name m)]
-       (when (:accepted-separately? m)
-         [accepted-radio :module m form-data])
-       (when (:points? m)
-         [module-points-input m form-data])])
+      (let [created (unparse-datetime (created-datetime :module m form-data))
+            updated (unparse-datetime (updated-datetime :module m form-data))]
+        [:div.module
+         [:label (:name m)]
+         (when (:accepted-separately? m)
+           [accepted-radio :module m form-data])
+         (when (:points? m)
+           [module-points-input m form-data])
+         [:span.datetimes
+          (when created
+            [:i (str "Arvioitu " created)])
+          (when updated
+            [:i (str ", Muokattu " updated)])]]))
     [:div.module
      [:label (str (:name m) ", korvaavuus myönnetty " (unparse-date (module-accreditation-date m form-data)))]]))
 
@@ -204,8 +211,8 @@
 (defn section [section form-data]
   (if-not (accredited-section? section form-data)
     (when (included-section? section form-data)
-      (let [created (created-datetime :section section form-data)
-            updated (updated-datetime :section section form-data)]
+      (let [created (unparse-datetime (created-datetime :section section form-data))
+            updated (unparse-datetime (updated-datetime :section section form-data))]
         [:div.section
          [:h3 (str "OSIO " (:name section))]
          [:span.datetimes
