@@ -8,7 +8,6 @@
             [taoensso.timbre :as log]))
 
 (defn index-response [participant? {:keys [env]}]
-  (log/info env)
   (let [index (if participant? "participant-index.html" "virkailija-index.html")]
     (selmer/render-file (str "oti/html-templates/" index) {:env env})))
 
