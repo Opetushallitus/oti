@@ -32,6 +32,7 @@
                  [org.clojure/core.cache "0.6.5"]
                  [overtone/at-at "1.2.0"]
                  [hiccup "1.0.5"]
+                 [selmer "1.10.1"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.9.293"]
@@ -72,13 +73,18 @@
           :compiler     {:optimizations :none
                          :main "oti.ui.app"
                          :asset-path "/oti/js"
-                         :output-to  "target/figwheel/oti/public/js/main.js"
+                         :output-to  "target/figwheel/oti/public/js/main-dev.js"
                          :output-dir "target/figwheel/oti/public/js"
                          :source-map true
                          :source-map-path "/oti/js"}}
-    :main {:jar true
+    :qa {:jar true
+         :source-paths ["src/cljs" "src/cljc"]
+         :compiler {:output-to "target/cljsbuild/oti/public/js/main-qa.js"
+                    :optimizations :advanced
+                    :closure-defines {"goog.DEBUG" true}}}
+    :prod {:jar true
            :source-paths ["src/cljs" "src/cljc"]
-           :compiler {:output-to "target/cljsbuild/oti/public/js/main.js"
+           :compiler {:output-to "target/cljsbuild/oti/public/js/main-prod.js"
                       :optimizations :advanced
                       :closure-defines {"goog.DEBUG" false}}}}}
   :aliases {"setup"  ["run" "-m" "duct.util.repl/setup"]}
@@ -89,7 +95,7 @@
           :prep-tasks     ^:replace [["javac"] ["compile"]]}
    :uberjar {:aot :all
              :prep-tasks ^:replace ["clean"
-                                    ["cljsbuild" "once" "main"]
+                                    ["cljsbuild" "once"]
                                     ["less" "once"]
                                     "javac"
                                     "compile"]

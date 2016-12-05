@@ -27,4 +27,5 @@
                    :rcvid "{{oti_vetuma_shared_rcvid}}"}
   :url-helper {:virkailija-host "{{host_virkailija}}"
                :tunnistus-host "{{host_tunnistus}}"
-               :oti-host "{{oti_host}}"}}}
+               :oti-host "{{oti_host}}"}
+  :global-config {:env "{{oti_env}}"}}

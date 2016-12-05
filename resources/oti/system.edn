@@ -10,7 +10,8 @@
   :vetuma-payment oti.component.vetuma-payment/vetuma-payment
   :scheduler oti.component.scheduler/scheduler
   :email-service oti.component.email-service/email-service
-  :url-helper oti.component.url-helper/url-helper}
+  :url-helper oti.component.url-helper/url-helper
+  :global-config oti.component.global-config/global-config}
  :endpoints
  {:status oti.endpoint.status/status-endpoint
   :frontend oti.endpoint.frontend/frontend-endpoint
@@ -26,7 +27,7 @@
   :status [:db]
   :auth [:cas :ldap :url-helper]
   :virkailija [:db :api-client :localisation :email-service]
-  :frontend [:url-helper]
+  :frontend [:url-helper :global-config]
   :localisation [:url-helper]
   :email-service [:url-helper]
   :participant [:db :payments :api-client :localisation :vetuma-payment :url-helper]
