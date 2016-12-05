@@ -77,6 +77,12 @@
                          :output-dir "target/figwheel/oti/public/js"
                          :source-map true
                          :source-map-path "/oti/js"}}
+
+    :dev-luokka {:jar true
+                 :source-paths ["src/cljs" "src/cljc"]
+                 :compiler {:output-to "target/cljsbuild/oti/public/js/main-dev.js"
+                            :optimizations :simple
+                            :closure-defines {"goog.DEBUG" true}}}
     :qa {:jar true
          :source-paths ["src/cljs" "src/cljc"]
          :compiler {:output-to "target/cljsbuild/oti/public/js/main-qa.js"
@@ -95,7 +101,7 @@
           :prep-tasks     ^:replace [["javac"] ["compile"]]}
    :uberjar {:aot :all
              :prep-tasks ^:replace ["clean"
-                                    ["cljsbuild" "once"]
+                                    ["cljsbuild" "once" "dev-luokka" "qa" "prod"]
                                     ["less" "once"]
                                     "javac"
                                     "compile"]
