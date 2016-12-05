@@ -28,4 +28,4 @@
   :url-helper {:virkailija-host "{{host_virkailija}}"
                :tunnistus-host "{{host_tunnistus}}"
                :oti-host "{{oti_host}}"}
-  :global-config {:env "{{oti_env}}"}}
+  :global-config {:env "{{oti_env}}"}}}
