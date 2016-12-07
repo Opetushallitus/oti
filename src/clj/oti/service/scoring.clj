@@ -31,11 +31,15 @@
   (let [old-section (dba/section-score db {:section-id section-id
                                            :exam-session-id exam-session-id
                                            :participant-id participant-id})
-        upserted-section (dba/upsert-section-score db {:evaluator evaluator
-                                                       :section-accepted section-score-accepted
-                                                       :section-id section-id
-                                                       :participant-id participant-id
-                                                       :exam-session-id exam-session-id})
+        upserted-section (if (:changed? section)
+                           (dba/upsert-section-score db {:evaluator evaluator
+                                                         :section-accepted section-score-accepted
+                                                         :section-id section-id
+                                                         :participant-id participant-id
+                                                         :exam-session-id exam-session-id})
+                           (dba/section-score db {:section-id section-id
+                                                  :exam-session-id exam-session-id
+                                                  :participant-id participant-id}))
         upserted-modules (into {} (mapv (partial upsert-module-scores
                                                  db
                                                  evaluator
