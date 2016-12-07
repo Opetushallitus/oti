@@ -960,10 +960,10 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   margin-top: 2em;
 }
 .personal-details .personal-details-group:not(:first-child) {
-  margin-top: 10px;
+  margin-top: 20px;
 }
 .personal-details .personal-details-group label {
-  width: 175px;
+  width: 195px;
   display: inline-block;
 }
 .personal-details .personal-details-group select {
@@ -975,18 +975,18 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   margin-right: 10px;
 }
 .personal-details .personal-details-group .attendance label {
-  width: 350px;
-  margin-top: 10px;
+  width: 390px;
+  margin-top: 20px;
 }
 .personal-details .personal-details-group .attendance .attendance-checkbox {
-  margin-left: 175px;
+  margin-left: 195px;
 }
 .personal-details .personal-details-group .attendance .attendance-reason-radios {
-  margin-left: 215px;
+  margin-left: 235px;
 }
 .personal-details .personal-details-group .attendance .attendance-reason-radios .radio {
   display: inline-block;
-  width: 175px;
+  width: 195px;
 }
 .scoring-form .accepted-radio-group .radio {
   display: inline-block;
@@ -994,31 +994,62 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .scoring-form .accepted-radio-group .radio span {
   margin-left: 10px;
 }
+.scoring-form .section {
+  margin-top: 40px;
+}
 .scoring-form .section h3 {
   display: inline-block;
 }
-.scoring-form .datetimes {
+.scoring-form .section > .datetimes {
+  line-height: 65px;
+}
+.scoring-form h3:hover .datetimes,
+.scoring-form label:hover .datetimes {
   display: inline-block;
 }
+.scoring-form .icon-info {
+  color: #929292;
+  margin-left: 5px;
+}
+.scoring-form .datetimes {
+  margin-left: 10px;
+  display: none;
+  position: absolute;
+  background-color: #efefef;
+  z-index: 10;
+  height: 35px;
+  padding: 0 10px;
+  line-height: 35px;
+  margin-top: -5px;
+  border: 1px solid #bcbcbc;
+}
 .scoring-form .datetimes i {
-  font-size: 0.8em;
+  font-weight: 400;
+  font-size: 15px !important;
+}
+.scoring-form h3 .datetimes {
+  margin-top: -10px;
 }
 .scoring-form .sections .section .radio {
-  width: 155px;
+  width: 135px;
 }
 .scoring-form .modules {
-  margin-top: 10px;
+  margin-top: 20px;
 }
 .scoring-form .modules .module {
-  margin-top: 10px;
+  margin-top: 20px;
   line-height: 32px;
+}
+.scoring-form .modules .module > label {
+  font-weight: bold;
 }
 .scoring-form .modules .module label {
   display: inline-block;
-  min-width: 155px;
+  min-width: 175px;
 }
 .scoring-form .modules .module .accepted-radio-group {
   display: inline-block;
+  margin-left: 20px;
 }
 .scoring-form .modules .module .module-points-input {
   margin-left: 20px;
@@ -1029,7 +1060,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   width: 100px;
 }
 .button-bar {
-  margin-top: 30px;
+  margin-top: 60px;
 }
 .left {
   float: left;

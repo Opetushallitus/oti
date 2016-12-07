@@ -344,7 +344,7 @@ INSERT INTO section_score (evaluator, accepted, section_id, participant_id, exam
   :exam-session-id
 ) ON CONFLICT (section_id, exam_session_id, participant_id)
 DO UPDATE SET accepted = :section-accepted, evaluator = :evaluator, updated = current_timestamp
-RETURNING id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id;
+RETURNING id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id, updated AS section_score_updated, created AS section_score_created;
 
 -- name: upsert-participant-module-score<!
 INSERT INTO module_score (evaluator, accepted, points, module_id, section_score_id) VALUES (
@@ -355,15 +355,15 @@ INSERT INTO module_score (evaluator, accepted, points, module_id, section_score_
   :section-score-id
 ) ON CONFLICT (module_id, section_score_id)
 DO UPDATE SET accepted = :module-accepted, points = :module-points, evaluator = :evaluator, updated = current_timestamp
-RETURNING id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id;
+RETURNING id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id, updated AS module_score_updated, created AS module_score_created;
 
 -- name: select-section-score
-SELECT id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id
+SELECT id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id, updated AS section_score_updated, created AS section_score_created
 FROM section_score
 WHERE section_id = :section-id AND exam_session_id = :exam-session-id AND participant_id = :participant-id;
 
 -- name: select-module-score
-SELECT id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id
+SELECT id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id, updated AS module_score_updated, created AS module_score_created
 FROM module_score
 WHERE module_id = :module-id AND section_score_id = :section-score-id;
 
