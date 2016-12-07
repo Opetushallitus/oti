@@ -192,7 +192,7 @@
          [:label (:name m)
           (when (or created updated)
             [:i.icon-info])
-          [:span.datetimes
+          [:span.datetimes {:class (when (or created updated) "active")}
            (when created
              [:i (str "Arvioitu " created)])
            (when updated
@@ -219,7 +219,7 @@
          [:h3 (str "OSIO " (:name section))
           (when (or created updated)
             [:i.icon-info])
-          [:span.datetimes
+          [:span.datetimes {:class (when (or created updated) "active")}
            (when created
              [:i (str "Arvioitu " created)])
            (when updated

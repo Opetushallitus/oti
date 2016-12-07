@@ -1011,7 +1011,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   color: #929292;
   margin-left: 5px;
 }
-.scoring-form .datetimes {
+.scoring-form .datetimes.active {
   margin-left: 10px;
   display: none;
   position: absolute;
@@ -1023,7 +1023,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   margin-top: -5px;
   border: 1px solid #bcbcbc;
 }
-.scoring-form .datetimes i {
+.scoring-form .datetimes.active i {
   font-weight: 400;
   font-size: 15px !important;
 }
