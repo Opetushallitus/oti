@@ -81,16 +81,19 @@
     :dev-luokka {:jar true
                  :source-paths ["src/cljs" "src/cljc"]
                  :compiler {:output-to "target/cljsbuild/oti/public/js/main-dev.js"
+                            :output-dir "out_devluokka"
                             :optimizations :simple
                             :closure-defines {"goog.DEBUG" true}}}
     :qa {:jar true
          :source-paths ["src/cljs" "src/cljc"]
          :compiler {:output-to "target/cljsbuild/oti/public/js/main-qa.js"
+                    :output-dir "out_qa"
                     :optimizations :advanced
                     :closure-defines {"goog.DEBUG" true}}}
     :prod {:jar true
            :source-paths ["src/cljs" "src/cljc"]
            :compiler {:output-to "target/cljsbuild/oti/public/js/main-prod.js"
+                      :output-dir "out_prod"
                       :optimizations :advanced
                       :closure-defines {"goog.DEBUG" false}}}}}
   :aliases {"setup"  ["run" "-m" "duct.util.repl/setup"]}
