@@ -26,6 +26,28 @@
       s
       (apply str (butlast s)))))
 
+(defn deep-merge
+  "Recursively merges maps.
+   If the first parameter is a keyword it tells the strategy to
+   use when merging non-map collections. Options are
+   - :replace, the default, the last value is used
+   - :into, if the value in every map is a collection they are concatenated
+     using into. Thus the type of (first) value is maintained."
+  {:arglists '([strategy & values] [values])}
+  [& values]
+  (let [[values strategy] (if (keyword? (first values))
+                            [(rest values) (first values)]
+                            [values :replace])]
+    (cond
+      (every? map? values)
+      (apply merge-with (partial deep-merge strategy) values)
+
+      (and (= strategy :into) (every? coll? values))
+      (reduce into values)
+
+      :else
+      (last values))))
+
 (defn- prepare-updated-modules [modules]
   (into {} (mapv (fn [[module-id {:keys [module-id module-score-accepted module-score-points module-score-id
                                          module-score-created module-score-updated]}]]
@@ -36,17 +58,18 @@
                                ::spec/module-score-updated module-score-updated
                                ::spec/module-score-points (bigdec->str module-score-points)}]) modules)))
 
-(defn- prepare-updated-scores [updated-scores]
-  (when updated-scores
-    (into {} (mapv (fn [[section-id {:keys [section-id section-score-accepted section-score-id modules
-                                            section-score-created section-score-updated]}]]
-                     [section-id
-                      (update {::spec/section-id section-id
-                               ::spec/section-score-accepted section-score-accepted
-                               ::spec/section-score-id section-score-id
-                               ::spec/section-score-created section-score-created
-                               ::spec/section-score-updated section-score-updated
-                               :modules modules} :modules prepare-updated-modules)]) updated-scores))))
+(defn- prepare-updated-scores [old-scores updated-scores]
+  (if updated-scores
+    (deep-merge old-scores (into {} (mapv (fn [[section-id {:keys [section-id section-score-accepted section-score-id modules
+                                                                   section-score-created section-score-updated]}]]
+                                            [section-id
+                                             (update {::spec/section-id section-id
+                                                      ::spec/section-score-accepted section-score-accepted
+                                                      ::spec/section-score-id section-score-id
+                                                      ::spec/section-score-created section-score-created
+                                                      ::spec/section-score-updated section-score-updated
+                                                      :modules modules} :modules prepare-updated-modules)]) updated-scores)))
+    old-scores))
 
 (defn- format-module-scores [section-score]
   (let [updated-module-scores (->> (map (fn [[id m]]
@@ -98,6 +121,25 @@
                               0
                               (inc current-participant-index))))
         :id)))
+
+(defn- module-score-changed? [ms s-id initial-scores]
+  (let [old-score (get-in initial-scores [s-id :modules (::spec/module-id ms)])]
+    (not= old-score ms)))
+
+(defn- section-score-changed? [s initial-scores]
+  (let [old-score (dissoc (get initial-scores (::spec/section-id s)) :modules)]
+    (not= (dissoc s :modules) old-score)))
+
+(defn- only-scores-that-changed [scores initial-scores]
+  (into {} (map (fn [[section-id section-score]]
+                  (let [changed-modules (->> (map (fn [[module-id module-score]]
+                                                    (when (module-score-changed? module-score section-id initial-scores)
+                                                      [module-id module-score])) (:modules section-score))
+                                             (remove nil?)
+                                             (into {}))
+                        section-score-changed (section-score-changed? section-score initial-scores)]
+                    [section-id (assoc section-score :modules changed-modules
+                                                     :changed? section-score-changed)])) scores)))
 
 ;; HANDLERS
 
@@ -272,7 +314,8 @@
  (fn [{:keys [db]} [exam-session-id participant-id scores initial-scores]]
    {:http-xhrio {:method          :post
                  :uri             (routing/v-a-route "/participant/" participant-id "/scores")
-                 :params          {:scores (module-points-to-bigdecs scores)
+                 :params          {:scores (-> (only-scores-that-changed scores initial-scores)
+                                               module-points-to-bigdecs)
                                    :exam-session-id exam-session-id}
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
@@ -386,8 +429,8 @@
  :handle-persist-scores-success
  [trim-v]
  (fn [{:keys [db]} [exam-session-id participant-id response]]
-   {:db (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response)))
-            (assoc-in [:scoring :initial-form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response))))
+   {:db (-> (update-in db [:scoring :form-data exam-session-id participant-id :scores] prepare-updated-scores (:scores response))
+            (update-in [:scoring :initial-form-data exam-session-id participant-id :scores] prepare-updated-scores (:scores response)))
     :show-flash [:success "Tutkintotulokset tallennettu"]}))
 
 (rf/reg-event-db
