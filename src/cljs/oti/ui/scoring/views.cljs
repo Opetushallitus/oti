@@ -31,12 +31,12 @@
 (defn- created-datetime [type o fd]
   (condp = type
     :section (get-in fd [:scores (:id o) ::spec/section-score-created])
-    :module (get-in fd [:scores (:id o) ::spec/module-score-created])))
+    :module (get-in fd [:scores (:section-id o) :modules (:id o) ::spec/module-score-created])))
 
 (defn- updated-datetime [type o fd]
   (condp = type
     :section (get-in fd [:scores (:id o) ::spec/section-score-updated])
-    :module (get-in fd [:scores (:id o) ::spec/module-score-updated])))
+    :module (get-in fd [:scores (:section-id o) :modules (:id o) ::spec/module-score-updated])))
 
 (defn- section-accreditation-date [s fd]
   (accreditation-date :section s fd))
@@ -189,16 +189,18 @@
       (let [created (unparse-datetime (created-datetime :module m form-data))
             updated (unparse-datetime (updated-datetime :module m form-data))]
         [:div.module
-         [:label (:name m)]
+         [:label (:name m)
+          (when (or created updated)
+            [:i.icon-info])
+          [:span.datetimes
+           (when created
+             [:i (str "Arvioitu " created)])
+           (when updated
+             [:i (str ", Muokattu " updated)])]]
          (when (:accepted-separately? m)
            [accepted-radio :module m form-data])
          (when (:points? m)
-           [module-points-input m form-data])
-         [:span.datetimes
-          (when created
-            [:i (str "Arvioitu " created)])
-          (when updated
-            [:i (str ", Muokattu " updated)])]]))
+           [module-points-input m form-data])]))
     [:div.module
      [:label (str (:name m) ", korvaavuus myönnetty " (unparse-date (module-accreditation-date m form-data)))]]))
 
@@ -214,12 +216,14 @@
       (let [created (unparse-datetime (created-datetime :section section form-data))
             updated (unparse-datetime (updated-datetime :section section form-data))]
         [:div.section
-         [:h3 (str "OSIO " (:name section))]
-         [:span.datetimes
-          (when created
-            [:i (str "Arvioitu " created)])
-          (when updated
-            [:i (str ", Muokattu " updated)])]
+         [:h3 (str "OSIO " (:name section))
+          (when (or created updated)
+            [:i.icon-info])
+          [:span.datetimes
+           (when created
+             [:i (str "Arvioitu " created)])
+           (when updated
+             [:i (str ", Muokattu " updated)])]]
          [accepted-radio :section section form-data]
          [modules section form-data]]))
     [:div.section
