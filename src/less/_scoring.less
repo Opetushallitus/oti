@@ -1,6 +1,6 @@
-@scoring-row-whitespace: 10px;
+@scoring-row-whitespace: 20px;
 @scoring-column-whitespace: 20px;
-@scoring-label-width: 175px;
+@scoring-label-width: 195px;
 
 .personal-details {
   .personal-details-group {
@@ -49,29 +49,60 @@
       }
     }
   }
+  .section {
+    margin-top: @scoring-row-whitespace * 2;
+  }
   .section h3 {
     display: inline-block;
   }
-  .datetimes {
+  .section > .datetimes {
+    line-height: 65px;
+  }
+  h3:hover .datetimes, label:hover .datetimes {
     display: inline-block;
+  }
+  .icon-info {
+    color: #929292;
+    margin-left: 5px;
+  }
+  .datetimes {
+    margin-left: 10px;
+    display: none;
+    position: absolute;
+    background-color: #efefef;
+    z-index: 10;
+    height: 35px;
+    padding: 0 10px;
+    line-height: 35px;
+    margin-top: -5px;
+    border: 1px solid darken(#efefef, 20%);
     i {
-      font-size: 0.8em;
+      font-weight: 400;
+      font-size: 15px !important;
     }
   }
+  h3 .datetimes {
+    margin-top: -10px;
+  }
   .sections .section .radio {
-    width: @scoring-label-width - @scoring-column-whitespace;
+    width: @scoring-label-width - 60px;
   }
   .modules {
     margin-top: @scoring-row-whitespace;
     .module {
       margin-top: @scoring-row-whitespace;
       line-height: 32px;
+
+      & > label {
+        font-weight: bold;
+      }
       label {
         display: inline-block;
         min-width: @scoring-label-width - @scoring-column-whitespace;
       }
       .accepted-radio-group {
         display: inline-block;
+        margin-left: @scoring-column-whitespace;
       }
       .module-points-input {
         margin-left: @scoring-column-whitespace;
