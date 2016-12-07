@@ -21,8 +21,9 @@
        (ctf/unparse date-format)))
 
 (defn unparse-datetime [date]
-  (->> (time/to-default-time-zone date)
-       (ctf/unparse datetime-format)))
+  (when date
+    (->> (time/to-default-time-zone date)
+         (ctf/unparse datetime-format))))
 
 (defn invalid-keys [form-data form-spec]
   (let [problems (::s/problems (s/explain-data form-spec @form-data))]
