@@ -163,6 +163,7 @@
   (add-email-by-participant-id! [db params])
   (unsent-emails-for-update [db tx])
   (set-email-sent! [db tx email-id])
+  (scores-email [db params])
   (health-check [db])
   (accreditation-types [db])
   (update-accreditations! [db params])
@@ -283,9 +284,16 @@
     (q/select-unsent-email-for-update {} {:connection tx}))
   (set-email-sent! [db tx email-id]
     (q/mark-email-sent! {:id email-id} {:connection tx}))
+  (scores-email [{:keys [spec]} {:keys [participant-id exam-session-id email-type]}]
+    (first (q/select-email {:participant-id participant-id
+                            :exam-session-id exam-session-id
+                            :email-type email-type} {:connection spec})))
   (health-check [{:keys [spec]}]
     (-> (q/select-exam-count {} {:connection spec})
         first
+
+
+
         :exam_count
         pos?))
   (accreditation-types [{:keys [spec]}]

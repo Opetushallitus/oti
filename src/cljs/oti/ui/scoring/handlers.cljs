@@ -510,3 +510,33 @@
  [trim-v]
  (fn [db _]
    (assoc-in db [:scoring :selected-participant] (next-participant-id db))))
+
+
+(rf/reg-event-fx
+ :scores-email-sent?
+ [trim-v]
+ (fn [{:keys [db]} [participant-id exam-session-id]]
+   {:http-xhrio {:method          :get
+                 :uri             (routing/v-a-route "/participant/" participant-id "/scores/email")
+                 :params          {:exam-session-id exam-session-id}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:handle-scores-email-sent-success
+                                   exam-session-id
+                                   participant-id]
+                 :on-failure      [:handle-scores-email-sent-failure
+                                   exam-session-id
+                                   participant-id]}
+    :loader     true}))
+
+(rf/reg-event-db
+ :handle-scores-email-sent-success
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   (assoc-in db [:scoring :emails-sent es-id p-id] res)))
+
+(rf/reg-event-db
+ :handle-scores-email-sent-failure
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   db))

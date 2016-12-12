@@ -495,8 +495,8 @@ WHERE state = 'OK'::payment_state
 -- EMAIL
 
 -- name: insert-email-by-participant-id!
-INSERT INTO email (participant_id, recipient, subject, body)
-  SELECT p.id, p.email, :subject, :body FROM participant p
+INSERT INTO email (participant_id, recipient, subject, body, exam_session_id, email_type)
+  SELECT p.id, p.email, :subject, :body, :exam-session-id, :email-type FROM participant p
   WHERE p.id = :participant-id;
 
 -- name: select-unsent-email-for-update
@@ -515,6 +515,12 @@ SELECT count(id) AS exam_count FROM exam;
 
 -- name: select-accreditation-types
 SELECT id, description FROM accreditation_type;
+
+-- name: select-email
+SELECT * FROM email
+WHERE participant_id = :participant-id AND
+      exam_session_id = :exam-session-id AND
+      email_type = :email-type
 
 -- ACCREDITATION
 

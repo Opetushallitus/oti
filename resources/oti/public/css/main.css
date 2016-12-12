@@ -1061,6 +1061,10 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 .button-bar {
   margin-top: 60px;
+  width: 100%;
+}
+.button-bar .send-scores-email-button {
+  float: right;
 }
 .left {
   float: left;

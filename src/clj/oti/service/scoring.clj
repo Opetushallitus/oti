@@ -4,7 +4,19 @@
             [clojure.spec :as s]
             [taoensso.timbre :as log]
             [oti.spec :as spec]
-            [ring.util.response :refer [response]]))
+            [ring.util.response :refer [response]]
+            [oti.component.email-service :as email]
+            [compojure.coercions :refer [as-int]]))
+
+
+(defn send-scores-email [{:keys [db email-service]} {{:keys [exam-session-id]} :params} participant-id])
+
+(defn scores-email-sent?  [{:keys [db email-service]} {{:keys [exam-session-id]} :params} participant-id]
+  (response (if-let [exam-session-id (as-int exam-session-id)]
+              (email/email-sent? email-service db {:exam-session-id exam-session-id
+                                                   :participant-id participant-id
+                                                   :email-type "SCORES"})
+              false)))
 
 (defn- upsert-module-scores [db evaluator upserted-section [module-id {::spec/keys [module-score-points
                                                                                     module-score-accepted] :as module}]]

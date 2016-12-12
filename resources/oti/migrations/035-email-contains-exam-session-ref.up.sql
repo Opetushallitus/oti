@@ -1,0 +1,5 @@
+ALTER TABLE email
+  ADD COLUMN exam_session_id BIGINT REFERENCES exam_session (id) DEFAULT NULL;
+
+ALTER TABLE email
+  ADD COLUMN email_type TEXT DEFAULT NULL;

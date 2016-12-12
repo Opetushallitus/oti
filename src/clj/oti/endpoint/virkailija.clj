@@ -207,6 +207,10 @@
        (scoring/upsert-scores config request id))
      (DELETE "/scores" request
        (scoring/delete-scores config request id))
+     (POST "/scores/email" request
+       (scoring/send-scores-email config request id))
+     (GET "/scores/email" request
+       (scoring/scores-email-sent? config request id))
      (PUT "/registration" request
        (scoring/update-registration-state config request id)))
     (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]

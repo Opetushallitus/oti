@@ -288,6 +288,7 @@
                 :sections (format-registration-selections sections)
                 :amount (-> payments first :amount format-amount)}
         email-data {:participant-id id
+                    :email-type "REGISTRATION_CONFIRMATION"
                     :lang lang
                     :template-id :registration-success
                     :template-values values}]

@@ -262,6 +262,23 @@
       registration-changed
       (or registration-changed scores-changed))))
 
+(defn result-email-button []
+  (let [selected-exam-session (rf/subscribe [:selected-exam-session])
+        selected-participant  (rf/subscribe [:selected-participant] [selected-exam-session])
+        email-sent?           (rf/subscribe [:email-sent?] [selected-exam-session selected-participant])]
+    (fn []
+      (when (and @selected-exam-session
+                 @selected-participant)
+        (rf/dispatch [:scores-email-sent? @selected-participant @selected-exam-session]))
+      [:button {:type "submit"
+                :class "send-scores-email-button"
+                :disabled (or (nil? @email-sent?)
+                              @email-sent?)
+                :on-click #(rf/dispatch [:scores-email-sent? @selected-participant @selected-exam-session])}
+       (if @email-sent?
+         "Tulokset ovat lähetetty sähköpostilla"
+         "Lähetä tulokset sähköpostilla")])))
+
 (defn button-bar [form-data initial-form-data participants]
   (let [changes? (changes? form-data initial-form-data)
         more-than-one-participant? (> (count participants) 1)]
@@ -285,7 +302,8 @@
         (.preventDefault e)
         (rf/dispatch [:save-participant-scores]))
       :primary true
-      :disabled (not changes?)]]))
+      :disabled (not changes?)]
+     [result-email-button]]))
 
 (defn scoring-panel [pre-selected-registration-id]
   (rf/dispatch [:load-exam])
