@@ -9,15 +9,6 @@
             [compojure.coercions :refer [as-int]]))
 
 
-(defn send-scores-email [{:keys [db email-service]} {{:keys [exam-session-id]} :params} participant-id])
-
-(defn scores-email-sent?  [{:keys [db email-service]} {{:keys [exam-session-id]} :params} participant-id]
-  (response (if-let [exam-session-id (as-int exam-session-id)]
-              (email/email-sent? email-service db {:exam-session-id exam-session-id
-                                                   :participant-id participant-id
-                                                   :email-type "SCORES"})
-              false)))
-
 (defn- upsert-module-scores [db evaluator upserted-section [module-id {::spec/keys [module-score-points
                                                                                     module-score-accepted] :as module}]]
 
@@ -128,6 +119,7 @@
    :exam-session-id (some :exam_session_id participant-data)
    :registration-id (some :registration_id participant-data)
    :registration-state (some :registration_state participant-data)
+   :registration-language (some :registration_language participant-data)
    :data participant-data})
 
 (defn- conforms-filter
@@ -231,3 +223,27 @@
                       :other-location-info exam_session_other_location_info
                       :participants (participants-by-exam-session participant-data es-id)})))
            (hierarchial-by :id)))))
+
+(defn send-scores-email [{:keys [db email-service]} {{:keys [exam-session-id lang]} :params} participant-id]
+  (response (if (number? exam-session-id)
+              (let [values {:scores (str (as-participants [{:data (dba/participant-by-id db participant-id)}]))
+                            :exam (str (dba/exam-by-lang db lang))
+                            :session (str {:date "10.10.2016"})}
+                    email-data {:participant-id participant-id
+                                :email-type "SCORES"
+                                :exam-session-id exam-session-id
+                                :lang lang
+                                :template-id :scores
+                                :template-values values}]
+                (try (email/send-email-to-participant! email-service db email-data)
+                     true
+                     (catch Exception e (do (log/error e)
+                                            false))))
+              false)))
+
+(defn scores-email-sent?  [{:keys [db email-service]} {{:keys [exam-session-id]} :params} participant-id]
+  (response (if-let [exam-session-id (as-int exam-session-id)]
+              (email/email-sent? email-service db {:exam-session-id exam-session-id
+                                                   :participant-id participant-id
+                                                   :email-type "SCORES"})
+              false)))

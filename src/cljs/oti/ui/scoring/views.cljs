@@ -268,13 +268,14 @@
         email-sent?           (rf/subscribe [:email-sent?] [selected-exam-session selected-participant])]
     (fn []
       (when (and @selected-exam-session
-                 @selected-participant)
+                 @selected-participant
+                 (nil? @email-sent?))
         (rf/dispatch [:scores-email-sent? @selected-participant @selected-exam-session]))
       [:button {:type "submit"
                 :class "send-scores-email-button"
                 :disabled (or (nil? @email-sent?)
                               @email-sent?)
-                :on-click #(rf/dispatch [:scores-email-sent? @selected-participant @selected-exam-session])}
+                :on-click #(rf/dispatch [:send-scores-email @selected-participant @selected-exam-session])}
        (if @email-sent?
          "Tulokset ovat lähetetty sähköpostilla"
          "Lähetä tulokset sähköpostilla")])))

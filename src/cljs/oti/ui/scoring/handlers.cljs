@@ -540,3 +540,38 @@
  [trim-v]
  (fn [db [es-id p-id res]]
    db))
+
+(rf/reg-event-fx
+ :send-scores-email
+ [trim-v]
+ (fn [{:keys [db]} [participant-id exam-session-id]]
+   {:http-xhrio {:method          :post
+                 :uri             (routing/v-a-route "/participant/" participant-id "/scores/email")
+                 :params          {:exam-session-id exam-session-id
+                                   :lang (get-in db [:scoring
+                                                     :exam-sessions
+                                                     exam-session-id
+                                                     :participants
+                                                     participant-id
+                                                     :registration-language])}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:handle-scores-email-sent-success
+                                   exam-session-id
+                                   participant-id]
+                 :on-failure      [:handle-scores-email-sent-failure
+                                   exam-session-id
+                                   participant-id]}
+    :loader     true}))
+
+(rf/reg-event-db
+ :handle-send-scores-email-success
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   (assoc-in db [:scoring :emails-sent es-id p-id] res)))
+
+(rf/reg-event-db
+ :handle-handle-send-scores-email-failure
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   db))

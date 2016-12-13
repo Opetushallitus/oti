@@ -1,2 +1,4 @@
 {:registration-success {:fi "Ilmoittautumisesi opetushallinnon tutkintoon"
-                        :sv "Din anmälan till examen i undervisningsförvaltning"}}
+                        :sv "Din anmälan till examen i undervisningsförvaltning"}
+ :scores {:fi "Tuloksesi opetushallinnon tutkinnosta"
+          :sv "Resultaten av utbildningsadministration grad"}}
