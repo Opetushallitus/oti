@@ -530,6 +530,7 @@ SELECT * FROM email
 WHERE participant_id = :participant-id AND
       exam_session_id = :exam-session-id AND
       email_type = :email-type
+ORDER BY created DESC, sent DESC;
 
 -- ACCREDITATION
 
