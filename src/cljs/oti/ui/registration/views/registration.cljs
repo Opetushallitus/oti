@@ -151,8 +151,11 @@
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
                          :on-click #(add-section form-data sections id {::os/accredit? true})}]
-                [:span (t "has-accreditation-or-other-substitution"
-                          "Olen saanut korvaavuuden / korvannut kurssisuorituksella tai esseellä koko osion")]]]
+                [:span (if (= (@lang name) "A")
+                         (t "has-accreditation"
+                            "Olen saanut korvaavuuden")
+                         (t "has-accreditation-or-other-substitution"
+                            "Olen saanut korvaavuuden tai suorittanut esseellä koko osion"))]]]
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
