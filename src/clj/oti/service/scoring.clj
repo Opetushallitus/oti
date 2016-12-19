@@ -294,8 +294,8 @@
                                                                                                               (t :failed)) ")"]])))))]))))]
                  [:h4 (t :no-scores)])])))))
 
-(defn- participant-data [participant-id exam-session-id]
-  (->> (group-by :exam_session_id (dba/participant-by-id (:db reloaded.repl/system) participant-id))
+(defn- participant-data [db participant-id exam-session-id]
+  (->> (group-by :exam_session_id (dba/participant-by-id db participant-id))
        (map #(as-participants % :exam-session-data? true))
        (map set-scores)
        (map set-accreditations)
@@ -306,7 +306,7 @@
 (defn send-scores-email [{:keys [db email-service localisation]} {{:keys [exam-session-id lang]} :params} participant-id]
   (response (if (number? exam-session-id)
               (let [values {:date (format-date (java.util.Date.))
-                            :scores-table (scores-table (participant-data participant-id exam-session-id)
+                            :scores-table (scores-table (participant-data db participant-id exam-session-id)
                                                         (dba/exam-by-lang db lang)
                                                         localisation
                                                         lang)}
