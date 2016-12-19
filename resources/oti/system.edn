@@ -25,7 +25,7 @@
   :app  [:status :token-secured :frontend :auth :virkailija :participant :payment]
   :ragtime [:db]
   :status [:db]
-  :auth [:cas :ldap :url-helper]
+  :auth [:cas :ldap :url-helper :global-config]
   :virkailija [:db :api-client :localisation :email-service]
   :frontend [:url-helper :global-config]
   :localisation [:url-helper]
@@ -63,6 +63,6 @@
    :thread 80}
   :ragtime
   {:resource-path "oti/migrations"}
-  :payments {:amounts {:full 212
+  :payments {:amounts {:full 256
                        :retry 87}}
   :api-client {:authentication-service "authentication-service"}}}
