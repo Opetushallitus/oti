@@ -80,31 +80,33 @@
       ; Other or missing registration status, just return the session as is
       session)))
 
-(defn authenticate [{:keys [db api-client] :as config} callback user-hetu automatic-address]
-  (if-not (str/blank? callback)
-    (let [hetu (if (s/valid? ::os/hetu user-hetu) user-hetu (random-hetu))
-          {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
-          {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
-          address (when (= automatic-address "true")
-                    #::os{:registration-post-office    "Helsinki"
-                          :registration-zip            "00100"
-                          :registration-street-address "Testikatu 1"})]
-      (when id
-        ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
-        (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
-      (-> (redirect callback)
-          (assoc :session {:participant (merge
-                                          {:etunimet         (if etunimet
-                                                               (str/split etunimet #" ")
-                                                               [(random-name) (random-name)])
-                                           :sukunimi         (or sukunimi (random-name))
-                                           :kutsumanimi      kutsumanimi
-                                           :hetu             hetu
-                                           :external-user-id oidHenkilo
-                                           :id               id
-                                           ::os/email        email}
-                                          address)})))
-    {:status 400 :body {:error "Missing callback uri"}}))
+(defn authenticate [{:keys [db api-client global-config] :as config} callback user-hetu automatic-address]
+  (if (not= (:env global-config) "prod")
+    (if-not (str/blank? callback)
+      (let [hetu (if (s/valid? ::os/hetu user-hetu) user-hetu (random-hetu))
+            {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
+            {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
+            address (when (= automatic-address "true")
+                      #::os{:registration-post-office    "Helsinki"
+                            :registration-zip            "00100"
+                            :registration-street-address "Testikatu 1"})]
+        (when id
+          ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
+          (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
+        (-> (redirect callback)
+            (assoc :session {:participant (merge
+                                           {:etunimet         (if etunimet
+                                                                (str/split etunimet #" ")
+                                                                [(random-name) (random-name)])
+                                            :sukunimi         (or sukunimi (random-name))
+                                            :kutsumanimi      kutsumanimi
+                                            :hetu             hetu
+                                            :external-user-id oidHenkilo
+                                            :id               id
+                                            ::os/email        email}
+                                           address)})))
+      {:status 400 :body {:error "Missing callback uri"}})
+    {:status 403 :body {:error "Forbidden"}}))
 
 (defn- participant-base-url [{:keys [url-helper]} lang]
   (let [url-key (if (and lang (= "sv" lang))
