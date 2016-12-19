@@ -51,7 +51,10 @@
       (reset! translations-by-lang {})
       (reset! translations new-translations)))
   (t [this lang key]
-    (or (get (translations-by-lang this lang) key) key)))
+    (let [key (if (keyword? key)
+                (name key)
+                key)]
+      (or (get (translations-by-lang this lang) key) key))))
 
 (defn localisation [config]
   (map->Localisation config))
