@@ -6,7 +6,9 @@
             [oti.spec :as spec]
             [ring.util.response :refer [response]]
             [oti.component.email-service :as email]
-            [compojure.coercions :refer [as-int]]))
+            [compojure.coercions :refer [as-int]]
+            [oti.component.localisation :refer [t]]
+            [hiccup.core :refer [html]]))
 
 
 (defn- upsert-module-scores [db evaluator upserted-section [module-id {::spec/keys [module-score-points
@@ -113,14 +115,21 @@
     {:status 400
      :body {:errors [:registration-state-update-failed]}}))
 
-(defn- as-participants [[ext-reference-id participant-data]]
-  {:ext-reference-id ext-reference-id
-   :id (some :id participant-data)
-   :exam-session-id (some :exam_session_id participant-data)
-   :registration-id (some :registration_id participant-data)
-   :registration-state (some :registration_state participant-data)
-   :registration-language (some :registration_language participant-data)
-   :data participant-data})
+(defn- as-participants [[ext-reference-id participant-data] & {:keys [exam-session-data?]}]
+  (merge {:ext-reference-id ext-reference-id
+          :id (some :id participant-data)
+          :exam-session-id (some :exam_session_id participant-data)
+          :registration-id (some :registration_id participant-data)
+          :registration-state (some :registration_state participant-data)
+          :registration-language (some :registration_language participant-data)
+          :data participant-data} (if exam-session-data?
+                                    {:exam-session-date (some :session_date participant-data)
+                                     :exam-session-start-time (some :start_time participant-data)
+                                     :exam-session-end-time (some :end_time participant-data)
+                                     :exam-session-street-address (some :street_address participant-data)
+                                     :exam-session-city (some :city participant-data)
+                                     :exam-session-other-info (some :other_location_info participant-data)}
+                                    {})))
 
 (defn- conforms-filter
   "Returns distinct elements that conforms to spec."
@@ -224,11 +233,83 @@
                       :participants (participants-by-exam-session participant-data es-id)})))
            (hierarchial-by :id)))))
 
-(defn send-scores-email [{:keys [db email-service]} {{:keys [exam-session-id lang]} :params} participant-id]
+(defn- format-date [date]
+  (.format (java.text.SimpleDateFormat. "dd.MM.yyyy") date))
+
+(defn- format-time [time]
+  (.format (java.text.SimpleDateFormat. "HH:mm") time))
+
+(defn- td-bold [& children]
+  (into [:td {:style "font-size: 11px; font-weight: bold; padding: 12px 15px; width: 120px; vertical-align: bottom; border-bottom: 1px solid black;"}] children))
+
+(defn- td-bold-right [& children]
+  (into [:td {:style "font-size: 11px; font-weight: bold; text-align: right; padding: 12px 15px; width: 120px; vertical-align: bottom; border-bottom: 1px solid black;"}] children))
+
+(defn- td [& children]
+  (into [:td {:style "font-size: 13px; padding: 12px 15px;"}] children))
+
+(defn- td-right [& children]
+  (into [:td {:style "font-size: 13px; text-align: right; padding: 12px 15px;"}] children))
+
+(defn- scores-table [participant-data exam loc lang]
+  (html
+   (doall (for [section exam]
+            (let [modules (sort-by :id (:modules section))
+                  t (partial t loc lang)]
+              (log/info section)
+              [:div
+               [:h3 (t :section) " " (:name section)]
+               (if (some #(get (:scores %) (:id section)) participant-data)
+                 [:table
+                  [:tr
+                   (td-bold (t :date-and-time))
+                   (td-bold (t :street-address))
+                   (td-bold (t :section-score))
+                   (doall (for [m modules]
+                            (td-bold-right (:name m))))]
+                  (doall
+                   (for [p (take 5 (sort-by :exam-session-date #(compare %2 %1) participant-data))] ; 5 latest
+                     (let [{::spec/keys [section-score-accepted] :as section-score} (get (:scores p) (:id section))]
+                       (when section-score
+                         [:tr
+                          (td [:span (format-date (:exam-session-date p))[:br]
+                               [:span
+                                (format-time (:exam-session-start-time p)) " - "
+                                (format-time (:exam-session-end-time p))]])
+                          (td (str (:exam-session-street-address p) ", "
+                                   (:exam-session-city p)))
+                          (td (if (::spec/section-score-accepted section-score)
+                                (t :accepted)
+                                (t :failed)))
+                          (doall (for [{:keys [id]} modules]
+                                   (let [{::spec/keys [module-score-points
+                                                       module-score-accepted]} (get-in section-score [:modules id])]
+                                     (td-right (if-not module-score-points
+                                                 (if module-score-accepted
+                                                   (t :accepted)
+                                                   (t :failed))
+                                                 [:span module-score-points
+                                                  [:span {:style "font-size: 11px; margin-left: 4px;"} " (" (if module-score-accepted
+                                                                                                              (t :accepted)
+                                                                                                              (t :failed)) ")"]])))))]))))]
+                 [:h4 (t :no-scores)])])))))
+
+(defn- participant-data [participant-id exam-session-id]
+  (->> (group-by :exam_session_id (dba/participant-by-id (:db reloaded.repl/system) participant-id))
+       (map #(as-participants % :exam-session-data? true))
+       (map set-scores)
+       (map set-accreditations)
+       (map set-exam-content)
+       (remove #(nil? (:exam-session-id %))) ;; Accreditations show up as 'participants' with nil exam_sessions
+       (mapv #(dissoc % :data))))
+
+(defn send-scores-email [{:keys [db email-service localisation]} {{:keys [exam-session-id lang]} :params} participant-id]
   (response (if (number? exam-session-id)
-              (let [values {:scores (str (as-participants [{:data (dba/participant-by-id db participant-id)}]))
-                            :exam (str (dba/exam-by-lang db lang))
-                            :session (str {:date "10.10.2016"})}
+              (let [values {:date (format-date (java.util.Date.))
+                            :scores-table (scores-table (participant-data participant-id exam-session-id)
+                                                        (dba/exam-by-lang db lang)
+                                                        localisation
+                                                        lang)}
                     email-data {:participant-id participant-id
                                 :email-type "SCORES"
                                 :exam-session-id exam-session-id
@@ -236,14 +317,16 @@
                                 :template-id :scores
                                 :template-values values}]
                 (try (email/send-email-to-participant! email-service db email-data)
-                     true
+                     (:sent (email/email-sent? email-service db {:exam-session-id exam-session-id
+                                                                 :participant-id participant-id
+                                                                 :email-type "SCORES"}))
                      (catch Exception e (do (log/error e)
                                             false))))
               false)))
 
 (defn scores-email-sent?  [{:keys [db email-service]} {{:keys [exam-session-id]} :params} participant-id]
   (response (if-let [exam-session-id (as-int exam-session-id)]
-              (email/email-sent? email-service db {:exam-session-id exam-session-id
-                                                   :participant-id participant-id
-                                                   :email-type "SCORES"})
+              (:sent (email/email-sent? email-service db {:exam-session-id exam-session-id
+                                                          :participant-id participant-id
+                                                          :email-type "SCORES"}))
               false)))
