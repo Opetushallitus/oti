@@ -58,7 +58,7 @@
   (email-sent? [this db {:keys [email-type] :as params}]
     (if-let [email (case email-type
                      "SCORES" (dba/scores-email db params))]
-      true
+      email
       false)))
 
 (defn email-service [config]
