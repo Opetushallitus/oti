@@ -273,11 +273,12 @@
         (rf/dispatch [:scores-email-sent? @selected-participant @selected-exam-session]))
       [:button {:type "submit"
                 :class "send-scores-email-button"
-                :disabled (or (nil? @email-sent?)
-                              @email-sent?)
-                :on-click #(rf/dispatch [:send-scores-email @selected-participant @selected-exam-session])}
+                :on-click #(rf/dispatch [:launch-confirmation-dialog
+                                         "Haluatko varmasti lähettää tulokset sähköpostilla?"
+                                         "Lähetä"
+                                         :send-scores-email @selected-participant @selected-exam-session])}
        (if @email-sent?
-         "Tulokset ovat lähetetty sähköpostilla"
+         (str "Tulokset lähetetty " (unparse-datetime @email-sent?))
          "Lähetä tulokset sähköpostilla")])))
 
 (defn button-bar [form-data initial-form-data participants]
@@ -295,13 +296,19 @@
       (fn [e]
         (.preventDefault e)
         (if changes?
-          (rf/dispatch [:save-participant-scores-and-select-next])
+          (rf/dispatch [:launch-confirmation-dialog
+                        "Haluatko varmasti tallentaa tulokset?"
+                        "Tallenna"
+                        :save-participant-scores-and-select-next])
           (rf/dispatch [:select-next-participant])))
       :disabled (not more-than-one-participant?)]
      [button "Tallenna" "save-button"
       (fn [e]
         (.preventDefault e)
-        (rf/dispatch [:save-participant-scores]))
+        (rf/dispatch [:launch-confirmation-dialog
+                      "Haluatko varmasti tallentaa tulokset?"
+                      "Tallenna"
+                      :save-participant-scores]))
       :primary true
       :disabled (not changes?)]
      [result-email-button]]))

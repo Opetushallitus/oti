@@ -442,9 +442,9 @@
 (rf/reg-event-fx
  :save-participant-scores
  [trim-v]
- (fn [{:keys [db]} _]
+ (fn [{:keys [db]} [participant-id]]
    (let [selected-exam-session (get-in db [:scoring :selected-exam-session])
-         selected-participant (get-in db [:scoring :selected-participant])
+         selected-participant (or participant-id (get-in db [:scoring :selected-participant]))
          participant (get-in db [:scoring :form-data selected-exam-session selected-participant])
          initial-participant (get-in db [:scoring :initial-form-data selected-exam-session selected-participant])
          current-scores (get participant :scores)
@@ -503,7 +503,7 @@
  [trim-v]
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:scoring :selected-participant] (next-participant-id db))
-    :dispatch [:save-participant-scores]}))
+    :dispatch [:save-participant-scores (get-in db [:scoring :selected-participant])]}))
 
 (rf/reg-event-db
  :select-next-participant
@@ -539,7 +539,7 @@
  :handle-scores-email-sent-failure
  [trim-v]
  (fn [db [es-id p-id res]]
-   db))
+   (update-in db [:scoring :emails-sent] dissoc [es-id p-id])))
 
 (rf/reg-event-fx
  :send-scores-email
