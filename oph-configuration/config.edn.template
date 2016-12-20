@@ -5,7 +5,8 @@
                                                           :http-only true
                                                           :secure true
                                                           :domain "{{oti_cookie_domain}}"
-                                                          :path "/oti"}}}}}
+                                                          :path "/oti"}}
+                                 :ring-logger {:env "{{oti_env}}"}}}}
   :db {:uri "{{oti_db_uri}}"
        :username "{{oti_db_username}}"
        :password "{{oti_db_password}}"
