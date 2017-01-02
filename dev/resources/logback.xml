@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="APP_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <File>./logs/oph-oti.log</File>
         <encoder>
@@ -22,8 +22,7 @@
         <append>true</append>
         <encoder>
             <charset>utf-8</charset>
-            <pattern>{&quot;timestamp&quot;: &quot;%t{yyyy-MM-dd'T'HH:mm:ss.SSSZ}&quot;, &quot;responseCode&quot;: &quot;%s&quot;, &quot;request&quot;: &quot;%r&quot;, &quot;responseTime&quot;: &quot;%D&quot;, &quot;requestMethod&quot;: &quot;%m&quot;, &quot;service&quot;: &quot;oppijanumerorekisteri&quot;, &quot;environment&quot;: &quot;${env.name}&quot;, &quot;customer&quot;: &quot;OPH&quot;, &quot;user-agent&quot;: &quot;%i{User-Agent}&quot;, &quot;caller-id&quot;: &quot;%i{Caller-Id}&quot;, &quot;x-forwarded-for&quot;: &quot;%i{X-Forwarded-For}&quot;, &quot;remote-ip&quot;: &quot;%a&quot;, &quot;session&quot;: &quot;%reqCookie{JSESSIONID}&quot;, &quot;response-size&quot;: &quot;%B&quot;, &quot;referer&quot;: &quot;%i{Referer}&quot;, &quot;opintopolku-api-key&quot;: &quot;%i{Opintopolku-Api-Key}&quot;}
-</pattern>
+            <pattern>%m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>./logs/localhost_access_log.%d{yyyy-MM-dd}.txt.gz</fileNamePattern>
@@ -49,7 +48,7 @@
 
     <!-- Application log -->
     <root level="INFO">
-        <appender-ref ref="FILE" />
+        <appender-ref ref="APP_ROLLING" />
     </root>
 
 

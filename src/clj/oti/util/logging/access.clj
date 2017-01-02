@@ -15,22 +15,27 @@
 (defn- jsonfy [& args]
   (str "{" (str/join ", " (map str-key-value (partition-all 2 args))) "}"))
 
+(defmethod starting :local [_ _])
 (defmethod starting :dev [_ _])
 (defmethod starting :qa [_ _])
 (defmethod starting :prod [_ _])
 
+(defmethod request-params :local [_ _])
 (defmethod request-params :dev [_ _])
 (defmethod request-params :qa [_ _])
 (defmethod request-params :prod [_ _])
 
+(defmethod sending-response :local [_ _])
 (defmethod sending-response :dev [_ _])
 (defmethod sending-response :qa [_ _])
 (defmethod sending-response :prod [_ _])
 
+(defmethod exception :local [_ _])
 (defmethod exception :dev [_ _])
 (defmethod exception :qa [_ _])
 (defmethod exception :prod [_ _])
 
+(defmethod request-details :local [_ _])
 (defmethod request-details :dev [_ _])
 (defmethod request-details :qa [_ _])
 (defmethod request-details :prod [_ _])
