@@ -5,7 +5,7 @@
             [oti.component.url-helper :refer [url]]
             [ring.util.mime-type :as mime]
             [selmer.parser :as selmer]
-            [taoensso.timbre :as log]))
+            [clojure.tools.logging :as log]))
 
 (defn index-response [participant? {:keys [env]}]
   (let [index (if participant? "participant-index.html" "virkailija-index.html")]

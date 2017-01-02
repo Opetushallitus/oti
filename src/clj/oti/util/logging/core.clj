@@ -24,7 +24,9 @@
           "./logs"
           (throw (IllegalStateException. "Could not create local logs directory")))))))
 
-(defn logging-config []
+(defn logging-config
+  "DEPRECATED: Moving out of timbre"
+  []
   {:level :info
    :appenders {:rolling-audit-log-appender
                (assoc (rolling-appender {:path (str (logs-path) "/auditlog_oti.log")
@@ -34,10 +36,10 @@
                                    (str (force msg_))))
 
                :rolling-application-log-appender
-               (assoc (rolling-appender {:path (str (logs-path) "/oph-oti.log")})
+               (assoc (rolling-appender {:path (str (logs-path) "/oph-oti.log")
+                                         :date-format "yyyy-MM-dd"})
                       :ns-blacklist ["fi.vm.sade.auditlog.*" "oti.util.logging.access"]
                       :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ss.SSSX"
-                                       :date-format "yyyy-MM-dd"
                                        :locale (Locale. "fi")
                                        :timezone (TimeZone/getTimeZone "Europe/Helsinki")}
 
@@ -62,10 +64,7 @@
                :rolling-access-log-appender
                (assoc (rolling-appender {:path (str (logs-path) "/localhost_access_log")
                                          :file-format "%s.%s.txt"
-                                         :date-format "yyyy-MM-dd"
-                                         :gzip-pred #(< (.lastModified %)
-                                                        (- (System/currentTimeMillis)
-                                                           (* 1000 60 60 24)))}) ;; gzip older than 1 day
+                                         :date-format "yyyy-MM-dd"})
                       :ns-whitelist ["oti.util.logging.access"]
                       :output-fn (fn [{:keys [msg_]}]
                                    (str (force msg_))))}})

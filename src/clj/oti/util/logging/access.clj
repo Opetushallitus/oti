@@ -3,8 +3,7 @@
             [ring.logger.messages :refer [finished request-details starting request-params sending-response exception]]
             [ring.logger.protocols :as logger.protocols]
             [cheshire.core :as json]
-            [taoensso.timbre :as timbre]
-            [camel-snake-kebab.core :as csk]
+            [clojure.tools.logging :as log]
             [clojure.string :as str])
   (:import (java.time.format DateTimeFormatter)
            (java.util Locale TimeZone)
@@ -71,8 +70,8 @@
     (log [_ level ?throwable message]
       (when (#{:error :fatal :info} level)
         (if ?throwable
-          (timbre/log level ?throwable message)
-          (timbre/log level message))))))
+          (log/log level ?throwable message)
+          (log/log level message))))))
 
 (defn wrap-with-logger [handler & [opts]]
   (logger/wrap-with-logger

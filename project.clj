@@ -50,7 +50,7 @@
 
                  ;; Logging
                  [com.taoensso/timbre "4.7.4"]
-                 [com.fzakaria/slf4j-timbre "0.3.2"]
+                 #_[com.fzakaria/slf4j-timbre "0.3.2"]
 
                  [fi.vm.sade/auditlogger "5.0.0-SNAPSHOT"]
                  [fi.vm.sade.java-utils/java-properties "0.1.0-SNAPSHOT"]]

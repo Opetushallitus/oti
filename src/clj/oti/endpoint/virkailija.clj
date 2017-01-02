@@ -19,7 +19,7 @@
             [oti.service.diploma :as diploma]
             [oti.service.payment :as payment]
             [oti.service.scoring :as scoring]
-            [taoensso.timbre :as log])
+            [clojure.tools.logging :as log])
   (:import [java.time LocalDate Instant LocalDateTime ZoneId]
            [java.security SecureRandom]
            [org.apache.commons.codec.digest DigestUtils]))

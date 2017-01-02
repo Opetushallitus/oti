@@ -6,7 +6,7 @@
             [clojure.spec :as s]
             [clojure.set :as cs]
             [clojure.string :as str]
-            [taoensso.timbre :as log :refer [error]]
+            [clojure.tools.logging :as log :refer [error]]
             [meta-merge.core :refer [meta-merge]]
             [oti.db-states :as states])
   (:import [duct.component.hikaricp HikariCP]))

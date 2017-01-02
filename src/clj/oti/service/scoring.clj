@@ -2,7 +2,7 @@
   (:require [oti.boundary.db-access :as dba]
             [oti.util.logging.audit :as audit]
             [clojure.spec :as s]
-            [taoensso.timbre :as log]
+            [clojure.tools.logging :as log]
             [oti.spec :as spec]
             [ring.util.response :refer [response]]
             [oti.component.email-service :as email]

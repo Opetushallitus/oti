@@ -5,7 +5,7 @@
             [oti.boundary.db-access :as dba]
             [oti.component.localisation :as loc]
             [oti.spec :as os]
-            [taoensso.timbre :refer [error info]]
+            [clojure.tools.logging :refer [error info]]
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
             [oti.exam-rules :as rules]

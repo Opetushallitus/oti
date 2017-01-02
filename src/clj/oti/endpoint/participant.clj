@@ -6,7 +6,7 @@
             [oti.component.localisation :as loc]
             [oti.routing :as routing]
             [oti.util.coercion :as c]
-            [taoensso.timbre :refer [error info]]
+            [clojure.tools.logging :refer [error info]]
             [meta-merge.core :refer [meta-merge]]
             [oti.boundary.api-client-access :as api]
             [oti.service.registration :as registration]

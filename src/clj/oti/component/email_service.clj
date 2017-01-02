@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [org.httpkit.client :as http]
             [cheshire.core :as json]
-            [taoensso.timbre :as log]
+            [clojure.tools.logging :as log]
             [oti.boundary.db-access :as dba]
             [clojure.java.jdbc :as jdbc]
             [clojure.spec :as s]

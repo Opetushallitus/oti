@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [org.httpkit.client :as http]
             [cheshire.core :refer [parse-string]]
-            [taoensso.timbre :as log]
+            [clojure.tools.logging :as log]
             [oti.component.url-helper :refer [url]]))
 
 (defprotocol LocalisationQuery

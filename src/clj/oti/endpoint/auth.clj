@@ -5,7 +5,7 @@
             [environ.core :refer [env]]
             [oti.component.cas :as cas]
             [ring.util.response :as resp]
-            [taoensso.timbre :refer [info error]]
+            [clojure.tools.logging :refer [info error]]
             [clojure.string :as str]
             [oti.util.auth :as auth])
   (:import [java.net URLEncoder]))

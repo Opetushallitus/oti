@@ -2,7 +2,7 @@
   {:author "Modified from taoensso.timbre.appenders.3rd-party.rolling"}
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [taoensso.timbre :as timbre])
+            [clojure.tools.logging :as log])
   (:import  [java.text SimpleDateFormat]
             [java.util Calendar]))
 
@@ -96,7 +96,7 @@
     :date-pattern - Pattern given to Simpledateformat
     :size-limit   - Size string limit for triggering a roll e.g 10MB."
   [& [{:keys [path pattern date-pattern file-format size-limit gzip-pred]
-       :or   {path    "./timbre-rolling.log"
+       :or   {path    "./log-rolling.log"
               pattern :daily
               date-pattern "yyyyMMdd"
               file-format "%s.%s"}}]]
