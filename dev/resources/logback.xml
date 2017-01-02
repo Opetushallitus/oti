@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
     <appender name="APP_ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <File>./logs/oph-oti.log</File>
@@ -42,7 +43,7 @@
             <maxFileSize>10MB</maxFileSize>
         </triggeringPolicy>
         <encoder>
-            <pattern>%date AUDIT %msg%n</pattern>
+            <pattern>%msg%n</pattern>
         </encoder>
     </appender>
 
@@ -50,7 +51,6 @@
     <root level="INFO">
         <appender-ref ref="APP_ROLLING" />
     </root>
-
 
     <!-- Access Log -->
     <logger name="oti.util.logging.access" level="INFO" additivity="false">
