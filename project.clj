@@ -8,6 +8,8 @@
                  [org.clojure/tools.reader "1.0.0-beta3"]
                  [org.clojure/core.async "0.2.395"]
                  [org.clojure/java.jdbc "0.6.1"]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [ch.qos.logback/logback-classic "1.1.3"]
                  [com.stuartsierra/component "0.3.2"]
                  [compojure "1.5.1"]
                  [duct "0.8.2"]
