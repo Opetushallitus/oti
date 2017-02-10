@@ -110,18 +110,24 @@
   (let [order-suffix (dba/next-order-number! db)]
     (str "OTI" reference order-suffix)))
 
+(defn- gen-reference-number [external-id]
+  (let [with-prefix (str "900" external-id)
+        reference-number-with-checknum (s/conform ::os/reference-number-conformer with-prefix)]
+    (when-not (s/invalid? reference-number-with-checknum)
+      reference-number-with-checknum)))
+
 (defn- payment-param-map [localisation lang amount ref-number order-number]
   #::os{:timestamp        (LocalDateTime/now)
         :language-code    (keyword lang)
         :amount           amount
-        :reference-number (bigdec ref-number)
+        :reference-number ref-number
         :order-number     order-number
         :app-name         (loc/t localisation lang "vetuma-app-name")
         :msg              (loc/t localisation lang "payment-name")
         :payment-id       order-number})
 
 (defn- payment-params [{:keys [db localisation]} external-user-id amount lang]
-  (let [ref-number (-> (str/split external-user-id #"\.") last)
+  (let [ref-number (-> (str/split external-user-id #"\.") last gen-reference-number)
         order-number (gen-order-number db ref-number)]
     (payment-param-map localisation lang amount ref-number order-number)))
 
