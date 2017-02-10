@@ -19,6 +19,8 @@ Running the application will require a PostgreSQL DB instance with a database na
 working connections to OPH services (translations, LDAP, CAS etc.), so a VPN configuration and valid credentials are 
 required.
 
+Also, for vetuma payment to go through, return address must be HTTPS protocol. Self-signed certificates are enough, for example when used with a simple nodejs proxy.
+
 ### Configuration
 
 The application uses [Duct framework](https://github.com/duct-framework/duct) which is based on
