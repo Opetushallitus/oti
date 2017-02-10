@@ -1,6 +1,6 @@
 (ns oti.endpoint.payment
   (:require [compojure.core :refer :all]
-            [taoensso.timbre :refer [error]]
+            [clojure.tools.logging :refer [error]]
             [ring.util.response :as resp]
             [oti.service.payment :as payment-service]
             [oti.util.logging.audit :as audit]

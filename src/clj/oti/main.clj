@@ -6,7 +6,7 @@
               [duct.component.ragtime :as ragtime]
               [environ.core :refer [env]]
               [clojure.java.io :as io]
-              [taoensso.timbre :as timbre :refer [info error]]
+              [clojure.tools.logging :refer [info error]]
               [oti.util.logging.core :refer [logging-config]]))
 
 (defn -main [& args]
@@ -14,7 +14,6 @@
         prod-config-path (or (:config env) "./oph-configuration/config.edn")
         _ (info "Loading configuration from" prod-config-path)
         system (load-system [(io/resource "oti/system.edn") (io/file prod-config-path)] bindings)]
-    (timbre/set-config! (logging-config))
     (info "Starting HTTP server on port" (-> system :http :port))
     (add-shutdown-hook ::stop-system (fn []
                                        (info "Shutting down system")

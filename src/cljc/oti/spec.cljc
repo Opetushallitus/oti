@@ -136,25 +136,50 @@
 (def hetu-regexp #"[\d]{6}[+\-A-Za-z][\d]{3}[\dA-Za-z]")
 (s/def ::hetu (s/and string? #(re-matches hetu-regexp %)))
 
+(defn- gen-ref-num [x]
+  (let [factors [7 3 1]
+        ref (str x)
+        check-num (-> (->> (reverse ref)
+                           (partition 3 3 [])
+                           (map (fn [three]
+                                  (->> (map #(parse-int (str %)) three)
+                                       (map * factors))))
+                           (flatten)
+                           (reduce +)
+                           str
+                           last
+                           str
+                           parse-int
+                           (- 10))
+                      (mod 10))]
+    (bigdec (str x check-num))))
+
 (defn- valid-reference-number? [x]
   (let [factors [7 3 1]
         ref-str (str x)
         check-num (-> (last ref-str) str parse-int)
         ref (drop-last ref-str)]
     (-> (->> (reverse ref)
-           (partition 3 3 [])
-           (map (fn [three]
-                  (->> (map #(parse-int (str %)) three)
-                       (map * factors))))
-           (flatten)
-           (reduce +)
-           str
-           last
-           str
-           parse-int
-           (- 10))
+             (partition 3 3 [])
+             (map (fn [three]
+                    (->> (map #(parse-int (str %)) three)
+                         (map * factors))))
+             (flatten)
+             (reduce +)
+             str
+             last
+             str
+             parse-int
+             (- 10))
         (mod 10)
         (= check-num))))
+
+(s/def ::reference-number-conformer
+  (s/conformer (fn [x]
+                 (let [ref (gen-ref-num x)]
+                   (if (s/valid? ::reference-number ref)
+                     ref
+                     ::s/invalid)))))
 
 ;; payment
 

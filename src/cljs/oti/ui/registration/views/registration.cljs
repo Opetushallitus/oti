@@ -4,7 +4,7 @@
             [oti.spec :as os]
             [oti.ui.i18n :refer [t]]
             [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
-            [oti.ui.views.common :refer [confirmation-dialog]]
+            [oti.ui.views.common :refer [confirmation-dialog small-loader]]
             [oti.exam-rules :as rules]
             [clojure.string :as str]
             [cljs.spec :as s]))
@@ -151,8 +151,11 @@
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
                          :on-click #(add-section form-data sections id {::os/accredit? true})}]
-                [:span (t "has-accreditation-or-other-substitution"
-                          "Olen saanut korvaavuuden / korvannut kurssisuorituksella tai esseellä koko osion")]]]
+                [:span (if (= (@lang name) "A")
+                         (t "has-accreditation"
+                            "Olen saanut korvaavuuden")
+                         (t "has-accreditation-or-other-substitution"
+                            "Olen saanut korvaavuuden tai suorittanut esseellä koko osion"))]]]
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
@@ -215,7 +218,11 @@
       (let [invalids (invalid-keys form-data ::os/registration)]
         [:div.registration
          [confirmation-dialog]
-         (if (pos? (count (:sections @registration-options)))
+         (cond
+           (nil? @registration-options)
+           [small-loader]
+
+           (seq (:sections @registration-options))
            [:form.registration {:on-submit (fn [e]
                                              (.preventDefault e)
                                              (reset! submitted? true)
@@ -260,6 +267,8 @@
                             (t "register" "Ilmoittaudu")
                             (t "continue-to-payment" "Jatka maksamaan")))]
                     [:span " >>"]])]]])]
+
+           :else
            [:div
             [:h3 (t "error-enrollment-unavailable"
                     "Ilmoittautuminen ei ole mahdollista")]

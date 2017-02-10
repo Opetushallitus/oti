@@ -19,7 +19,7 @@
             [oti.service.diploma :as diploma]
             [oti.service.payment :as payment]
             [oti.service.scoring :as scoring]
-            [taoensso.timbre :as log])
+            [clojure.tools.logging :as log])
   (:import [java.time LocalDate Instant LocalDateTime ZoneId]
            [java.security SecureRandom]
            [org.apache.commons.codec.digest DigestUtils]))
@@ -207,6 +207,10 @@
        (scoring/upsert-scores config request id))
      (DELETE "/scores" request
        (scoring/delete-scores config request id))
+     (POST "/scores/email" request
+       (scoring/send-scores-email config request id))
+     (GET "/scores/email" request
+       (scoring/scores-email-sent? config request id))
      (PUT "/registration" request
        (scoring/update-registration-state config request id)))
     (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]

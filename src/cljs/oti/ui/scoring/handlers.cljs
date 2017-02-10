@@ -26,6 +26,28 @@
       s
       (apply str (butlast s)))))
 
+(defn deep-merge
+  "Recursively merges maps.
+   If the first parameter is a keyword it tells the strategy to
+   use when merging non-map collections. Options are
+   - :replace, the default, the last value is used
+   - :into, if the value in every map is a collection they are concatenated
+     using into. Thus the type of (first) value is maintained."
+  {:arglists '([strategy & values] [values])}
+  [& values]
+  (let [[values strategy] (if (keyword? (first values))
+                            [(rest values) (first values)]
+                            [values :replace])]
+    (cond
+      (every? map? values)
+      (apply merge-with (partial deep-merge strategy) values)
+
+      (and (= strategy :into) (every? coll? values))
+      (reduce into values)
+
+      :else
+      (last values))))
+
 (defn- prepare-updated-modules [modules]
   (into {} (mapv (fn [[module-id {:keys [module-id module-score-accepted module-score-points module-score-id
                                          module-score-created module-score-updated]}]]
@@ -36,17 +58,18 @@
                                ::spec/module-score-updated module-score-updated
                                ::spec/module-score-points (bigdec->str module-score-points)}]) modules)))
 
-(defn- prepare-updated-scores [updated-scores]
-  (when updated-scores
-    (into {} (mapv (fn [[section-id {:keys [section-id section-score-accepted section-score-id modules
-                                            section-score-created section-score-updated]}]]
-                     [section-id
-                      (update {::spec/section-id section-id
-                               ::spec/section-score-accepted section-score-accepted
-                               ::spec/section-score-id section-score-id
-                               ::spec/section-score-created section-score-created
-                               ::spec/section-score-updated section-score-updated
-                               :modules modules} :modules prepare-updated-modules)]) updated-scores))))
+(defn- prepare-updated-scores [old-scores updated-scores]
+  (if updated-scores
+    (deep-merge old-scores (into {} (mapv (fn [[section-id {:keys [section-id section-score-accepted section-score-id modules
+                                                                   section-score-created section-score-updated]}]]
+                                            [section-id
+                                             (update {::spec/section-id section-id
+                                                      ::spec/section-score-accepted section-score-accepted
+                                                      ::spec/section-score-id section-score-id
+                                                      ::spec/section-score-created section-score-created
+                                                      ::spec/section-score-updated section-score-updated
+                                                      :modules modules} :modules prepare-updated-modules)]) updated-scores)))
+    old-scores))
 
 (defn- format-module-scores [section-score]
   (let [updated-module-scores (->> (map (fn [[id m]]
@@ -98,6 +121,25 @@
                               0
                               (inc current-participant-index))))
         :id)))
+
+(defn- module-score-changed? [ms s-id initial-scores]
+  (let [old-score (get-in initial-scores [s-id :modules (::spec/module-id ms)])]
+    (not= old-score ms)))
+
+(defn- section-score-changed? [s initial-scores]
+  (let [old-score (dissoc (get initial-scores (::spec/section-id s)) :modules)]
+    (not= (dissoc s :modules) old-score)))
+
+(defn- only-scores-that-changed [scores initial-scores]
+  (into {} (map (fn [[section-id section-score]]
+                  (let [changed-modules (->> (map (fn [[module-id module-score]]
+                                                    (when (module-score-changed? module-score section-id initial-scores)
+                                                      [module-id module-score])) (:modules section-score))
+                                             (remove nil?)
+                                             (into {}))
+                        section-score-changed (section-score-changed? section-score initial-scores)]
+                    [section-id (assoc section-score :modules changed-modules
+                                                     :changed? section-score-changed)])) scores)))
 
 ;; HANDLERS
 
@@ -272,7 +314,8 @@
  (fn [{:keys [db]} [exam-session-id participant-id scores initial-scores]]
    {:http-xhrio {:method          :post
                  :uri             (routing/v-a-route "/participant/" participant-id "/scores")
-                 :params          {:scores (module-points-to-bigdecs scores)
+                 :params          {:scores (-> (only-scores-that-changed scores initial-scores)
+                                               module-points-to-bigdecs)
                                    :exam-session-id exam-session-id}
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
@@ -325,31 +368,35 @@
                                    initial-registration-state]}
     :loader     true}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-persist-registration-state-success
  [trim-v]
- (fn [db [exam-session-id participant-id registration-state response]]
-   (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :registration-state] registration-state)
-       (assoc-in [:scoring :initial-form-data exam-session-id participant-id :registration-state] registration-state))))
+ (fn [{:keys [db]} [exam-session-id participant-id registration-state response]]
+   {:db (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :registration-state] registration-state)
+            (assoc-in [:scoring :initial-form-data exam-session-id participant-id :registration-state] registration-state))
+    :show-flash [:success "Rekisteröitymisen tila tallennettu onnistuneesti"]}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-persist-registration-state-failure
  [trim-v]
- (fn [db [exam-session-id participant-id initial-registration-state response]]
-   (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :registration-state] initial-registration-state)))
+ (fn [{:keys [db]} [exam-session-id participant-id initial-registration-state response]]
+   {:db (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :registration-state] initial-registration-state)
+    :show-flash [:error "Rekisteröitymisen tilan tallennus epäonnistui"]}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-delete-scores-success
  [trim-v]
- (fn [db [exam-session-id participant-id response]]
-   (-> (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] {})
-       (assoc-in [:scoring :form-data exam-session-id participant-id :scores] {}))))
+ (fn [{:keys [db]} [exam-session-id participant-id response]]
+   {:db (-> (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] {})
+            (assoc-in [:scoring :form-data exam-session-id participant-id :scores] {}))
+    :show-flash [:success "Tallennus onnistui"]}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-delete-scores-failure
  [trim-v]
- (fn [db [exam-session-id participant-id initial-scores response]]
-   (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] initial-scores)))
+ (fn [{:keys [db]} [exam-session-id participant-id initial-scores response]]
+   {:db (assoc-in db [:scoring :initial-form-data exam-session-id participant-id :scores] initial-scores)
+    :show-flash [:error "Tallennus epäonnistui"]}))
 
 (rf/reg-event-db
  :delete-scores-and-update-registration-state
@@ -378,12 +425,13 @@
                  initial-registration-state])
    db))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :handle-persist-scores-success
  [trim-v]
- (fn [db [exam-session-id participant-id response]]
-   (-> (assoc-in db [:scoring :form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response)))
-       (assoc-in [:scoring :initial-form-data exam-session-id participant-id :scores] (prepare-updated-scores (:scores response))))))
+ (fn [{:keys [db]} [exam-session-id participant-id response]]
+   {:db (-> (update-in db [:scoring :form-data exam-session-id participant-id :scores] prepare-updated-scores (:scores response))
+            (update-in [:scoring :initial-form-data exam-session-id participant-id :scores] prepare-updated-scores (:scores response)))
+    :show-flash [:success "Tutkintotulokset tallennettu"]}))
 
 (rf/reg-event-db
  :handle-persist-scores-failure
@@ -394,9 +442,9 @@
 (rf/reg-event-fx
  :save-participant-scores
  [trim-v]
- (fn [{:keys [db]} _]
+ (fn [{:keys [db]} [participant-id]]
    (let [selected-exam-session (get-in db [:scoring :selected-exam-session])
-         selected-participant (get-in db [:scoring :selected-participant])
+         selected-participant (or participant-id (get-in db [:scoring :selected-participant]))
          participant (get-in db [:scoring :form-data selected-exam-session selected-participant])
          initial-participant (get-in db [:scoring :initial-form-data selected-exam-session selected-participant])
          current-scores (get participant :scores)
@@ -405,11 +453,7 @@
          initial-registration-state (get initial-participant :registration-state)
          registration-state-changed (not= registration-state initial-registration-state)
          scores-changed (not= current-scores initial-scores)]
-     (println "SC" scores-changed)
-     (println "RSC" registration-state-changed)
-     (println "RS" registration-state)
      (cond
-
        ;; Only scores changed
        (and (= registration-state states/reg-ok)
               (not registration-state-changed)
@@ -459,10 +503,75 @@
  [trim-v]
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:scoring :selected-participant] (next-participant-id db))
-    :dispatch [:save-participant-scores]}))
+    :dispatch [:save-participant-scores (get-in db [:scoring :selected-participant])]}))
 
 (rf/reg-event-db
  :select-next-participant
  [trim-v]
  (fn [db _]
    (assoc-in db [:scoring :selected-participant] (next-participant-id db))))
+
+
+(rf/reg-event-fx
+ :scores-email-sent?
+ [trim-v]
+ (fn [{:keys [db]} [participant-id exam-session-id]]
+   {:http-xhrio {:method          :get
+                 :uri             (routing/v-a-route "/participant/" participant-id "/scores/email")
+                 :params          {:exam-session-id exam-session-id}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:handle-scores-email-sent-success
+                                   exam-session-id
+                                   participant-id]
+                 :on-failure      [:handle-scores-email-sent-failure
+                                   exam-session-id
+                                   participant-id]}
+    :loader     true}))
+
+(rf/reg-event-db
+ :handle-scores-email-sent-success
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   (assoc-in db [:scoring :emails-sent es-id p-id] res)))
+
+(rf/reg-event-db
+ :handle-scores-email-sent-failure
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   (update-in db [:scoring :emails-sent] dissoc [es-id p-id])))
+
+(rf/reg-event-fx
+ :send-scores-email
+ [trim-v]
+ (fn [{:keys [db]} [participant-id exam-session-id]]
+   {:http-xhrio {:method          :post
+                 :uri             (routing/v-a-route "/participant/" participant-id "/scores/email")
+                 :params          {:exam-session-id exam-session-id
+                                   :lang (get-in db [:scoring
+                                                     :exam-sessions
+                                                     exam-session-id
+                                                     :participants
+                                                     participant-id
+                                                     :registration-language])}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:handle-scores-email-sent-success
+                                   exam-session-id
+                                   participant-id]
+                 :on-failure      [:handle-scores-email-sent-failure
+                                   exam-session-id
+                                   participant-id]}
+    :loader     true}))
+
+(rf/reg-event-db
+ :handle-send-scores-email-success
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   (assoc-in db [:scoring :emails-sent es-id p-id] res)))
+
+(rf/reg-event-db
+ :handle-handle-send-scores-email-failure
+ [trim-v]
+ (fn [db [es-id p-id res]]
+   db))

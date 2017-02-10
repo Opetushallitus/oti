@@ -1,7 +1,7 @@
 (ns oti.service.email-templates
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [taoensso.timbre :as timbre]))
+            [clojure.tools.logging :as log]))
 
 (def subjects
   (->> (io/resource "oti/email-templates/email-subjects.edn")
@@ -22,7 +22,7 @@
       (->> (io/resource filename)
            slurp)
       (catch Throwable t
-        (timbre/error t "Email template" filename "not found")
+        (log/error t "Email template" filename "not found")
         (throw t)))))
 
 (defn- replace-placeholders [values template]

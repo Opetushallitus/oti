@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [org.httpkit.client :as http]
             [cheshire.core :refer [parse-string]]
-            [taoensso.timbre :as log]
+            [clojure.tools.logging :as log]
             [oti.component.url-helper :refer [url]]))
 
 (defprotocol LocalisationQuery
@@ -51,7 +51,10 @@
       (reset! translations-by-lang {})
       (reset! translations new-translations)))
   (t [this lang key]
-    (or (get (translations-by-lang this lang) key) key)))
+    (let [key (if (keyword? key)
+                (name key)
+                key)]
+      (or (get (translations-by-lang this lang) key) key))))
 
 (defn localisation [config]
   (map->Localisation config))

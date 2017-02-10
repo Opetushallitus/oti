@@ -214,6 +214,13 @@ SELECT id,
        section_accreditation_date,
        module_accreditation_module_id,
        module_accreditation_date,
+       section_registration_section_id,
+       section_registration_id,
+       module_registration_module_id,
+       module_registration_id,
+       registration_id,
+       registration_state,
+       registration_language,
        diploma_date,
        diploma_signer,
        diploma_signer_title
@@ -273,6 +280,7 @@ SELECT id,
        module_registration_id,
        registration_id,
        registration_state,
+       registration_language,
        diploma_date,
        diploma_signer,
        diploma_signer_title
@@ -308,6 +316,7 @@ SELECT id,
        module_registration_id,
        registration_id,
        registration_state,
+       registration_language,
        diploma_date,
        diploma_signer,
        diploma_signer_title
@@ -344,7 +353,7 @@ INSERT INTO section_score (evaluator, accepted, section_id, participant_id, exam
   :exam-session-id
 ) ON CONFLICT (section_id, exam_session_id, participant_id)
 DO UPDATE SET accepted = :section-accepted, evaluator = :evaluator, updated = current_timestamp
-RETURNING id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id;
+RETURNING id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id, updated AS section_score_updated, created AS section_score_created;
 
 -- name: upsert-participant-module-score<!
 INSERT INTO module_score (evaluator, accepted, points, module_id, section_score_id) VALUES (
@@ -355,15 +364,15 @@ INSERT INTO module_score (evaluator, accepted, points, module_id, section_score_
   :section-score-id
 ) ON CONFLICT (module_id, section_score_id)
 DO UPDATE SET accepted = :module-accepted, points = :module-points, evaluator = :evaluator, updated = current_timestamp
-RETURNING id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id;
+RETURNING id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id, updated AS module_score_updated, created AS module_score_created;
 
 -- name: select-section-score
-SELECT id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id
+SELECT id AS section_score_id, accepted AS section_score_accepted, section_id, participant_id, exam_session_id, updated AS section_score_updated, created AS section_score_created
 FROM section_score
 WHERE section_id = :section-id AND exam_session_id = :exam-session-id AND participant_id = :participant-id;
 
 -- name: select-module-score
-SELECT id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id
+SELECT id AS module_score_id, accepted AS module_score_accepted, points AS module_score_points, module_id, section_score_id, updated AS module_score_updated, created AS module_score_created
 FROM module_score
 WHERE module_id = :module-id AND section_score_id = :section-score-id;
 
@@ -495,8 +504,8 @@ WHERE state = 'OK'::payment_state
 -- EMAIL
 
 -- name: insert-email-by-participant-id!
-INSERT INTO email (participant_id, recipient, subject, body)
-  SELECT p.id, p.email, :subject, :body FROM participant p
+INSERT INTO email (participant_id, recipient, subject, body, exam_session_id, email_type)
+  SELECT p.id, p.email, :subject, :body, :exam-session-id, :email-type FROM participant p
   WHERE p.id = :participant-id;
 
 -- name: select-unsent-email-for-update
@@ -515,6 +524,13 @@ SELECT count(id) AS exam_count FROM exam;
 
 -- name: select-accreditation-types
 SELECT id, description FROM accreditation_type;
+
+-- name: select-email
+SELECT * FROM email
+WHERE participant_id = :participant-id AND
+      exam_session_id = :exam-session-id AND
+      email_type = :email-type
+ORDER BY created DESC, sent DESC;
 
 -- ACCREDITATION
 

@@ -1,39 +1,40 @@
 {:components
- {:app  duct.component.handler/handler-component
-  :http oti.component.http-kit-server/http-kit-server
-  :db   duct.component.hikaricp/hikaricp
-  :ragtime duct.component.ragtime/ragtime
-  :ldap oti.component.ldap/ldap
-  :cas oti.component.cas/cas-config
-  :api-client oti.component.api-client/api-client
-  :localisation oti.component.localisation/localisation
+ {:app            duct.component.handler/handler-component
+  :http           oti.component.http-kit-server/http-kit-server
+  :db             duct.component.hikaricp/hikaricp
+  :ragtime        duct.component.ragtime/ragtime
+  :ldap           oti.component.ldap/ldap
+  :cas            oti.component.cas/cas-config
+  :api-client     oti.component.api-client/api-client
+  :localisation   oti.component.localisation/localisation
   :vetuma-payment oti.component.vetuma-payment/vetuma-payment
-  :scheduler oti.component.scheduler/scheduler
-  :email-service oti.component.email-service/email-service
-  :url-helper oti.component.url-helper/url-helper}
+  :scheduler      oti.component.scheduler/scheduler
+  :email-service  oti.component.email-service/email-service
+  :url-helper     oti.component.url-helper/url-helper
+  :global-config  oti.component.global-config/global-config}
  :endpoints
- {:status oti.endpoint.status/status-endpoint
-  :frontend oti.endpoint.frontend/frontend-endpoint
-  :auth oti.endpoint.auth/auth-endpoint
-  :virkailija oti.endpoint.virkailija/virkailija-endpoint
-  :participant oti.endpoint.participant/participant-endpoint
-  :payment oti.endpoint.payment/payment-endpoint
+ {:status        oti.endpoint.status/status-endpoint
+  :frontend      oti.endpoint.frontend/frontend-endpoint
+  :auth          oti.endpoint.auth/auth-endpoint
+  :virkailija    oti.endpoint.virkailija/virkailija-endpoint
+  :participant   oti.endpoint.participant/participant-endpoint
+  :payment       oti.endpoint.payment/payment-endpoint
   :token-secured oti.endpoint.token-secured/token-secured-endpoint}
  :dependencies
- {:http [:app]
-  :app  [:status :token-secured :frontend :auth :virkailija :participant :payment]
-  :ragtime [:db]
-  :status [:db]
-  :auth [:cas :ldap :url-helper]
-  :virkailija [:db :api-client :localisation :email-service]
-  :frontend [:url-helper]
-  :localisation [:url-helper]
+ {:http          [:app]
+  :app           [:status :token-secured :frontend :auth :virkailija :participant :payment]
+  :ragtime       [:db]
+  :status        [:db]
+  :auth          [:cas :ldap :url-helper :global-config]
+  :virkailija    [:db :api-client :localisation :email-service]
+  :frontend      [:url-helper :global-config]
+  :localisation  [:url-helper]
   :email-service [:url-helper]
-  :participant [:db :payments :api-client :localisation :vetuma-payment :url-helper]
-  :payment [:vetuma-payment :db :api-client :email-service]
-  :cas [:url-helper]
-  :api-client [:cas :url-helper]
-  :scheduler [:db :vetuma-payment :email-service]
+  :participant   [:db :payments :api-client :localisation :vetuma-payment :url-helper :global-config]
+  :payment       [:vetuma-payment :db :api-client :email-service]
+  :cas           [:url-helper]
+  :api-client    [:cas :url-helper]
+  :scheduler     [:db :vetuma-payment :email-service]
   :token-secured [:db :api-client]}
  :config
  {:app
@@ -44,7 +45,7 @@
      :ring-defaults  ring.middleware.defaults/wrap-defaults
      :session        oti.util.session/wrap-session
      :restful-format ring.middleware.format/wrap-restful-format
-     :ring-logger    oti.util.logging.core/wrap-with-logger}
+     :ring-logger    oti.util.logging.access/wrap-with-logger}
     :applied
     [:not-found :restful-format :ring-defaults :ring-logger :hide-errors :session]
     :arguments
@@ -56,12 +57,13 @@
       :responses {:not-modified-responses true
                   :absolute-redirects     true
                   :content-types          true
-                  :default-charset        "utf-8"}}}}}
+                  :default-charset        "utf-8"}
+      :security  {:hsts true}}}}}
   :http
-  {:port http-port
+  {:port   http-port
    :thread 80}
   :ragtime
   {:resource-path "oti/migrations"}
-  :payments {:amounts {:full 212
-                       :retry 87}}
+  :payments   {:amounts {:full  256
+                         :retry 87}}
   :api-client {:authentication-service "authentication-service"}}}

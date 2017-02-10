@@ -4,7 +4,7 @@
             [clojure.spec :as s]
             [oti.spec :as os]
             [clojure.string :as str]
-            [taoensso.timbre :as timbre])
+            [clojure.tools.logging :as log])
   (:import [java.time.format DateTimeFormatter]
            [java.util Locale]
            [org.apache.commons.codec.digest DigestUtils]))
@@ -81,7 +81,7 @@
                         (str "&" secret "&"))
           calculated-mac (-> plaintext DigestUtils/sha256Hex str/upper-case)]
       (= candidate-mac calculated-mac))
-    (timbre/error "Tried to authenticate message, but the map contained no :MAC key. Data:" form-data)))
+    (log/error "Tried to authenticate message, but the map contained no :MAC key. Data:" form-data)))
 
 (defrecord VetumaPayment []
   component/Lifecycle

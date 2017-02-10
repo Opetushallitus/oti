@@ -62,7 +62,7 @@
   (let [request {:session {:identity {:ticket valid-ticket :username valid-user}}}]
     (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub valid-ticket path)
     (is (auth-util/logged-in? request))
-    (is (= {:status 302, :headers {"Location" "https://itest-virkailija.oph.ware.fi/cas/logout?service=h"}, :body "", :session {:identity nil}}
+    (is (= {:status 302, :headers {"Location" "https://itest-virkailija.oph.ware.fi/cas/logout?service=http%3A%2F%2Flocalhost%3A3000%2Foti%2Fauth%2Fcas"}, :body "", :session {:identity nil}}
            (#'oti.endpoint.auth/logout url-helper (:session request))))
     (is (not (auth-util/logged-in? request)))))
 

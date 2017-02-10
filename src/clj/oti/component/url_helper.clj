@@ -20,7 +20,7 @@
   (url [this key]
     (url this key []))
   (url [{:keys [oph-properties]} key params]
-    (.url oph-properties (name key) (to-array params))))
+    (.url oph-properties (name key) (to-array (if (sequential? params) params [params])))))
 
 (defn url-helper [config]
   (map->UrlHelper config))

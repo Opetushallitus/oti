@@ -1,7 +1,7 @@
 (ns oti.service.payment
   (:require [oti.boundary.db-access :as dba]
             [oti.boundary.payment :as payment-util]
-            [taoensso.timbre :refer [error info]]
+            [clojure.tools.logging :refer [error info]]
             [org.httpkit.client :as http]
             [clojure.string :as str]
             [oti.service.user-data :as user-data]

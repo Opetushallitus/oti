@@ -5,7 +5,8 @@
                                                           :http-only true
                                                           :secure true
                                                           :domain "{{oti_cookie_domain}}"
-                                                          :path "/oti"}}}}}
+                                                          :path "/oti"}}
+                                 :ring-logger {:env "{{oti_env}}"}}}}
   :db {:uri "{{oti_db_uri}}"
        :username "{{oti_db_username}}"
        :password "{{oti_db_password}}"
@@ -27,4 +28,5 @@
                    :rcvid "{{oti_vetuma_shared_rcvid}}"}
   :url-helper {:virkailija-host "{{host_virkailija}}"
                :tunnistus-host "{{host_tunnistus}}"
-               :oti-host "{{oti_host}}"}}}
+               :oti-host "{{oti_host}}"}
+  :global-config {:env "{{oti_env}}"}}}

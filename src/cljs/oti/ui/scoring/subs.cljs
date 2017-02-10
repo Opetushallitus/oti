@@ -47,3 +47,8 @@
  :initial-form-data
  (fn [db _ [exam-session-id participant-id]]
    (get-in db [:scoring :initial-form-data exam-session-id participant-id])))
+
+(rf/reg-sub
+ :email-sent?
+ (fn [db _ [exam-session-id participant-id]]
+   (get-in db [:scoring :emails-sent exam-session-id participant-id])))

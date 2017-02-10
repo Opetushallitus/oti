@@ -1,7 +1,7 @@
 (ns oti.boundary.api-client-access
   (:require [oti.component.cas :as cas-api]
             [cheshire.core :as json]
-            [taoensso.timbre :refer [error info]]
+            [clojure.tools.logging :refer [error info]]
             [oti.component.api-client]
             [oti.component.url-helper :refer [url]])
   (:import [oti.component.api_client ApiClient]))

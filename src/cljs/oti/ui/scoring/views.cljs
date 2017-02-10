@@ -4,7 +4,7 @@
             [oti.ui.scoring.subs]
             [oti.spec :as spec]
             [oti.db-states :as states]
-            [oti.ui.exam-sessions.utils :refer [unparse-date]]))
+            [oti.ui.exam-sessions.utils :refer [unparse-date unparse-datetime]]))
 
 
 (defn- accredited? [type o fd]
@@ -30,13 +30,13 @@
 
 (defn- created-datetime [type o fd]
   (condp = type
-    :section (get-in fd [:scores :sections (:id o) ::spec/section-score-created])
-    :module (get-in fd [:scores :modules (:id o) ::spec/module-score-created])))
+    :section (get-in fd [:scores (:id o) ::spec/section-score-created])
+    :module (get-in fd [:scores (:section-id o) :modules (:id o) ::spec/module-score-created])))
 
 (defn- updated-datetime [type o fd]
   (condp = type
-    :section (get-in fd [:scores :sections (:id o) ::spec/section-score-updated])
-    :module (get-in fd [:scores :modules (:id o) ::spec/module-score-updated])))
+    :section (get-in fd [:scores (:id o) ::spec/section-score-updated])
+    :module (get-in fd [:scores (:section-id o) :modules (:id o) ::spec/module-score-updated])))
 
 (defn- section-accreditation-date [s fd]
   (accreditation-date :section s fd))
@@ -186,12 +186,21 @@
 (defn module [m form-data]
   (if-not (accredited-module? m form-data)
     (when (included-module? m form-data)
-      [:div.module
-       [:label (:name m)]
-       (when (:accepted-separately? m)
-         [accepted-radio :module m form-data])
-       (when (:points? m)
-         [module-points-input m form-data])])
+      (let [created (unparse-datetime (created-datetime :module m form-data))
+            updated (unparse-datetime (updated-datetime :module m form-data))]
+        [:div.module
+         [:label (:name m)
+          (when (or created updated)
+            [:i.icon-info])
+          [:span.datetimes {:class (when (or created updated) "active")}
+           (when created
+             [:i (str "Arvioitu " created)])
+           (when updated
+             [:i (str ", Muokattu " updated)])]]
+         (when (:accepted-separately? m)
+           [accepted-radio :module m form-data])
+         (when (:points? m)
+           [module-points-input m form-data])]))
     [:div.module
      [:label (str (:name m) ", korvaavuus myönnetty " (unparse-date (module-accreditation-date m form-data)))]]))
 
@@ -204,15 +213,17 @@
 (defn section [section form-data]
   (if-not (accredited-section? section form-data)
     (when (included-section? section form-data)
-      (let [created (created-datetime :section section form-data)
-            updated (updated-datetime :section section form-data)]
+      (let [created (unparse-datetime (created-datetime :section section form-data))
+            updated (unparse-datetime (updated-datetime :section section form-data))]
         [:div.section
-         [:h3 (str "OSIO " (:name section))]
-         [:span.datetimes
-          (when created
-            [:i (str "Arvioitu " created)])
-          (when updated
-            [:i (str ", Muokattu " updated)])]
+         [:h3 (str "OSIO " (:name section))
+          (when (or created updated)
+            [:i.icon-info])
+          [:span.datetimes {:class (when (or created updated) "active")}
+           (when created
+             [:i (str "Arvioitu " created)])
+           (when updated
+             [:i (str ", Muokattu " updated)])]]
          [accepted-radio :section section form-data]
          [modules section form-data]]))
     [:div.section
@@ -251,11 +262,33 @@
       registration-changed
       (or registration-changed scores-changed))))
 
+(defn result-email-button []
+  (let [selected-exam-session (rf/subscribe [:selected-exam-session])
+        selected-participant  (rf/subscribe [:selected-participant] [selected-exam-session])
+        email-sent?           (rf/subscribe [:email-sent?] [selected-exam-session selected-participant])]
+    (fn []
+      (when (and @selected-exam-session
+                 @selected-participant
+                 (nil? @email-sent?))
+        (rf/dispatch [:scores-email-sent? @selected-participant @selected-exam-session]))
+      [:button {:type "submit"
+                :class "send-scores-email-button"
+                :on-click #(rf/dispatch [:launch-confirmation-dialog
+                                         "Haluatko varmasti lähettää tulokset sähköpostilla?"
+                                         "Lähetä"
+                                         :send-scores-email @selected-participant @selected-exam-session])}
+       (if @email-sent?
+         (str "Tulokset lähetetty " (unparse-datetime @email-sent?))
+         "Lähetä tulokset sähköpostilla")])))
+
 (defn button-bar [form-data initial-form-data participants]
   (let [changes? (changes? form-data initial-form-data)
         more-than-one-participant? (> (count participants) 1)]
     [:div.button-bar
-     [link-button "/" "Peruuta" "abort-button"]
+     [button
+      "Peruuta"
+      "abort-button"
+      #(-> js/window .-history .back)]
      [button (if changes?
                "Tallenna ja hae seuraava henkilö"
                "Hae seuraava henkilö")
@@ -263,15 +296,22 @@
       (fn [e]
         (.preventDefault e)
         (if changes?
-          (rf/dispatch [:save-participant-scores-and-select-next])
+          (rf/dispatch [:launch-confirmation-dialog
+                        "Haluatko varmasti tallentaa tulokset?"
+                        "Tallenna"
+                        :save-participant-scores-and-select-next])
           (rf/dispatch [:select-next-participant])))
       :disabled (not more-than-one-participant?)]
      [button "Tallenna" "save-button"
       (fn [e]
         (.preventDefault e)
-        (rf/dispatch [:save-participant-scores]))
+        (rf/dispatch [:launch-confirmation-dialog
+                      "Haluatko varmasti tallentaa tulokset?"
+                      "Tallenna"
+                      :save-participant-scores]))
       :primary true
-      :disabled (not changes?)]]))
+      :disabled (not changes?)]
+     [result-email-button]]))
 
 (defn scoring-panel [pre-selected-registration-id]
   (rf/dispatch [:load-exam])
