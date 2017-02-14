@@ -137,22 +137,23 @@
 (s/def ::hetu (s/and string? #(re-matches hetu-regexp %)))
 
 (defn- gen-ref-num [x]
-  (let [factors [7 3 1]
-        ref (str x)
-        check-num (-> (->> (reverse ref)
-                           (partition 3 3 [])
-                           (map (fn [three]
-                                  (->> (map #(parse-int (str %)) three)
-                                       (map * factors))))
-                           (flatten)
-                           (reduce +)
-                           str
-                           last
-                           str
-                           parse-int
-                           (- 10))
-                      (mod 10))]
-    (bigdec (str x check-num))))
+  #?(:clj (let [factors [7 3 1]
+                ref (str x)
+                check-num (-> (->> (reverse ref)
+                                   (partition 3 3 [])
+                                   (map (fn [three]
+                                          (->> (map #(parse-int (str %)) three)
+                                               (map * factors))))
+                                   (flatten)
+                                   (reduce +)
+                                   str
+                                   last
+                                   str
+                                   parse-int
+                                   (- 10))
+                              (mod 10))]
+            (bigdec (str x check-num)))
+     :cljs (throw (js/Error. "Not implemented"))))
 
 (defn- valid-reference-number? [x]
   (let [factors [7 3 1]
