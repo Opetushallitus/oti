@@ -19,4 +19,6 @@
   :url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
                :tunnistus-host "tunnistus-testi.opintopolku.fi"
                :oti-host "http://localhost:3000"}
-  :global-config {:env "dev"}}}
+  :global-config {:env "dev"}
+  :payments   {:amounts {:full  256
+                         :retry 87}}}}

@@ -62,8 +62,5 @@
   :http
   {:port   http-port
    :thread 80}
-  :ragtime
-  {:resource-path "oti/migrations"}
-  :payments   {:amounts {:full  256
-                         :retry 87}}
+  :ragtime {:resource-path "oti/migrations"}
   :api-client {:authentication-service "authentication-service"}}}
