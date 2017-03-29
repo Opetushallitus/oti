@@ -29,4 +29,6 @@
   :url-helper {:virkailija-host "{{host_virkailija}}"
                :tunnistus-host "{{host_tunnistus}}"
                :oti-host "{{oti_host}}"}
-  :global-config {:env "{{oti_env}}"}}}
+  :global-config {:env "{{oti_env}}"}
+  :payments   {:amounts {:full  {{oti_payment_amount_full}}
+                         :retry {{oti_payment_amount_retry}}}}}}
