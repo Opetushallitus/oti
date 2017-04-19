@@ -122,7 +122,7 @@
       :unknown   (if delete?
                    (do (cancel-payment-by-order-number! db pmt) :expired)
                    (do (info "Payment" order_number "remains unverified, will check again") :unpaid))
-      :else      (error "Payment" order_number "could not be checked"))))
+      (error "Payment" order_number "could not be checked"))))
 
 (defn process-unpaid-payments-of-participant!
   "Returns a map of results of processing the participant's unpaid payments
