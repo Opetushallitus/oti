@@ -63,4 +63,4 @@
   {:port   http-port
    :thread 80}
   :ragtime {:resource-path "oti/migrations"}
-  :api-client {:authentication-service "authentication-service"}}}
+  :api-client {:oppijanumerorekisteri-service "oppijanumerorekisteri-service"}}}
