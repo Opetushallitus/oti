@@ -30,30 +30,30 @@
 
 (extend-protocol ApiClientAccess
   ApiClient
-  (get-persons [{:keys [authentication-service cas url-helper]} ids]
+  (get-persons [{:keys [oppijanumerorekisteri-service cas url-helper]} ids]
     (info "Requesting user details for" (count ids) "user ids")
-    (->> {:url (url url-helper "authentication-service.henkilot-by-oid-list")}
+    (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilot-by-oid-list")}
          (merge (json-req :post ids))
-         (cas-api/request cas authentication-service)
+         (cas-api/request cas oppijanumerorekisteri-service)
          parse))
-  (get-person-by-id [{:keys [authentication-service cas url-helper]} external-user-id]
-    (->> {:url (url url-helper "authentication-service.henkilo-by-oid" [external-user-id])}
-         (cas-api/request cas authentication-service)
+  (get-person-by-id [{:keys [oppijanumerorekisteri-service cas url-helper]} external-user-id]
+    (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilo-by-oid" [external-user-id])}
+         (cas-api/request cas oppijanumerorekisteri-service)
          parse))
-  (get-person-by-hetu [{:keys [authentication-service cas url-helper]} hetu]
-    (->> {:url (url url-helper "authentication-service.henkilo-by-hetu") :query-params {:q hetu :p "false"}}
-         (cas-api/request cas authentication-service)
+  (get-person-by-hetu [{:keys [oppijanumerorekisteri-service cas url-helper]} hetu]
+    (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilo-by-hetu") :query-params {:hetu hetu :passivoitu "false" :duplikaatti "false"}}
+         (cas-api/request cas oppijanumerorekisteri-service)
          parse
          :results
          first))
-  (add-person! [{:keys [authentication-service cas url-helper]} person]
-    (->> {:url (url url-helper "authentication-service.henkilo")}
+  (add-person! [{:keys [oppijanumerorekisteri-service cas url-helper]} person]
+    (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilo")}
          (merge (json-req :post person))
-         (cas-api/request cas authentication-service)
+         (cas-api/request cas oppijanumerorekisteri-service)
          parse-oid))
-  (update-person! [{:keys [authentication-service cas url-helper]} external-user-id address]
-    (let [{:keys [body status]} (->> {:url (url url-helper "authentication-service.henkilo-by-oid" [external-user-id])}
+  (update-person! [{:keys [oppijanumerorekisteri-service cas url-helper]} external-user-id address]
+    (let [{:keys [body status]} (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilo-by-oid" [external-user-id])}
                                      (merge (json-req :put address))
-                                     (cas-api/request cas authentication-service))]
+                                     (cas-api/request cas oppijanumerorekisteri-service))]
       (when-not (= status 200)
         (throw (Exception. (str "Could not update person in API. HTTP status: " status ", message: " body)))))))
