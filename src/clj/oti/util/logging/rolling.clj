@@ -80,7 +80,8 @@
         (try
           (gzip f)
           (.delete f)
-          (catch Exception _))))))
+          (catch Exception e
+            (log/error e)))))))
 
 (defn- size-limit-exceeded? [size-limit log-file]
   (when-not (str/blank? size-limit)
@@ -123,4 +124,5 @@
            (spit path (with-out-str (println output-str)) :append true)
            (when (fn? gzip-pred)
              (gzip-log-files gzip-pred log))
-           (catch java.io.IOException _)))))})
+           (catch java.io.IOException e
+             (log/error e))))))})
