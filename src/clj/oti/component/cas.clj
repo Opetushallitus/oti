@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [clojure.xml :as xml]
             [clojure.java.io :as io]
-            [oti.component.url-helper :refer [url]]))
+            [oti.component.url-helper :refer [url]]
+            [clojure.tools.logging :as log]))
 
 (defrecord Cas []
   component/Lifecycle
@@ -115,4 +116,5 @@
             (pick-tag :samlp:SessionIndex)
             :content
             first)))
-    (catch Throwable _)))
+    (catch Throwable t
+      (log/error t))))

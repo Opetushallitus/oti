@@ -3,14 +3,16 @@
             [clojure.java.io :as io]
             [ring.util.response :as res]
             [clojure.string :as str]
-            [oti.boundary.db-access :as dba]))
+            [oti.boundary.db-access :as dba]
+            [clojure.tools.logging :as log]))
 
 (defn- read-resource [res]
   (try
     (-> (io/resource res)
         (slurp)
         (str/trim-newline))
-    (catch Throwable _)))
+    (catch Throwable t
+      (log/error t))))
 
 (defn- build-info []
   (let [build (or (read-resource "build.txt") "dev")
