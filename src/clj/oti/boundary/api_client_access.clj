@@ -51,9 +51,9 @@
          (merge (json-req :post person))
          (cas-api/request cas oppijanumerorekisteri-service)
          parse-oid))
-  (update-person! [{:keys [oppijanumerorekisteri-service cas url-helper]} external-user-id address]
-    (let [{:keys [body status]} (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilo-by-oid" [external-user-id])}
-                                     (merge (json-req :put address))
+  (update-person! [{:keys [oppijanumerorekisteri-service cas url-helper]} external-user-id person]
+    (let [{:keys [body status]} (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilo")}
+                                     (merge (json-req :put person))
                                      (cas-api/request cas oppijanumerorekisteri-service))]
       (when-not (= status 200)
         (throw (Exception. (str "Could not update person in API. HTTP status: " status ", message: " body)))))))
