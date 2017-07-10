@@ -182,6 +182,18 @@ Creating file resources/foo/migrations/20160519143643-create-users.down.sql
 nil
 ```
 
+### Keep dependencies up-to-date
+
+The project includes the lein-ancient plugin for finding outdated dependencies.
+
+Find out which deps are outdated by running:
+
+```
+lein ancient
+```
+
+Then, carefully upgrade outdated dependencies.
+
 ## Deploying
 
 Commits pushed to master and develop branches will cause a build to happen in 

@@ -1,7 +1,7 @@
 (defproject oti "0.1.0-SNAPSHOT"
   :description "Opetushallinnon tutkintoon ilmoittautuminen"
   :url "http://www.oph.fi/koulutus_ja_tutkinnot/opetushallinnon_tutkinto"
-  :min-lein-version "2.0.0"
+  :min-lein-version "2.4.0"
   :repositories [["oph-sade-releases" "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local"]
                  ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
@@ -60,7 +60,8 @@
             [lein-cljsbuild "1.1.4"]
             [lein-figwheel "0.5.8"]
             [test2junit "1.2.2"]
-            [lein-less "1.7.5"]]
+            [lein-less "1.7.5"]
+            [lein-ancient "0.6.10"]]
 
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
