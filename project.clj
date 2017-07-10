@@ -5,7 +5,7 @@
   :repositories [["oph-sade-releases" "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local"]
                  ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
-                 [org.clojure/tools.reader "1.0.0-beta3"]
+                 [org.clojure/tools.reader "1.0.0"]
                  [org.clojure/core.async "0.2.395"]
                  [org.clojure/java.jdbc "0.6.1"]
                  [org.clojure/tools.logging "0.3.1"]
