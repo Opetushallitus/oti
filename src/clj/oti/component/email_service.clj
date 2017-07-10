@@ -5,7 +5,7 @@
             [clojure.tools.logging :as log]
             [oti.boundary.db-access :as dba]
             [clojure.java.jdbc :as jdbc]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [oti.service.email-templates :as templates]
             [oti.component.url-helper :refer [url]]))
 

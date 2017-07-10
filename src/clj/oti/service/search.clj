@@ -2,7 +2,7 @@
   (:require [oti.boundary.db-access :as dba]
             [oti.service.user-data :as user-data]
             [clojure.string :as str]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [oti.boundary.api-client-access :as api]))
 
 (defn- group-by-section [participant-rows]

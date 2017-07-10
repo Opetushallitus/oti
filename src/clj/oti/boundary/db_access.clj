@@ -3,7 +3,7 @@
             [clojure.java.jdbc :as jdbc]
             [duct.component.hikaricp]
             [oti.spec :as spec]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [clojure.set :as cs]
             [clojure.string :as str]
             [clojure.tools.logging :as log :refer [error]]

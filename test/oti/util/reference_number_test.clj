@@ -1,7 +1,7 @@
 (ns oti.util.reference-number-test
   (:require [oti.spec :as os]
             [clojure.test :refer :all]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 (defn- gen-external-id-str []
   (apply str "900" (take 11 (repeatedly #(rand-int 10)))))

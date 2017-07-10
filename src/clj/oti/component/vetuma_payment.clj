@@ -1,7 +1,7 @@
 (ns oti.component.vetuma-payment
   (:require [com.stuartsierra.component :as component]
             [oti.boundary.payment :as pmt]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [oti.spec :as os]
             [clojure.string :as str]
             [clojure.tools.logging :as log])

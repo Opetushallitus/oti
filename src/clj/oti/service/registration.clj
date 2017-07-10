@@ -1,5 +1,5 @@
 (ns oti.service.registration
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [clojure.set :as set]
             [oti.boundary.db-access :as dba]

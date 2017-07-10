@@ -9,7 +9,7 @@
             [clojure.string :as str]
             [oti.ui.exam-sessions.utils :as utils]
             [oti.spec :as os]
-            [clojure.spec :as s]))
+            [clojure.spec.alpha :as s]))
 
 (defn- section-status [{:keys [sections]} section-id]
   (let [{:keys [accepted score-ts accreditation-requested? accreditation-date accredited-modules]} (get sections section-id)]

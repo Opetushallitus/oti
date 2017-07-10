@@ -3,7 +3,7 @@
             [ring.util.response :refer [response not-found header]]
             [oti.util.auth :as auth]
             [oti.util.logging.audit :as audit]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [oti.boundary.db-access :as dba]
             [oti.spec :as os]
             [oti.util.coercion :as c]

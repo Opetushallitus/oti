@@ -1,7 +1,7 @@
 (ns oti.service.scoring
   (:require [oti.boundary.db-access :as dba]
             [oti.util.logging.audit :as audit]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
             [oti.spec :as spec]
             [ring.util.response :refer [response]]
@@ -135,7 +135,7 @@
   "Returns distinct elements that conforms to spec."
   [spec data]
   (->> (map #(s/conform spec %) data)
-       (remove #(= :clojure.spec/invalid %))
+       (remove #(= :clojure.spec.alpha/invalid %))
        (distinct)))
 
 (defn- section-scores [participant-data]

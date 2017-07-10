@@ -12,7 +12,7 @@
             [oti.service.registration :as registration]
             [oti.service.payment :as payment]
             [oti.spec :as os]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [oti.util.request :as req]
             [oti.component.url-helper :refer [url]]
             [oti.db-states :as states]))

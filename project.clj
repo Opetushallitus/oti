@@ -4,9 +4,10 @@
   :min-lein-version "2.0.0"
   :repositories [["oph-sade-releases" "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local"]
                  ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
-  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
+                 [org.clojure/spec.alpha "0.1.123"]
                  [org.clojure/tools.reader "1.0.0"]
-                 [org.clojure/core.async "0.2.395"]
+                 [org.clojure/core.async "0.3.443"]
                  [org.clojure/java.jdbc "0.6.1"]
                  [org.clojure/tools.logging "0.3.1"]
                  [ch.qos.logback/logback-classic "1.1.3"]
