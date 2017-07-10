@@ -75,6 +75,17 @@
   :cancelled)
 
 (defn- check-payment-from-vetuma! [{:keys [vetuma-payment]} paym_call_id]
+  "Check payment from VETUMA.
+
+  Returns status and data if VETUMA response STATUS is SUCCESSFULL.
+
+  The returned status key can have the following values:
+    :confirmed
+      when VETUMA response PAYM_STATUS is OK_VERIFIED
+    :cancelled
+      when VETUMA response PAYM_STATUS = CANCELLED_OR_REJECTED
+    :unknown
+      when VETUMA response is neither of the above"
   (let [params {:timestamp (LocalDateTime/now)
                 :payment-id paym_call_id}
         {:oti.spec/keys [uri payment-query-params]} (payment-util/payment-query-data vetuma-payment params)
@@ -113,6 +124,10 @@
       (error "Querying for payment" paym_call_id "resulted in HTTP error status" status))))
 
 (defn- check-and-process-unpaid-payment! [{:keys [db] :as config} {:keys [paym_call_id created order_number] :as pmt} delete-limit-minutes]
+  "Check unpaid payment status from VETUMA. Three kinds of statuses are handled differently:
+  1. :confirmed - the payment is confirmed
+  2. :cancelled - the payment is cancelled
+  3. :unknown - the payment is cancelled if it's creation time is before deletion limit"
   (let [{:keys [status data]} (check-payment-from-vetuma! config paym_call_id)
         deletion-limit (-> (LocalDateTime/now) (.minusMinutes delete-limit-minutes))
         delete? (-> (.toLocalDateTime created) (.isBefore deletion-limit))]
