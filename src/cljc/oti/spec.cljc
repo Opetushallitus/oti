@@ -1,7 +1,7 @@
 (ns oti.spec
   (:require
     #?(:clj  [clojure.spec.alpha :as s]
-       :cljs [cljs.spec :as s])
+       :cljs [cljs.spec.alpha :as s])
              [clojure.string :as str]
              [oti.utils :refer [parse-int]]))
 

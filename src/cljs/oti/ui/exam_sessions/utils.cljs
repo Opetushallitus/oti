@@ -4,7 +4,7 @@
             [cljs-time.coerce :as ctc]
             [clojure.string :as str]
             [oti.spec :as spec]
-            [cljs.spec :as s]))
+            [cljs.spec.alpha :as s]))
 
 (def date-format (ctf/formatter "d.M.yyyy"))
 (def datetime-format (ctf/formatter "d.M.yyyy HH:mm:ss"))

@@ -6,7 +6,7 @@
             [oti.spec :as spec]
             [re-frame.core :as re-frame]
             [reagent.core :as r]
-            [cljs.spec :as s]
+            [cljs.spec.alpha :as s]
             [oti.routing :as routing]
             [cljsjs.moment]
             [cljsjs.moment.locale.fi]

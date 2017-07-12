@@ -7,7 +7,7 @@
             [oti.ui.views.common :refer [confirmation-dialog small-loader]]
             [oti.exam-rules :as rules]
             [clojure.string :as str]
-            [cljs.spec :as s]))
+            [cljs.spec.alpha :as s]))
 
 (defn set-val [form-data key event]
   (let [val (-> event .-target .-value)
