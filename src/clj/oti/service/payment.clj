@@ -90,14 +90,14 @@
                  (URLDecoder/decode (or v "") "ISO-8859-1")])))
        (into {})))
 
-(defn- resolve-payment-status [vetuma-response vetuma-payment form-data]
+(defn- resolve-payment-status [vetuma-response payment-config query-data]
   (let [{:keys [STATUS, PAYM_STATUS]} vetuma-response]
     (cond
       (not= "SUCCESSFUL" STATUS)
         (error "Payment query response has error status. Response data:" vetuma-response)
 
-      (not (payment-util/authentic-response? vetuma-payment vetuma-response))
-        (error "Could not verify MAC for payment query response:" form-data)
+      (not (payment-util/authentic-response? payment-config vetuma-response))
+        (error "Could not verify MAC for payment query response:" query-data)
 
       (= PAYM_STATUS "OK_VERIFIED")
         {:status :confirmed :data vetuma-response}
@@ -108,19 +108,20 @@
       :else
         {:status :unknown :data vetuma-response})))
 
-(defn- check-payment-from-vetuma! [{:keys [vetuma-payment]} paym_call_id]
-  (let [params {:timestamp (LocalDateTime/now)
+(defn- check-payment-from-vetuma! [config paym_call_id]
+  (let [payment-config (:vetuma-payment config)
+        params {:timestamp (LocalDateTime/now)
                 :payment-id paym_call_id}
-        {:oti.spec/keys [uri payment-query-params]} (payment-util/payment-query-data vetuma-payment params)
-        form-data (to-vetuma-params payment-query-params)
+        {:oti.spec/keys [uri payment-query-params]} (payment-util/payment-query-data payment-config params)
+        query-data (to-vetuma-params payment-query-params)
         headers {"Content-Type" "application/x-www-form-urlencoded"}
         {:keys [status body]} @(http/request {:url uri
                                               :method :post
                                               :headers headers
-                                              :body form-data
+                                              :body query-data
                                               :as :text})]
     (if (= 200 status)
-      (resolve-payment-status (parse-vetuma-params body) vetuma-payment form-data)
+      (resolve-payment-status (parse-vetuma-params body) payment-config query-data)
       (error "Querying for payment" paym_call_id "resulted in HTTP error status" status))))
 
 (defn- check-and-process-unpaid-payment! [{:keys [db] :as config} {:keys [paym_call_id created order_number] :as pmt} delete-limit-minutes]
