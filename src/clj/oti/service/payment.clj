@@ -94,21 +94,22 @@
   (let [{:keys [STATUS, PAYM_STATUS]} vetuma-response]
     (cond
       (not= "SUCCESSFUL" STATUS)
-        (error "Payment query response has error status. Response data:" vetuma-response)
+      (error "Payment query response has error status. Response data:" vetuma-response)
 
       (not (payment-util/authentic-response? payment-config vetuma-response))
-        (error "Could not verify MAC for payment query response:" query-data)
+      (error "Could not verify MAC for payment query response:" query-data)
 
       (= PAYM_STATUS "OK_VERIFIED")
-        {:status :confirmed :data vetuma-response}
+      {:status :confirmed :data vetuma-response}
 
       (= PAYM_STATUS "CANCELLED_OR_REJECTED")
-        {:status :cancelled :data vetuma-response}
+      {:status :cancelled :data vetuma-response}
 
       :else
-        {:status :unknown :data vetuma-response})))
+      {:status :unknown :data vetuma-response})))
 
 (defn- check-payment-from-vetuma! [config paym_call_id]
+  (info "Retrieving payment data from VETUMA for paym_call_id: " paym_call_id)
   (let [payment-config (:vetuma-payment config)
         params {:timestamp (LocalDateTime/now)
                 :payment-id paym_call_id}
@@ -121,7 +122,8 @@
                                               :body query-data
                                               :as :text})]
     (if (= 200 status)
-      (resolve-payment-status (parse-vetuma-params body) payment-config query-data)
+      (do (info "Succesfully retrieved payment data from VETUMA for paym_call_id " paym_call_id ": " body)
+          (resolve-payment-status (parse-vetuma-params body) payment-config query-data))
       (error "Querying for payment" paym_call_id "resulted in HTTP error status" status))))
 
 (defn- check-and-process-unpaid-payment! [{:keys [db] :as config} {:keys [paym_call_id created order_number] :as pmt} delete-limit-minutes]
