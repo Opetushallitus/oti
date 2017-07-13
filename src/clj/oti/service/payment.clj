@@ -74,25 +74,45 @@
   (dba/cancel-registration-and-payment! db {:order-number order_number})
   :cancelled)
 
+(defn- to-vetuma-params [m]
+  "Build VETUMA parameter string from a map m"
+  (->> m
+       (map (fn [[key value]]
+              (str (name key) "=" (URLEncoder/encode value "ISO-8859-1"))))
+       (str/join "&")))
+
+(defn- parse-vetuma-params [s]
+  "Build a map from VETUMA parameter string s"
+  (->> (str/split s #"\&")
+       (map (fn [kv]
+              (let [[k v] (str/split kv #"=")]
+                [(keyword k)
+                 (URLDecoder/decode (or v "") "ISO-8859-1")])))
+       (into {})))
+
+(defn- resolve-payment-status [vetuma-response vetuma-payment form-data]
+  (let [{:keys [STATUS, PAYM_STATUS]} vetuma-response]
+    (cond
+      (not= "SUCCESSFUL" STATUS)
+        (error "Payment query response has error status. Response data:" vetuma-response)
+
+      (not (payment-util/authentic-response? vetuma-payment vetuma-response))
+        (error "Could not verify MAC for payment query response:" form-data)
+
+      (= PAYM_STATUS "OK_VERIFIED")
+        {:status :confirmed :data vetuma-response}
+
+      (= PAYM_STATUS "CANCELLED_OR_REJECTED")
+        {:status :cancelled :data vetuma-response}
+
+      :else
+        {:status :unknown :data vetuma-response})))
+
 (defn- check-payment-from-vetuma! [{:keys [vetuma-payment]} paym_call_id]
-  "Check payment from VETUMA.
-
-  Returns status and data if VETUMA response STATUS is SUCCESSFULL.
-
-  The returned status key can have the following values:
-    :confirmed
-      when VETUMA response PAYM_STATUS is OK_VERIFIED
-    :cancelled
-      when VETUMA response PAYM_STATUS = CANCELLED_OR_REJECTED
-    :unknown
-      when VETUMA response is neither of the above"
   (let [params {:timestamp (LocalDateTime/now)
                 :payment-id paym_call_id}
         {:oti.spec/keys [uri payment-query-params]} (payment-util/payment-query-data vetuma-payment params)
-        form-data (->> payment-query-params
-                       (map (fn [[key value]]
-                              (str (name key) "=" (URLEncoder/encode value "ISO-8859-1"))))
-                       (str/join "&"))
+        form-data (to-vetuma-params payment-query-params)
         headers {"Content-Type" "application/x-www-form-urlencoded"}
         {:keys [status body]} @(http/request {:url uri
                                               :method :post
@@ -100,27 +120,7 @@
                                               :body form-data
                                               :as :text})]
     (if (= 200 status)
-      (let [{:keys [PAYM_STATUS STATUS] :as payment-data} (->> (str/split body #"\&")
-                                                               (map (fn [kv]
-                                                                      (let [[k v] (str/split kv #"=")]
-                                                                        [(keyword k)
-                                                                         (URLDecoder/decode (or v "") "ISO-8859-1")])))
-                                                               (into {}))]
-        (cond
-          (not= "SUCCESSFUL" STATUS)
-          (error "Payment query response has error status. Response data:" payment-data)
-
-          (not (payment-util/authentic-response? vetuma-payment payment-data))
-          (error "Could not verify MAC for payment query response:" form-data)
-
-          (= PAYM_STATUS "OK_VERIFIED")
-          {:status :confirmed :data payment-data}
-
-          (= PAYM_STATUS "CANCELLED_OR_REJECTED")
-          {:status :cancelled :data payment-data}
-
-          :else
-          {:status :unknown :data payment-data}))
+      (resolve-payment-status (parse-vetuma-params body) vetuma-payment form-data)
       (error "Querying for payment" paym_call_id "resulted in HTTP error status" status))))
 
 (defn- check-and-process-unpaid-payment! [{:keys [db] :as config} {:keys [paym_call_id created order_number] :as pmt} delete-limit-minutes]
