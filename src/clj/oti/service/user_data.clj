@@ -134,13 +134,14 @@
   (->> (group-by :payment_id participant-rows)
        (map
          (fn [[id payment-rows]]
-           (let [{:keys [payment_id amount payment_state payment_created order_number payment_type]} (first payment-rows)]
+           (let [{:keys [payment_id amount payment_state payment_created order_number payment_type registration_id]} (first payment-rows)]
              (when payment_id
                {:id payment_id
                 :amount amount
                 :state payment_state
                 :order-number order_number
                 :type payment_type
+                :registration-id registration_id
                 :registration-state (some :registration_state payment-rows)
                 :created payment_created}))))
        (remove nil?)))
