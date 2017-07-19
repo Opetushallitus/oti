@@ -175,7 +175,7 @@
                                 (filter (fn [{:keys [sessions accreditation-requested?]}]
                                           (or accreditation-requested?
                                               (->> sessions
-                                                   (filter #(#{states/reg-absent states/reg-ok} (:registration-state %)))
+                                                   (filter #(#{states/reg-ok} (:registration-state %)))
                                                    seq))))
                                 (map :id)
                                 set)
