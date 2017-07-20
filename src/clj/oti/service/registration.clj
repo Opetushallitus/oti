@@ -179,8 +179,9 @@
                                                    seq))))
                                 (map :id)
                                 set)
-        something-not-attempted? (seq (set/difference required-sections attempted-sections))]
-    (and still-valid? valid-full-payment? something-not-attempted?)))
+        something-not-attempted? (seq (set/difference required-sections attempted-sections))
+        last-reg-not-absent? (not (= states/reg-absent (:registration-state (last (:sessions (first sections))))))]
+    (and still-valid? valid-full-payment? something-not-attempted? last-reg-not-absent?)))
 
 (defn- participant-has-valid-retry-payment?
   "Checks if the participant has a valid retry payment. This is only possible if the
