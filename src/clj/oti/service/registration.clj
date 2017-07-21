@@ -152,6 +152,19 @@
                                                :created timestamp})
   payment-params)
 
+(defn- reg-state-of-last-session-rec [sections state top-registration-id]
+  (if (empty? sections)
+    state
+    (let [session (last (:sessions (first sections)))
+          registration-id (:registration-id session)
+          registration-state (:registration-state session)
+          new-state (if (>= registration-id top-registration-id) registration-state state)]
+      (reg-state-of-last-session-rec (rest sections) new-state (max top-registration-id registration-id)))))
+
+(defn- reg-state-of-last-session [sections]
+  (reg-state-of-last-session-rec sections nil -1))
+
+
 (defn- participant-has-valid-full-payment?
   "Checks if the participant's full payment is still valid for registration:
    1) Participant's first accredited or accepted section has been completed less than 2 years ago, or the participant
@@ -180,7 +193,7 @@
                                 (map :id)
                                 set)
         something-not-attempted? (seq (set/difference required-sections attempted-sections))
-        last-reg-not-absent? (not (= states/reg-absent (:registration-state (last (:sessions (first sections))))))]
+        last-reg-not-absent? (not (= states/reg-absent (reg-state-of-last-session sections)))]
     (and still-valid? valid-full-payment? something-not-attempted? last-reg-not-absent?)))
 
 (defn- participant-has-valid-retry-payment?
