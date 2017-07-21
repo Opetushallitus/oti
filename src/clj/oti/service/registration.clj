@@ -155,11 +155,13 @@
 (defn- reg-state-of-last-session-rec [sections state top-registration-id]
   (if (empty? sections)
     state
-    (let [session (last (:sessions (first sections)))
-          registration-id (:registration-id session)
-          registration-state (:registration-state session)
-          new-state (if (>= registration-id top-registration-id) registration-state state)]
-      (reg-state-of-last-session-rec (rest sections) new-state (max top-registration-id registration-id)))))
+    (if (empty? (:sessions (first sections)))
+      (reg-state-of-last-session-rec (rest sections) state top-registration-id)
+      (let [session (last (:sessions (first sections)))
+            registration-id (:registration-id session)
+            registration-state (:registration-state session)
+            new-state (if (>= registration-id top-registration-id) registration-state state)]
+        (reg-state-of-last-session-rec (rest sections) new-state (max top-registration-id registration-id))))))
 
 (defn- reg-state-of-last-session [sections]
   (reg-state-of-last-session-rec sections nil -1))
