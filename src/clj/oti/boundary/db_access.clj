@@ -186,7 +186,7 @@
     (-> (q/select-exam-sessions spec {:start-date start-date :end-date end-date})
         group-exam-session-translations))
   (published-exam-sessions-with-space-left [{:keys [spec]}]
-    (group-exam-session-translations (q/published-exam-sessions-in-future-with-space-left spec {})))
+    (group-exam-session-translations (q/published-exam-sessions-in-future-with-space-left spec)))
   (exam-session [{:keys [spec]} id]
     (-> (q/exam-session-by-id spec {:id id}) group-exam-session-translations))
   (add-exam-session! [{:keys [spec]} exam-session]
@@ -235,7 +235,7 @@
         first
         :id))
   (section-and-module-names [{:keys [spec]}]
-    (->> (q/select-section-and-module-names spec {})
+    (->> (q/select-section-and-module-names spec)
          (reduce (fn [names {:keys [section_id section_name module_id module_name]}]
                    (meta-merge names {:sections {section_id section_name}
                                       :modules {module_id module_name}}))
@@ -247,7 +247,7 @@
   (participant-by-order-number [{:keys [spec]} order-number lang]
     (q/select-participant-by-payment-order-number spec {:order-number order-number :lang lang}))
   (all-participants [{:keys [spec]}]
-    (q/select-all-participants spec {}))
+    (q/select-all-participants spec))
   (all-participants-by-ext-references [{:keys [spec]} ext-ids]
     (q/select-all-participants-by-ext-references spec {:ext-reference-ids ext-ids}))
   (confirm-registration-and-payment! [{:keys [spec]} params]
@@ -259,11 +259,11 @@
   (update-registration-state! [{:keys [spec]} id state]
     (q/update-registration-state! spec {:state state :id id}))
   (next-order-number! [{:keys [spec]}]
-    (-> (q/select-next-order-number-suffix spec {})
+    (-> (q/select-next-order-number-suffix spec)
         first
         :nextval))
   (unpaid-payments [{:keys [spec]}]
-    (q/select-unpaid-payments spec {}))
+    (q/select-unpaid-payments spec))
   (unpaid-payments-by-participant [{:keys [spec]} external-user-id]
     (q/select-unpaid-payments-by-participant spec {:external-user-id external-user-id}))
   (unpaid-payment-by-registration [{:keys [spec]} registration-id]
@@ -272,7 +272,7 @@
   (update-payment-order-number-and-ts! [{:keys [spec]} params]
     (q/update-payment-order-and-timestamp! spec params))
   (paid-credit-card-payments [{:keys [spec]}]
-    (q/select-credit-card-payments spec {}))
+    (q/select-credit-card-payments spec))
   (registration-state-by-id [{:keys [spec]} id]
     (-> (q/select-registration-state-by-id spec {:id id})
         first
@@ -280,7 +280,7 @@
   (add-email-by-participant-id! [{:keys [spec]} params]
     (q/insert-email-by-participant-id! spec params))
   (unsent-emails-for-update [db tx]
-    (q/select-unsent-email-for-update tx {}))
+    (q/select-unsent-email-for-update tx))
   (set-email-sent! [db tx email-id]
     (q/mark-email-sent! tx {:id email-id}))
   (scores-email [{:keys [spec]} {:keys [participant-id exam-session-id email-type]}]
@@ -288,12 +288,12 @@
                             :exam-session-id exam-session-id
                             :email-type email-type} spec)))
   (health-check [{:keys [spec]}]
-    (-> (q/select-exam-count spec {})
+    (-> (q/select-exam-count spec)
         first
         :exam_count
         pos?))
   (accreditation-types [{:keys [spec]}]
-    (q/select-accreditation-types spec {}))
+    (q/select-accreditation-types spec))
   (update-accreditations! [{:keys [spec]} params]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
       (doseq [section (:sections params)]
