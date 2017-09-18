@@ -284,9 +284,9 @@
   (set-email-sent! [db tx email-id]
     (q/mark-email-sent! tx {:id email-id}))
   (scores-email [{:keys [spec]} {:keys [participant-id exam-session-id email-type]}]
-    (first (q/select-email {:participant-id participant-id
+    (first (q/select-email spec {:participant-id participant-id
                             :exam-session-id exam-session-id
-                            :email-type email-type} spec)))
+                            :email-type email-type})))
   (health-check [{:keys [spec]}]
     (-> (q/select-exam-count spec)
         first
