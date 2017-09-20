@@ -77,7 +77,7 @@
                                                       other-location-info
                                                       lang exam-session-id)
         db-fn               (if update? q/update-exam-session-translation! q/insert-exam-session-translation!)]
-    (db-fn translation tx)))
+    (db-fn tx translation)))
 
 (defn- store-exam-session-translations [tx exam-session update?]
   (let [langs (set (mapcat keys-of-mapval (translatable-keys-from-exam-session exam-session)))]
@@ -121,7 +121,7 @@
 (defn- update-payment-and-registration-state! [spec params payment-state registration-state]
   (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
     (let [q-fn (if (:pay-id params) q/update-payment! q/update-payment-state!)]
-      (q-fn (assoc params :state payment-state) tx)
+      (q-fn tx (assoc params :state payment-state))
       (q/update-registration-state-by-payment-order! tx (assoc params :state registration-state)))))
 
 (defn- snake-keys [p]
