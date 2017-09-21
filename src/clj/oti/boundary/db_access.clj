@@ -108,7 +108,7 @@
                             :external-user-id external-user-id
                             :registration-id  reg-id}]
                 (q/insert-section-registration! conn params)
-                (let [all-modules (->> (q/select-modules-for-section params conn) (map :id) set)
+                (let [all-modules (->> (q/select-modules-for-section conn params) (map :id) set)
                       register-modules (or (seq (::spec/retry-modules opts))
                                            (cs/difference all-modules (::spec/accredit-modules opts)))]
                   (doseq [module-id register-modules]
