@@ -30,7 +30,7 @@
                  [http-kit "2.2.0"]
                  [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
-                 [org.clojars.mpenttila/yesql "0.6.1"]
+                 [webjure/jeesql "0.4.6"]
                  [ring-logger "0.7.7"]
                  [org.clojure/core.cache "0.6.5"]
                  [overtone/at-at "1.2.0"]

@@ -1,5 +1,5 @@
 (ns oti.boundary.db-access
-  (:require [yesql.core :refer [require-sql]]
+  (:require [jeesql.core :refer [require-sql]]
             [clojure.java.jdbc :as jdbc]
             [duct.component.hikaricp]
             [oti.spec :as spec]
@@ -77,7 +77,7 @@
                                                       other-location-info
                                                       lang exam-session-id)
         db-fn               (if update? q/update-exam-session-translation! q/insert-exam-session-translation!)]
-    (db-fn translation {:connection tx})))
+    (db-fn tx translation)))
 
 (defn- store-exam-session-translations [tx exam-session update?]
   (let [langs (set (mapcat keys-of-mapval (translatable-keys-from-exam-session exam-session)))]
@@ -86,43 +86,43 @@
       (throw (Exception. "Error occured inserting translations. Missing exam session id.")))))
 
 (defn- insert-exam-session [tx exam-session]
-  (or (q/insert-exam-session<! exam-session {:connection tx})
+  (or (q/insert-exam-session<! tx exam-session)
       (throw (Exception. "Could not create new exam session."))))
 
 (defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state existing-reg-id retry?]
-  (let [conn {:connection tx}]
-    (q/insert-participant! {:external-user-id external-user-id :email email} conn)
+  (let [conn tx]
+    (q/insert-participant! conn {:external-user-id external-user-id :email email})
     (doseq [[section-id _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
-      (q/insert-section-accreditation! {:section-id section-id :external-user-id external-user-id} conn))
+      (q/insert-section-accreditation! conn {:section-id section-id :external-user-id external-user-id}))
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
         (if-let [reg-id (or existing-reg-id
-                            (:id (q/insert-registration<! {:session-id session-id
-                                                           :external-user-id external-user-id
-                                                           :retry retry?
-                                                           :state state
-                                                           :language-code (name language-code)} conn)))]
+                            (:id (q/insert-registration<! conn {:session-id session-id
+                                                                :external-user-id external-user-id
+                                                                :retry retry?
+                                                                :state state
+                                                                :language-code (name language-code)})))]
           (do
             (doseq [[section-id opts] registarable-sections]
               (let [params {:section-id       section-id
                             :external-user-id external-user-id
                             :registration-id  reg-id}]
-                (q/insert-section-registration! params conn)
-                (let [all-modules (->> (q/select-modules-for-section params conn) (map :id) set)
+                (q/insert-section-registration! conn params)
+                (let [all-modules (->> (q/select-modules-for-section conn params) (map :id) set)
                       register-modules (or (seq (::spec/retry-modules opts))
                                            (cs/difference all-modules (::spec/accredit-modules opts)))]
                   (doseq [module-id register-modules]
-                    (q/insert-module-registration! (assoc params :module-id module-id) conn))
+                    (q/insert-module-registration! conn (assoc params :module-id module-id)))
                   (doseq [module-id (::spec/accredit-modules opts)]
-                    (q/insert-module-accreditation! (assoc params :module-id module-id) conn)))))
+                    (q/insert-module-accreditation! conn (assoc params :module-id module-id))))))
             reg-id)
           (throw (Exception. "No registeration id received.")))))))
 
 (defn- update-payment-and-registration-state! [spec params payment-state registration-state]
   (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
     (let [q-fn (if (:pay-id params) q/update-payment! q/update-payment-state!)]
-      (q-fn (assoc params :state payment-state) {:connection tx})
-      (q/update-registration-state-by-payment-order! (assoc params :state registration-state) {:connection tx}))))
+      (q-fn tx (assoc params :state payment-state))
+      (q/update-registration-state-by-payment-order! tx (assoc params :state registration-state)))))
 
 (defn- snake-keys [p]
   (let [vals (vals p)
@@ -183,12 +183,12 @@
 (extend-type HikariCP
   DbAccess
   (exam-sessions [{:keys [spec]} start-date end-date]
-    (-> (q/select-exam-sessions {:start-date start-date :end-date end-date} {:connection spec})
+    (-> (q/select-exam-sessions spec {:start-date start-date :end-date end-date})
         group-exam-session-translations))
   (published-exam-sessions-with-space-left [{:keys [spec]}]
-    (group-exam-session-translations (q/published-exam-sessions-in-future-with-space-left {} {:connection spec})))
+    (group-exam-session-translations (q/published-exam-sessions-in-future-with-space-left spec)))
   (exam-session [{:keys [spec]} id]
-    (-> (q/exam-session-by-id {:id id} {:connection spec}) group-exam-session-translations))
+    (-> (q/exam-session-by-id spec {:id id}) group-exam-session-translations))
   (add-exam-session! [{:keys [spec]} exam-session]
     (jdbc/with-db-transaction [tx spec]
       (let [new-exam-session (insert-exam-session tx exam-session)]
@@ -196,27 +196,27 @@
         new-exam-session)))
   (save-exam-session! [{:keys [spec]} exam-session]
     (jdbc/with-db-transaction [tx spec]
-      (q/update-exam-session! exam-session {:connection tx})
+      (q/update-exam-session! tx exam-session)
       (store-exam-session-translations tx exam-session :update)))
   (remove-exam-session! [{:keys [spec]} id]
-    (q/delete-exam-session-translations! {:exam-session-id id} {:connection spec})
-    (q/delete-exam-session! {:exam-session-id id} {:connection spec}))
+    (q/delete-exam-session-translations! spec {:exam-session-id id})
+    (q/delete-exam-session! spec {:exam-session-id id}))
 
   (exam-sessions-full [{:keys [spec] :as db} lang]
-    (q/exam-sessions-full {:lang lang} {:connection spec}))
+    (q/exam-sessions-full spec {:lang lang}))
 
   (sections-and-modules-available-for-user [{:keys [spec]} external-user-id]
-    (->> (q/select-modules-available-for-user {:external-user-id external-user-id} {:connection spec})
+    (->> (q/select-modules-available-for-user spec {:external-user-id external-user-id})
          group-sections-and-modules))
   (register! [{:keys [spec]} registration-data external-user-id state payment-data existing-reg-id retry?]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
       (let [reg-id (store-registration! tx registration-data external-user-id state existing-reg-id retry?)]
         (when payment-data
-          (-> (assoc payment-data :registration-id reg-id)
-              (q/insert-payment! {:connection tx})))
+          (->> (assoc payment-data :registration-id reg-id)
+               (q/insert-payment! tx)))
         reg-id)))
   (registrations-for-session [{:keys [spec]} exam-session-id]
-    (->> (q/select-registrations-for-exam-session {:exam-session-id exam-session-id} {:connection spec})
+    (->> (q/select-registrations-for-exam-session spec {:exam-session-id exam-session-id})
          (partition-by :id)
          (map (fn [registration-rows]
                 (let [sections (->> (partition-by :section_id registration-rows)
@@ -231,26 +231,25 @@
                    :sections sections
                    :payment-state payment_state})))))
   (existing-registration-id [{:keys [spec]} exam-session-id external-user-id]
-    (-> (q/select-existing-registration-id {:external-user-id external-user-id :exam-session-id exam-session-id} {:connection spec})
+    (-> (q/select-existing-registration-id spec {:external-user-id external-user-id :exam-session-id exam-session-id})
         first
         :id))
   (section-and-module-names [{:keys [spec]}]
-    (->> (q/select-section-and-module-names {} {:connection spec})
+    (->> (q/select-section-and-module-names spec)
          (reduce (fn [names {:keys [section_id section_name module_id module_name]}]
                    (meta-merge names {:sections {section_id section_name}
                                       :modules {module_id module_name}}))
                  {})))
   (participant-by-ext-id [{:keys [spec]} external-user-id]
-    (q/select-participant {:external-user-id external-user-id} {:connection spec}))
+    (q/select-participant spec {:external-user-id external-user-id}))
   (participant-by-id [{:keys [spec]} id]
-    (q/select-participant-by-id {:id id} {:connection spec}))
+    (q/select-participant-by-id spec {:id id}))
   (participant-by-order-number [{:keys [spec]} order-number lang]
-    (q/select-participant-by-payment-order-number {:order-number order-number :lang lang} {:connection spec}))
+    (q/select-participant-by-payment-order-number spec {:order-number order-number :lang lang}))
   (all-participants [{:keys [spec]}]
-    (q/select-all-participants {} {:connection spec}))
+    (q/select-all-participants spec))
   (all-participants-by-ext-references [{:keys [spec]} ext-ids]
-    (q/select-all-participants-by-ext-references {:ext-reference-ids ext-ids}
-                                                 {:connection spec}))
+    (q/select-all-participants-by-ext-references spec {:ext-reference-ids ext-ids}))
   (confirm-registration-and-payment! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params states/pmt-ok states/reg-ok))
   (cancel-registration-and-payment! [{:keys [spec]} params]
@@ -258,73 +257,70 @@
   (cancel-payment-set-reg-incomplete! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params states/pmt-error states/reg-cancelled))
   (update-registration-state! [{:keys [spec]} id state]
-    (q/update-registration-state! {:state state :id id} {:connection spec}))
+    (q/update-registration-state! spec {:state state :id id}))
   (next-order-number! [{:keys [spec]}]
-    (-> (q/select-next-order-number-suffix {} {:connection spec})
+    (-> (q/select-next-order-number-suffix spec)
         first
         :nextval))
   (unpaid-payments [{:keys [spec]}]
-    (q/select-unpaid-payments {} {:connection spec}))
+    (q/select-unpaid-payments spec))
   (unpaid-payments-by-participant [{:keys [spec]} external-user-id]
-    (q/select-unpaid-payments-by-participant {:external-user-id external-user-id} {:connection spec}))
+    (q/select-unpaid-payments-by-participant spec {:external-user-id external-user-id}))
   (unpaid-payment-by-registration [{:keys [spec]} registration-id]
-    (-> (q/select-unpaid-payment-by-registration-id {:registration-id registration-id} {:connection spec})
+    (-> (q/select-unpaid-payment-by-registration-id spec {:registration-id registration-id})
         first))
   (update-payment-order-number-and-ts! [{:keys [spec]} params]
-    (q/update-payment-order-and-timestamp! params {:connection spec}))
+    (q/update-payment-order-and-timestamp! spec params))
   (paid-credit-card-payments [{:keys [spec]}]
-    (q/select-credit-card-payments {} {:connection spec}))
+    (q/select-credit-card-payments spec))
   (registration-state-by-id [{:keys [spec]} id]
-    (-> (q/select-registration-state-by-id {:id id} {:connection spec})
+    (-> (q/select-registration-state-by-id spec {:id id})
         first
         :state))
   (add-email-by-participant-id! [{:keys [spec]} params]
-    (q/insert-email-by-participant-id! params {:connection spec}))
+    (q/insert-email-by-participant-id! spec params))
   (unsent-emails-for-update [db tx]
-    (q/select-unsent-email-for-update {} {:connection tx}))
+    (q/select-unsent-email-for-update tx))
   (set-email-sent! [db tx email-id]
-    (q/mark-email-sent! {:id email-id} {:connection tx}))
+    (q/mark-email-sent! tx {:id email-id}))
   (scores-email [{:keys [spec]} {:keys [participant-id exam-session-id email-type]}]
-    (first (q/select-email {:participant-id participant-id
+    (first (q/select-email spec {:participant-id participant-id
                             :exam-session-id exam-session-id
-                            :email-type email-type} {:connection spec})))
+                            :email-type email-type})))
   (health-check [{:keys [spec]}]
-    (-> (q/select-exam-count {} {:connection spec})
+    (-> (q/select-exam-count spec)
         first
-
-
-
         :exam_count
         pos?))
   (accreditation-types [{:keys [spec]}]
-    (q/select-accreditation-types {} {:connection spec}))
+    (q/select-accreditation-types spec))
   (update-accreditations! [{:keys [spec]} params]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
       (doseq [section (:sections params)]
-        (q/update-section-accreditation! section {:connection tx}))
+        (q/update-section-accreditation! tx section))
       (doseq [module (:modules params)]
-        (q/update-module-accreditation! module {:connection tx}))))
+        (q/update-module-accreditation! tx module))))
   (add-token-to-exam-session! [{:keys [spec]} id token]
-    (q/update-exam-session-with-token! {:id id :token token} {:connection spec}))
+    (q/update-exam-session-with-token! spec {:id id :token token}))
   (access-token-for-exam-session [{:keys [spec]} id]
-    (-> (q/select-exam-session-access-token {:id id} {:connection spec})
+    (-> (q/select-exam-session-access-token spec {:id id})
         first
         :access_token))
   (access-token-matches-session? [{:keys [spec]} id token]
-    (-> (q/select-exam-session-matching-token {:id id :token token} {:connection spec})
+    (-> (q/select-exam-session-matching-token spec {:id id :token token})
         first
         :id
         (= id)))
   (update-participant-diploma-data! [{:keys [spec]} update-params]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
       (doseq [participant-update update-params]
-        (q/update-participant-diploma! participant-update {:connection tx}))))
+        (q/update-participant-diploma! tx participant-update))))
   (diploma-count [{:keys [spec]} start-date end-date]
-    (-> (q/select-diploma-count {:start-date start-date :end-date end-date} {:connection spec})
+    (-> (q/select-diploma-count spec {:start-date start-date :end-date end-date})
         first
         :count))
   (exam-by-lang [{:keys [spec]} lang]
-    (when-let [section-module-sequence (q/exam-by-lang {:lang lang} {:connection spec})]
+    (when-let [section-module-sequence (q/exam-by-lang spec {:lang lang})]
       (->> (group-by :section_id section-module-sequence)
            vals
            (mapv (fn [section-seq]
@@ -341,19 +337,19 @@
                             section
                             section-seq)))))))
   (upsert-section-score [{:keys [spec]} section-score]
-    (snake-keys (q/upsert-participant-section-score<! section-score {:connection spec})))
+    (snake-keys (q/upsert-participant-section-score<! spec section-score)))
   (upsert-module-score [{:keys [spec]} module-score]
-    (snake-keys (q/upsert-participant-module-score<! module-score {:connection spec})))
+    (snake-keys (q/upsert-participant-module-score<! spec module-score)))
   (section-score [{:keys [spec]} params]
-    (snake-keys (first (q/select-section-score params {:connection spec}))))
+    (snake-keys (first (q/select-section-score spec params))))
   (module-score [{:keys [spec]} params]
-    (snake-keys (first (q/select-module-score params {:connection spec}))))
+    (snake-keys (first (q/select-module-score spec params))))
   (delete-scores-by-score-ids [{:keys [spec]} {:keys [section-score-ids module-score-ids]}]
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
       (let [deleted-module-scores (doall (for [module-score-id module-score-ids]
-                                           (q/delete-module-score! {:id module-score-id} {:connection tx})))
+                                           (q/delete-module-score! tx {:id module-score-id})))
             deleted-section-scores (doall (for [section-score-id section-score-ids]
-                                            (q/delete-section-score! {:id section-score-id} {:connection tx})))]
+                                            (q/delete-section-score! tx {:id section-score-id})))]
         (into deleted-module-scores deleted-section-scores))))
   (registration-by-participant-id [{:keys [spec]} id]
-    (q/select-registrations-by-participant-id {:id id} {:connection spec})))
+    (q/select-registrations-by-participant-id spec {:id id})))
