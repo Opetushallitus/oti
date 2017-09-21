@@ -212,8 +212,8 @@
     (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
       (let [reg-id (store-registration! tx registration-data external-user-id state existing-reg-id retry?)]
         (when payment-data
-          (-> (assoc payment-data :registration-id reg-id)
-              (q/insert-payment! tx)))
+          (->> (assoc payment-data :registration-id reg-id)
+               (q/insert-payment! tx)))
         reg-id)))
   (registrations-for-session [{:keys [spec]} exam-session-id]
     (->> (q/select-registrations-for-exam-session spec {:exam-session-id exam-session-id})
