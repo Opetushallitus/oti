@@ -4,7 +4,7 @@
   :min-lein-version "2.4.0"
   :repositories [["oph-sade-releases" "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local"]
                  ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
-  :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
+  :dependencies [[org.clojure/clojure "1.9.0-beta1"]
                  [org.clojure/spec.alpha "0.1.123"]
                  [org.clojure/tools.reader "1.0.1"]
                  [org.clojure/core.async "0.3.443"]
@@ -121,7 +121,8 @@
                                   [org.clojure/tools.nrepl "0.2.13"]
                                   [eftest "0.1.4"]
                                   [com.gearswithingears/shrubbery "0.4.1"]
-                                  [kerodon "0.8.0"]]
+                                  [kerodon "0.8.0"]
+                                  [cider/cider-nrepl "0.15.1-SNAPSHOT"]]
                    :source-paths   ["dev/src"]
                    :resource-paths ["dev/resources"]
                    :repl-options {:init-ns user}
