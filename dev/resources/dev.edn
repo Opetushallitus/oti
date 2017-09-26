@@ -25,4 +25,5 @@
                :oti-host "http://localhost:3000"}
   :global-config {:env "dev"}
   :payments   {:amounts {:full  256
-                         :retry 87}}}}
+                         :retry 87}
+               :use-paytrail false}}}
