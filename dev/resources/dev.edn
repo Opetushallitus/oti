@@ -16,7 +16,7 @@
                    :secret "TESTIASIAKAS11-873C992B8C4C01EC8355500CAA709B37EA43BC2E591ABF29FEE5EAFE4DCBFA35"
                    :ap "TESTIASIAKAS1"
                    :rcvid "TESTIASIAKAS11"}
-  :paytrail-payment {:host "https://payment.paytrail.com/e2"
+  :paytrail-payment {:paytrail-host "https://payment.paytrail.com/e2"
                      :oti-paytrail-uri "https://oti.local/oti/paytrail"
                      :merchant-id 13466
                      :merchant-secret "6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ"}
