@@ -1,4 +1,4 @@
-(ns oti.component.vetuma-payment
+(ns oti.component.paytrail-payment
   (:require [com.stuartsierra.component :as component]
             [oti.boundary.payment :as pmt]
             [clojure.spec.alpha :as s]
