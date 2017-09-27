@@ -9,13 +9,15 @@
            [java.util Locale]
            [org.apache.commons.codec.digest DigestUtils]))
 
+(defn- format-number [n]
+  (String/format (Locale. "fi"), "%.2f", (to-array [(double n)])))
 
-(defn- calculate-authcode [{::os/keys []} secret]
+(defn- calculate-authcode [{::os/keys [MERCHANT_ID LOCALE URL_SUCCESS URL_CANCEL
+                                       AMOUNT ORDER_NUMBER PARAMS_IN PARAMS_OUT]} secret]
   (let [plaintext (str/join "|" (->> [secret MERCHANT_ID LOCALE URL_SUCCESS URL_CANCEL
                                       AMOUNT ORDER_NUMBER PARAMS_IN PARAMS_OUT]
                                      (remove nil?)))]
     (-> plaintext (.getBytes "ISO-8859-1") DigestUtils/sha256Hex str/upper-case)))
-
 
 (defn- generate-form-data [{:keys [paytrail-host oti-paytrail-uri merchant-id merchant-secret]}
                            {::os/keys [language-code amount order-number] :as params}]
@@ -34,7 +36,6 @@
         authcode (calculate-authcode form-params merchant-secret)]
     #:oti.spec{:uri                 paytrail-host
                :pt-payment-form-params (assoc form-params ::os/AUTHCODE authcode)}))
-
 
 (defrecord PaytrailPayment []
   component/Lifecycle

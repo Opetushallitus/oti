@@ -1,17 +1,18 @@
 {:components
- {:app            duct.component.handler/handler-component
-  :http           oti.component.http-kit-server/http-kit-server
-  :db             duct.component.hikaricp/hikaricp
-  :ragtime        duct.component.ragtime/ragtime
-  :ldap           oti.component.ldap/ldap
-  :cas            oti.component.cas/cas-config
-  :api-client     oti.component.api-client/api-client
-  :localisation   oti.component.localisation/localisation
-  :vetuma-payment oti.component.vetuma-payment/vetuma-payment
-  :scheduler      oti.component.scheduler/scheduler
-  :email-service  oti.component.email-service/email-service
-  :url-helper     oti.component.url-helper/url-helper
-  :global-config  oti.component.global-config/global-config}
+ {:app              duct.component.handler/handler-component
+  :http             oti.component.http-kit-server/http-kit-server
+  :db               duct.component.hikaricp/hikaricp
+  :ragtime          duct.component.ragtime/ragtime
+  :ldap             oti.component.ldap/ldap
+  :cas              oti.component.cas/cas-config
+  :api-client       oti.component.api-client/api-client
+  :localisation     oti.component.localisation/localisation
+  :vetuma-payment   oti.component.vetuma-payment/vetuma-payment
+  :paytrail-payment oti.component.paytrail-payment/paytrail-payment
+  :scheduler        oti.component.scheduler/scheduler
+  :email-service    oti.component.email-service/email-service
+  :url-helper       oti.component.url-helper/url-helper
+  :global-config    oti.component.global-config/global-config}
  :endpoints
  {:status        oti.endpoint.status/status-endpoint
   :frontend      oti.endpoint.frontend/frontend-endpoint
@@ -31,7 +32,7 @@
   :localisation  [:url-helper]
   :email-service [:url-helper]
   :participant   [:db :payments :api-client :localisation :vetuma-payment :url-helper :global-config]
-  :payment       [:vetuma-payment :db :api-client :email-service]
+  :payment       [:vetuma-payment :paytrail-payment :db :api-client :email-service]
   :cas           [:url-helper]
   :api-client    [:cas :url-helper]
   :scheduler     [:db :vetuma-payment :email-service]
