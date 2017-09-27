@@ -268,6 +268,35 @@
 (s/def ::payment-query-data (s/keys :req [::uri
                                           ::payment-query-params]))
 
+;; paytrail specific specs
+
+(s/def ::pt-payment-params (s/keys :req [::language-code
+                                         ::amount
+                                         ::order-number]))
+
+(s/def ::MERCHANT_ID number?)
+(s/def ::LOCALE ::non-blank-string)
+(s/def ::URL_SUCCESS ::non-blank-string)
+(s/def ::URL_CANCEL ::non-blank-string)
+(s/def ::AMOUNT (s/and string? #(re-matches amount-regexp %)))
+(s/def ::ORDER_NUMBER ::order-number)
+(s/def ::PARAMS_IN ::non-blank-string)
+(s/def ::PARAMS_OUT ::non-blank-string)
+(s/def ::AUTHCODE ::non-blank-string)
+
+(s/def ::pt-payment-form-params (s/keys :req [::MERCHANT_ID
+                                              ::LOCALE
+                                              ::URL_SUCCESS
+                                              ::URL_CANCEL
+                                              ::AMOUNT
+                                              ::ORDER_NUMBER
+                                              ::PARAMS_IN
+                                              ::PARAMS_OUT
+                                              ::AUTHCODE]))
+
+(s/def ::pt-payment-form-data (s/keys :req [::uri
+                                            ::pt-payment-form-params]))
+
 ;; diploma
 
 (s/def ::participant-ids (s/and set? (s/+ ::id)))

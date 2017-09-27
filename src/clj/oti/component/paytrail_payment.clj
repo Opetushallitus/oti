@@ -19,8 +19,8 @@
 
 (defn- generate-form-data [{:keys [paytrail-host oti-paytrail-uri merchant-id merchant-secret]}
                            {::os/keys [language-code amount order-number] :as params}]
-  {:pre  [(s/valid? ::os/payment-params params)]
-   :post [(s/valid? ::os/payment-form-data %)]}
+  {:pre  [(s/valid? ::os/pt-payment-params params)]
+   :post [(s/valid? ::os/pt-payment-form-data %)]}
   (let [params-in "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,PARAMS_IN,PARAMS_OUT"
         params-out "PAYMENT_ID,TIMESTAMP,STATUS"
         form-params #:oti.spec{:MERCHANT_ID  merchant-id
@@ -33,7 +33,7 @@
                                :PARAMS_OUT params-out}
         authcode (calculate-authcode form-params merchant-secret)]
     #:oti.spec{:uri                 paytrail-host
-               :payment-form-params (assoc form-params ::os/AUTHCODE authcode)}))
+               :pt-payment-form-params (assoc form-params ::os/AUTHCODE authcode)}))
 
 
 (defrecord PaytrailPayment []
