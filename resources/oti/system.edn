@@ -31,7 +31,7 @@
   :frontend      [:url-helper :global-config]
   :localisation  [:url-helper]
   :email-service [:url-helper]
-  :participant   [:db :payments :api-client :localisation :vetuma-payment :url-helper :global-config]
+  :participant   [:db :payments :api-client :localisation :vetuma-payment :paytrail-payment :url-helper :global-config]
   :payment       [:vetuma-payment :paytrail-payment :db :api-client :email-service]
   :cas           [:url-helper]
   :api-client    [:cas :url-helper]
