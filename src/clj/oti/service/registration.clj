@@ -220,7 +220,7 @@
     {:full full
      :retry retry}))
 
-(defn register! [{:keys [db api-client vetuma-payment] :as config}
+(defn register! [{:keys [db api-client vetuma-payment paytrail-payment] :as config}
                  {old-session :session {:keys [registration-data ui-lang]} :body-params}]
   (let [conformed (s/conform ::os/registration registration-data)]
     (if-not (s/invalid? conformed)
@@ -240,7 +240,9 @@
             (store-address-to-service! api-client external-user-id participant-data conformed)
             (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
                   db-pmt (payment-params->db-payment pmt price-type external-user-id)
-                  payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
+                  paytrail? (:use-paytrail (:payments config))
+                  payment-component (if paytrail? paytrail-payment vetuma-payment)
+                  payment-form-data (when pmt (payment-util/form-data-for-payment payment-component pmt))
                   msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
                   status (if (pos? amount) :pending :success)
                   ; If the participant has registered to this session before, we fetch the existing reg id and add the
