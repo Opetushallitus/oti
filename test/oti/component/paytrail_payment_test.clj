@@ -1,7 +1,7 @@
-(ns oti.component.paytrail_payment-test
+(ns oti.component.paytrail-payment-test
   (:require [clojure.test :refer :all]
-            [oti.component.paytrail_payment :refer :all]))
+            [oti.component.paytrail-payment :refer :all]))
 
 (deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+  (testing "FIXME, implement something useful here"
+    (is (= 1 1))))
