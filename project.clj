@@ -38,7 +38,7 @@
                  [selmer "1.10.8"]
 
                  ;; Frontend
-                 [org.clojure/clojurescript "1.9.671"]
+                 [org.clojure/clojurescript "1.9.908"]
                  [reagent "0.6.2"]
                  [binaryage/devtools "0.8.3"]
                  [re-frame "0.8.0"]
