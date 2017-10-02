@@ -65,6 +65,9 @@
 
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
+  :clean-targets [:target-path "out_devluokka"
+                  :target-path "out_qa"
+                  :target-path "out_prod"]
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
   :less {:source-paths ["src/less"]
