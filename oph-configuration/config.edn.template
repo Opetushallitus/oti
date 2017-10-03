@@ -36,4 +36,4 @@
   :global-config {:env "{{oti_env}}"}
   :payments   {:amounts {:full  {{oti_payment_amount_full}}
                          :retry {{oti_payment_amount_retry}}}
-               :use-paytrail false}}}
+               :use-paytrail true}}}
