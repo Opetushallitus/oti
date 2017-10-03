@@ -26,7 +26,7 @@
   (let [params-in "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,PARAMS_IN,PARAMS_OUT"
         params-out "PAYMENT_ID,TIMESTAMP,STATUS"
         form-params #:oti.spec{:MERCHANT_ID  merchant-id
-                               :LOCALE       (name language-code)
+                               :LOCALE       (case language-code :fi "fi_FI" :sv "sv_SE")
                                :URL_SUCCESS  (str oti-paytrail-uri "/success")
                                :URL_CANCEL   (str oti-paytrail-uri "/cancel")
                                :AMOUNT       (format-number amount)

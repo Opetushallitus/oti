@@ -22,13 +22,13 @@
     (is (= #::os{:uri "https://payment.paytrail.com/e2",
                  :pt-payment-form-params
                       #::os{:MERCHANT_ID  13466,
-                            :LOCALE       "fi",
+                            :LOCALE       "fi_FI",
                             :URL_SUCCESS  "https://oti.local/oti/paytrail/success",
                             :URL_CANCEL   "https://oti.local/oti/paytrail/cancel",
                             :AMOUNT       "212,00",
                             :ORDER_NUMBER "OTI439631560581",
                             :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,PARAMS_IN,PARAMS_OUT",
                             :PARAMS_OUT   "PAYMENT_ID,TIMESTAMP,STATUS",
-                            :AUTHCODE     "F50541B752268E021933C0F95DBB5A16A8B707E1B7AAAB690C81358DE2DDB1EC"}}
+                            :AUTHCODE     "0975FDE62FB3B56FE5B76369337FFD7E55469957C45C13D4C6678343DC3F4BF0"}}
            (form-data-for-payment component params)))))
 

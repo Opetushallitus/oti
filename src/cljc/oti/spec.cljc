@@ -274,8 +274,10 @@
                                          ::amount
                                          ::order-number]))
 
+(def locale-regexp #"^[a-z]{1,2}[_][A-Z]{1,2}$")
+
 (s/def ::MERCHANT_ID number?)
-(s/def ::LOCALE ::non-blank-string)
+(s/def ::LOCALE (s/and string? #(re-matches locale-regexp %)))
 (s/def ::URL_SUCCESS ::non-blank-string)
 (s/def ::URL_CANCEL ::non-blank-string)
 (s/def ::AMOUNT (s/and string? #(re-matches amount-regexp %)))
