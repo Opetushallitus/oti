@@ -255,6 +255,10 @@
                          :on :registration
                          :after {:id registration-id}
                          :msg "New registration")
+              (info "################################################################################")
+              (info "pmt: " pmt)
+              (info "payment-form-data: " payment-form-data)
+              (info "################################################################################")
               (registration-response 200 status msg-key session registration-id payment-form-data))
             (catch Throwable t
               (error t "Error inserting registration")
