@@ -25,10 +25,10 @@
                             :LOCALE       "fi_FI",
                             :URL_SUCCESS  "https://oti.local/oti/paytrail/success",
                             :URL_CANCEL   "https://oti.local/oti/paytrail/cancel",
-                            :AMOUNT       "212,00",
+                            :AMOUNT       "212.00",
                             :ORDER_NUMBER "OTI439631560581",
                             :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,PARAMS_IN,PARAMS_OUT",
                             :PARAMS_OUT   "PAYMENT_ID,TIMESTAMP,STATUS",
-                            :AUTHCODE     "0975FDE62FB3B56FE5B76369337FFD7E55469957C45C13D4C6678343DC3F4BF0"}}
+                            :AUTHCODE     "26AC01F10A9CF219DACDAC8B1504D0C09A82CF9BEB210B671D255F45859FAFF2"}}
            (form-data-for-payment component params)))))
 

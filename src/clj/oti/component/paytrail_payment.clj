@@ -29,7 +29,7 @@
                                :LOCALE       (case language-code :fi "fi_FI" :sv "sv_SE")
                                :URL_SUCCESS  (str oti-paytrail-uri "/success")
                                :URL_CANCEL   (str oti-paytrail-uri "/cancel")
-                               :AMOUNT       (format-number amount)
+                               :AMOUNT       (format  "%.2f" (double amount))
                                :ORDER_NUMBER order-number
                                :PARAMS_IN params-in
                                :PARAMS_OUT params-out}
