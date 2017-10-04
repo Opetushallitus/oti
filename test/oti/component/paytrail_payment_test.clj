@@ -18,7 +18,8 @@
 (deftest payment-form-data-is-generated-correctly
   (let [params #::os{:language-code    :fi
                      :amount           (bigdec 212.00)
-                     :order-number     "OTI439631560581"}]
+                     :order-number     "OTI439631560581"
+                     :reference-number (bigdec 43963156058)}]
     (is (= #::os{:uri "https://payment.paytrail.com/e2",
                  :pt-payment-form-params
                       #::os{:MERCHANT_ID  13466,
@@ -27,8 +28,11 @@
                             :URL_CANCEL   "https://oti.local/oti/paytrail/cancel",
                             :AMOUNT       "212.00",
                             :ORDER_NUMBER "OTI439631560581",
-                            :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,PARAMS_IN,PARAMS_OUT",
+                            :REFERENCE_NUMBER 43963156058M,
+                            :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,PARAMS_IN,PARAMS_OUT",
                             :PARAMS_OUT   "PAYMENT_ID,TIMESTAMP,STATUS",
-                            :AUTHCODE     "26AC01F10A9CF219DACDAC8B1504D0C09A82CF9BEB210B671D255F45859FAFF2"}}
+                            ;; If you change anything above (add params, modify values ets.), then the following authcode must
+                            ;; be updated too. Let the test fail first and pick up the new calculated authcode from fail message.
+                            :AUTHCODE     "1A0C24B9806E96491939187D74EABE570554C2F9D9885D090E3543D77F2BC895"}}
            (form-data-for-payment component params)))))
 

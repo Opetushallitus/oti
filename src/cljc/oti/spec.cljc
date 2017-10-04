@@ -272,7 +272,8 @@
 
 (s/def ::pt-payment-params (s/keys :req [::language-code
                                          ::amount
-                                         ::order-number]))
+                                         ::order-number
+                                         ::reference-number]))
 
 (def pt-amount-regexp #"\d{0,3}.\d{2}")
 (def pt-locale-regexp #"^[a-z]{1,2}[_][A-Z]{1,2}$")
@@ -283,6 +284,7 @@
 (s/def ::URL_CANCEL ::non-blank-string)
 (s/def ::AMOUNT (s/and string? #(re-matches pt-amount-regexp %)))
 (s/def ::ORDER_NUMBER ::order-number)
+(s/def ::REFERENCE_NUMBER ::reference-number)
 (s/def ::PARAMS_IN ::non-blank-string)
 (s/def ::PARAMS_OUT ::non-blank-string)
 (s/def ::AUTHCODE ::non-blank-string)
@@ -293,6 +295,7 @@
                                               ::URL_CANCEL
                                               ::AMOUNT
                                               ::ORDER_NUMBER
+                                              ::REFERENCE_NUMBER
                                               ::PARAMS_IN
                                               ::PARAMS_OUT
                                               ::AUTHCODE]))

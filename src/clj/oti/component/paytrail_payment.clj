@@ -13,17 +13,17 @@
   (String/format (Locale. "fi"), "%.2f", (to-array [(double n)])))
 
 (defn- calculate-authcode [{::os/keys [MERCHANT_ID LOCALE URL_SUCCESS URL_CANCEL
-                                       AMOUNT ORDER_NUMBER PARAMS_IN PARAMS_OUT]} secret]
+                                       AMOUNT ORDER_NUMBER REFERENCE_NUMBER PARAMS_IN PARAMS_OUT]} secret]
   (let [plaintext (str/join "|" (->> [secret MERCHANT_ID LOCALE URL_SUCCESS URL_CANCEL
-                                      AMOUNT ORDER_NUMBER PARAMS_IN PARAMS_OUT]
+                                      AMOUNT ORDER_NUMBER REFERENCE_NUMBER PARAMS_IN PARAMS_OUT]
                                      (remove nil?)))]
     (-> plaintext (.getBytes "ISO-8859-1") DigestUtils/sha256Hex str/upper-case)))
 
 (defn- generate-form-data [{:keys [paytrail-host oti-paytrail-uri merchant-id merchant-secret]}
-                           {::os/keys [language-code amount order-number] :as params}]
+                           {::os/keys [language-code amount order-number reference-number] :as params}]
   {:pre  [(s/valid? ::os/pt-payment-params params)]
    :post [(s/valid? ::os/pt-payment-form-data %)]}
-  (let [params-in "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,PARAMS_IN,PARAMS_OUT"
+  (let [params-in "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,PARAMS_IN,PARAMS_OUT"
         params-out "PAYMENT_ID,TIMESTAMP,STATUS"
         form-params #:oti.spec{:MERCHANT_ID  merchant-id
                                :LOCALE       (case language-code :fi "fi_FI" :sv "sv_SE")
@@ -31,6 +31,7 @@
                                :URL_CANCEL   (str oti-paytrail-uri "/cancel")
                                :AMOUNT       (format  "%.2f" (double amount))
                                :ORDER_NUMBER order-number
+                               :REFERENCE_NUMBER reference-number
                                :PARAMS_IN params-in
                                :PARAMS_OUT params-out}
         authcode (calculate-authcode form-params merchant-secret)]
