@@ -273,7 +273,8 @@
 (s/def ::pt-payment-params (s/keys :req [::language-code
                                          ::amount
                                          ::order-number
-                                         ::reference-number]))
+                                         ::reference-number
+                                         ::msg]))
 
 (def pt-amount-regexp #"\d{0,3}.\d{2}")
 (def pt-locale-regexp #"^[a-z]{1,2}[_][A-Z]{1,2}$")
@@ -285,6 +286,8 @@
 (s/def ::AMOUNT (s/and string? #(re-matches pt-amount-regexp %)))
 (s/def ::ORDER_NUMBER ::order-number)
 (s/def ::REFERENCE_NUMBER ::reference-number)
+(s/def ::MSG_SETTLEMENT_PAYER ::non-blank-string)
+(s/def ::MSG_UI_MERCHANT_PANEL ::non-blank-string)
 (s/def ::PARAMS_IN ::non-blank-string)
 (s/def ::PARAMS_OUT ::non-blank-string)
 (s/def ::AUTHCODE ::non-blank-string)
@@ -296,6 +299,8 @@
                                               ::AMOUNT
                                               ::ORDER_NUMBER
                                               ::REFERENCE_NUMBER
+                                              ::MSG_SETTLEMENT_PAYER
+                                              ::MSG_UI_MERCHANT_PANEL
                                               ::PARAMS_IN
                                               ::PARAMS_OUT
                                               ::AUTHCODE]))

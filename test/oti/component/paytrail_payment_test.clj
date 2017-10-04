@@ -19,7 +19,8 @@
   (let [params #::os{:language-code    :fi
                      :amount           (bigdec 212.00)
                      :order-number     "OTI439631560581"
-                     :reference-number (bigdec 43963156058)}]
+                     :reference-number (bigdec 43963156058)
+                     :msg              "Tutkintomaksu"}]
     (is (= #::os{:uri "https://payment.paytrail.com/e2",
                  :pt-payment-form-params
                       #::os{:MERCHANT_ID  13466,
@@ -29,10 +30,12 @@
                             :AMOUNT       "212.00",
                             :ORDER_NUMBER "OTI439631560581",
                             :REFERENCE_NUMBER 43963156058M,
-                            :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,PARAMS_IN,PARAMS_OUT",
+                            :MSG_SETTLEMENT_PAYER "Tutkintomaksu",
+                            :MSG_UI_MERCHANT_PANEL "Tutkintomaksu",
+                            :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,MSG_SETTLEMENT_PAYER,MSG_UI_MERCHANT_PANEL,PARAMS_IN,PARAMS_OUT",
                             :PARAMS_OUT   "PAYMENT_ID,TIMESTAMP,STATUS",
                             ;; If you change anything above (add params, modify values ets.), then the following authcode must
                             ;; be updated too. Let the test fail first and pick up the new calculated authcode from fail message.
-                            :AUTHCODE     "1A0C24B9806E96491939187D74EABE570554C2F9D9885D090E3543D77F2BC895"}}
+                            :AUTHCODE     "0594AEF15B8342E2DA78FFEB1F0E242EFCCA2148A3EDA1AB7A68F93EB7F019CB"}}
            (form-data-for-payment component params)))))
 
