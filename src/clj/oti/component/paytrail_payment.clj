@@ -26,7 +26,7 @@
   {:pre  [(s/valid? ::os/pt-payment-params params)]
    :post [(s/valid? ::os/pt-payment-form-data %)]}
   (let [params-in "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,MSG_SETTLEMENT_PAYER,MSG_UI_MERCHANT_PANEL,PARAMS_IN,PARAMS_OUT"
-        params-out "PAYMENT_ID,TIMESTAMP,STATUS"
+        params-out "PAYMENT_ID,TIMESTAMP,STATUS,RETURN_AUTHCODE"
         form-params #:oti.spec{:MERCHANT_ID  merchant-id
                                :LOCALE       (case language-code :fi "fi_FI" :sv "sv_SE")
                                :URL_SUCCESS  (str oti-paytrail-uri "/success")

@@ -33,9 +33,9 @@
                             :MSG_SETTLEMENT_PAYER "Tutkintomaksu",
                             :MSG_UI_MERCHANT_PANEL "Tutkintomaksu",
                             :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,MSG_SETTLEMENT_PAYER,MSG_UI_MERCHANT_PANEL,PARAMS_IN,PARAMS_OUT",
-                            :PARAMS_OUT   "PAYMENT_ID,TIMESTAMP,STATUS",
+                            :PARAMS_OUT   "PAYMENT_ID,TIMESTAMP,STATUS,RETURN_AUTHCODE",
                             ;; If you change anything above (add params, modify values ets.), then the following authcode must
                             ;; be updated too. Let the test fail first and pick up the new calculated authcode from fail message.
-                            :AUTHCODE     "0594AEF15B8342E2DA78FFEB1F0E242EFCCA2148A3EDA1AB7A68F93EB7F019CB"}}
+                            :AUTHCODE     "7FFC289CB7BD22A567C37D3DF81DDCAA493673EB9771AF8F40443764712E2532"}}
            (form-data-for-payment component params)))))
 
