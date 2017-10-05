@@ -29,7 +29,7 @@
       (registration-response :error t-key session))))
 
 (defn payment-endpoint [config]
-  (context "/oti/vetuma" []
+  (context "/oti/paytrail" []
     (POST "/success" request
       (confirm-payment config request))
     (POST "/error" request
