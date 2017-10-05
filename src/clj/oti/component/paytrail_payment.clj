@@ -42,6 +42,19 @@
     #:oti.spec{:uri                 paytrail-host
                :pt-payment-form-params (assoc form-params ::os/AUTHCODE authcode)}))
 
+(def response-keys [:PAYMENT_ID :TIMESTAMP :STATUS])
+
+(defn- return-authcode-valid? [{:keys [merchant-secret]} form-data]
+  (if-let [return-authcode (:RETURN_AUTHCODE form-data)]
+    (let [plaintext (-> (->> response-keys
+                             (map #(% form-data))
+                             (remove nil?)
+                             (str/join "|"))
+                        (str "|" merchant-secret))
+          calculated-authcode (-> plaintext DigestUtils/sha256Hex str/upper-case)]
+      (= return-authcode calculated-authcode))
+    (log/error "Tried to authenticate message, but the map contained no :RETURN_AUTHCODE key. Data:" form-data)))
+
 (defrecord PaytrailPayment []
   component/Lifecycle
   (start [this] this)
@@ -50,7 +63,7 @@
   (form-data-for-payment [payment-component params]
     (generate-form-data payment-component params))
   (authentic-response? [payment-component form-data]
-    nil)
+    (return-authcode-valid? payment-component form-data))
   (payment-query-data [payment-component params]
     nil))
 

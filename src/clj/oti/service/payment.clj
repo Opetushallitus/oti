@@ -15,12 +15,13 @@
   (when-not (str/blank? s)
     s))
 
-(defn- process-response! [{:keys [vetuma-payment db]} form-data db-fn]
-  (let [db-params {:order-number (:ORDNR form-data)
-                   :pay-id (blank->nil (:PAYID form-data))
-                   :archive-id (blank->nil (:PAID form-data))
-                   :payment-method (blank->nil (:SO form-data))}]
-    (if (and (payment-util/authentic-response? vetuma-payment form-data) (:order-number db-params))
+
+(defn- process-response! [{:keys [paytrail-payment db]} form-data db-fn]
+  (let [db-params {:order-number (:ORDER_NUMBER form-data)
+                   :pay-id (blank->nil (:PAYMENT_ID form-data))
+                   :archive-id (blank->nil (:PAID form-data)) ;; TODO: This should be removed or replaced with something else...
+                   :payment-method (blank->nil (:PAYMENT_METHOD form-data))}]
+    (if (and (payment-util/authentic-response? paytrail-payment form-data) (:order-number db-params))
       (do (db-fn db db-params)
           true)
       (error "Could not verify payment response message:" form-data))))
@@ -37,9 +38,9 @@
                :who "SYSTEM"
                :on :payment
                :op :update
-               :before {:order-number (:ORDNR form-data)
+               :before {:order-number (:ORDER_NUMBER form-data)
                         :state states/pmt-unpaid}
-               :after {:order-number (:ORDNR form-data)
+               :after {:order-number (:ORDER_NUMBER form-data)
                        :state states/pmt-ok}
                :msg "Payment has been confirmed.")
     (try
@@ -54,9 +55,9 @@
                :who "SYSTEM"
                :on :payment
                :op :update
-               :before {:order-number (:ORDNR form-data)
+               :before {:order-number (:ORDER_NUMBER form-data)
                         :state states/pmt-unpaid}
-               :after {:order-number (:ORDNR form-data)
+               :after {:order-number (:ORDER_NUMBER form-data)
                        :state states/pmt-error}
                :msg "Payment has been cancelled.")
     :cancelled))
