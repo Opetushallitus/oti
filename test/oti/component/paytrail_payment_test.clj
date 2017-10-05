@@ -33,9 +33,11 @@
                             :MSG_SETTLEMENT_PAYER "Tutkintomaksu",
                             :MSG_UI_MERCHANT_PANEL "Tutkintomaksu",
                             :PARAMS_IN    "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,MSG_SETTLEMENT_PAYER,MSG_UI_MERCHANT_PANEL,PARAMS_IN,PARAMS_OUT",
-                            :PARAMS_OUT   "PAYMENT_ID,TIMESTAMP,STATUS,RETURN_AUTHCODE",
+                            :PARAMS_OUT   "ORDER_NUMBER,PAYMENT_ID,AMOUNT,TIMESTAMP,STATUS",
                             ;; If you change anything above (add params, modify values ets.), then the following authcode must
                             ;; be updated too. Let the test fail first and pick up the new calculated authcode from fail message.
-                            :AUTHCODE     "7FFC289CB7BD22A567C37D3DF81DDCAA493673EB9771AF8F40443764712E2532"}}
+                            ;; This is not the most convenient way to do this, but this logic follows the same logic as the one made
+                            ;; for depracated VETUMA payment.
+                            :AUTHCODE     "278457B7DE228A136A6C7645B5FECDDEF269F9963F45C3DEFBAC5A813BCB77A3"}}
            (form-data-for-payment component params)))))
 
