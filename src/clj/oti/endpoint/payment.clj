@@ -16,9 +16,9 @@
         (assoc :session (assoc session :participant new-participant)))))
 
 (defn- confirm-payment [config {:keys [params session]}]
-  (let [{lang :LG payment-id :PAYID} params]
+  (let [{payment-id :PAYMENT_ID} params]
     (if (payment-service/confirm-payment! config params)
-      (registration-response :success "registration-complete" session lang)
+      (registration-response :success "registration-complete" session :fi) ;; language was prevously sent bu vetuma, now we have to determine it some other way
       (registration-response :error "registration-payment-error" session))))
 
 (defn- cancel-payment [config {:keys [params session]} cancellation?]
