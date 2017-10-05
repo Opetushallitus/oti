@@ -30,9 +30,9 @@
 
 (defn payment-endpoint [config]
   (context "/oti/paytrail" []
-    (POST "/success" request
+    (GET "/success" request
       (confirm-payment config request))
-    (POST "/error" request
+    (GET "/error" request ;; TODO: paytrail does not provide an error url
       (cancel-payment config request false))
-    (POST "/cancel" request
+    (GET "/cancel" request
       (cancel-payment config request :cancellation?))))
