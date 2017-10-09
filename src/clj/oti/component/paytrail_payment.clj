@@ -65,7 +65,7 @@
   (authentic-response? [payment-component form-data]
     (return-authcode-valid? payment-component form-data))
   (payment-query-data [payment-component params]
-    nil))
+    nil)) ;; TODO: remove if unnecessary
 
 (defn paytrail-payment [config]
   (map->PaytrailPayment config))
