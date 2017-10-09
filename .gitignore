@@ -18,3 +18,5 @@ figwheel_server.log
 logs/
 .DS_Store
 /out_*
+*.pem
+tools/dev-proxy/node_modules/*
