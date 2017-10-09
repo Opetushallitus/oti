@@ -19,7 +19,6 @@
 (defn- process-response! [{:keys [paytrail-payment db]} form-data db-fn]
   (let [db-params {:order-number (:ORDER_NUMBER form-data)
                    :pay-id (blank->nil (:PAYMENT_ID form-data))
-                   :archive-id (blank->nil (:PAID form-data)) ;; TODO: This should be removed or replaced with something else...
                    :payment-method (blank->nil (:PAYMENT_METHOD form-data))}]
     (if (and (payment-util/authentic-response? paytrail-payment form-data) (:order-number db-params))
       (do (db-fn db db-params)
