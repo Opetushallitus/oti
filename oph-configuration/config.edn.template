@@ -35,5 +35,4 @@
                :oti-host "{{oti_host}}"}
   :global-config {:env "{{oti_env}}"}
   :payments   {:amounts {:full  {{oti_payment_amount_full}}
-                         :retry {{oti_payment_amount_retry}}}
-               :use-paytrail true}}}
+                         :retry {{oti_payment_amount_retry}}}}}}
