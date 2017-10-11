@@ -73,6 +73,10 @@ The development proxy is a nodejs application and can be found in tools/dev-prox
 ```
 ./create-ss-cert.sh
 ```
+Install dependencies with npm:
+```
+npm install
+```
 
 That's it. Your local environment is now configured and you can proceed to starting the application.
 
