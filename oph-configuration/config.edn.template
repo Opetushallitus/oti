@@ -20,12 +20,10 @@
   :cas {:user {:username "{{oti_cas_username}}"
                :password "{{oti_cas_password}}"}}
   :localisation {:default-parameters {:category "{{oti_localisation_default_category}}"}}
-  :vetuma-payment {:vetuma-host "{{oti_vetuma_host}}"
-                   :app-id "{{oti_vetuma_app_id}}"
-                   :oti-vetuma-uri "{{oti_vetuma_oti_vetuma_uri}}"
-                   :secret "{{oti_vetuma_shared_secret}}"
-                   :ap "{{oti_vetuma_shared_ap}}"
-                   :rcvid "{{oti_vetuma_shared_rcvid}}"}
+  :paytrail-payment {:paytrail-host "{{oti_paytrail_host}}"
+                     :oti-paytrail-uri "{{oti_paytrail_oti_paytrail_uri}}"
+                     :merchant-id {{oti_paytrail_merchant_id}}
+                     :merchant-secret "{{oti_paytrail_merchant_secret}}"}
   :url-helper {:virkailija-host "{{host_virkailija}}"
                :tunnistus-host "{{host_tunnistus}}"
                :oti-host "{{oti_host}}"}

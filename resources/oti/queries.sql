@@ -458,7 +458,7 @@ SELECT :created, 'UNPAID'::payment_state, :type::payment_type, id, :registration
 
 -- name: update-payment!
 UPDATE payment
-SET state = :state::payment_state, ext_reference_id = :pay-id, ext_archiving_id = :archive-id, payment_method = :payment-method
+SET state = :state::payment_state, ext_reference_id = :pay-id, payment_method = :payment-method
 WHERE order_number = :order-number;
 
 -- name: update-payment-state!

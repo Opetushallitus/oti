@@ -64,19 +64,10 @@
 (defn- session-participant [{:keys [db] :as config} {:keys [participant] :as session}]
   (let [{:keys [registration-status registration-id external-user-id]} participant]
     (if (and (= :pending registration-status) external-user-id registration-id)
-      ; Delete pending payments / regs older than 25 minutes
-      (if-let [pmt (-> (payment/process-unpaid-payments-of-participant! config external-user-id 25)
-                       (get registration-id))]
-        (condp = pmt
-          :confirmed (update-participant-session session :success "registration-complete")
-          :cancelled (update-participant-session session :error "registration-payment-cancel")
-          :expired (update-participant-session session :error "registration-payment-cancel")
-          :unpaid session)
-        ; If the payment was not found, check the status from the registration
-        (condp = (dba/registration-state-by-id db registration-id)
-          states/reg-ok (update-participant-session session :success "registration-complete")
-          states/reg-cancelled (update-participant-session session :error "registration-payment-cancel")
-          (update-participant-session session :error "registration-payment-error")))
+      (condp = (dba/registration-state-by-id db registration-id)
+        states/reg-ok (update-participant-session session :success "registration-complete")
+        states/reg-cancelled (update-participant-session session :error "registration-payment-cancel")
+        (update-participant-session session :error "registration-payment-error"))
       ; Other or missing registration status, just return the session as is
       session)))
 
@@ -90,9 +81,6 @@
                       #::os{:registration-post-office    "Helsinki"
                             :registration-zip            "00100"
                             :registration-street-address "Testikatu 1"})]
-        (when id
-          ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
-          (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
         (-> (redirect callback)
             (assoc :session {:participant (merge
                                            {:etunimet         (if etunimet
@@ -127,9 +115,6 @@
                       :registration-zip            vakinainenkotimainenlahiosoitepostinumero
                       :registration-street-address vakinainenkotimainenlahiosoites}
         redirect-url (or (:redirect-after-authentication session) (participant-base-url config lang))]
-    (when id
-      ;; Remove all existing unpaid payments / registrations at this stage if the participant has re-authenticated
-      (payment/verify-or-delete-payments-of-participant! config oidHenkilo))
     (if (and sn firstname (s/valid? ::os/hetu nationalidentificationnumber))
       (-> (redirect redirect-url :see-other)
           (assoc :session {:participant (merge

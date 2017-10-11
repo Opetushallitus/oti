@@ -122,7 +122,6 @@
         :amount           amount
         :reference-number ref-number
         :order-number     order-number
-        :app-name         (loc/t localisation lang "vetuma-app-name")
         :msg              (loc/t localisation lang "payment-name")
         :payment-id       order-number})
 
@@ -220,7 +219,7 @@
     {:full full
      :retry retry}))
 
-(defn register! [{:keys [db api-client vetuma-payment] :as config}
+(defn register! [{:keys [db api-client paytrail-payment] :as config}
                  {old-session :session {:keys [registration-data ui-lang]} :body-params}]
   (let [conformed (s/conform ::os/registration registration-data)]
     (if-not (s/invalid? conformed)
@@ -240,7 +239,7 @@
             (store-address-to-service! api-client external-user-id participant-data conformed)
             (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
                   db-pmt (payment-params->db-payment pmt price-type external-user-id)
-                  payment-form-data (when pmt (payment-util/form-data-for-payment vetuma-payment pmt))
+                  payment-form-data (when pmt (payment-util/form-data-for-payment paytrail-payment pmt))
                   msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
                   status (if (pos? amount) :pending :success)
                   ; If the participant has registered to this session before, we fetch the existing reg id and add the
@@ -265,13 +264,13 @@
         (error "Invalid registration data. Spec errors: " (s/explain-data ::os/registration registration-data))
         (registration-response 400 :error "registration-invalid-data" old-session)))))
 
-(defn payment-data-for-retry [{:keys [db vetuma-payment] :as config}
+(defn payment-data-for-retry [{:keys [db paytrail-payment] :as config}
                               {{{:keys [registration-id registration-status]} :participant :as session} :session {:keys [lang]} :params}]
   (if (= :pending registration-status)
     (if-let [{payment-id :id :as db-pmt} (dba/unpaid-payment-by-registration db registration-id)]
       (->> (db-payment->payment-params config db-pmt lang)
            (update-db-payment! db payment-id)
-           (payment-util/form-data-for-payment vetuma-payment)
+           (payment-util/form-data-for-payment paytrail-payment)
            (registration-response 200 :pending "registration-payment-pending" session registration-id))
       (do
         (error "Tried to retry payment for registration" registration-id "but matching payment was not found")

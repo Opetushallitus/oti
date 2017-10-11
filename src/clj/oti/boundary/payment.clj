@@ -3,5 +3,4 @@
 
 (defprotocol Payment
   (form-data-for-payment [payment-component params])
-  (authentic-response? [payment-component form-data])
-  (payment-query-data [payment-component params]))
+  (authentic-response? [payment-component form-data]))

@@ -91,14 +91,14 @@
 
 (re-frame/reg-fx
   :submit-payment-form
-  (fn [{::os/keys [uri payment-form-params]}]
+  (fn [{::os/keys [uri pt-payment-form-params]}]
     (let [form (doto (.createElement js/document "form")
                  (.setAttribute "method" "post")
                  (.setAttribute "action" uri)
                  (.setAttribute "accept-charset" "ISO-8859-1"))]
       ;; For IE compatibility
       (-> js/document .-charset (set! "ISO-8859-1"))
-      (doseq [[key val] payment-form-params]
+      (doseq [[key val] pt-payment-form-params]
         (->> (doto (.createElement js/document "input")
                (.setAttribute "type" "hidden")
                (.setAttribute "name" (name key))
