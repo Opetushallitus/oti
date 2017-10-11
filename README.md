@@ -6,18 +6,7 @@ A system for registering to an examination session and keeping records of studen
 
 ### Setup
 
-When you first clone this repository, run:
-
-```sh
-lein setup
-```
-
-This will create files for local configuration, and prep your system
-for the project.
-
-Running the application will require a PostgreSQL DB instance with a database named oti to be up and running, and
-working connections to OPH services (translations, LDAP, CAS etc.), so a VPN configuration and valid credentials are 
-required.
+See DEVENV.md file for instructions for setting up the local development environment.
 
 ### Configuration
 
@@ -59,59 +48,6 @@ oti.service.email-templates.
 
 The messaging service will strip any `<style>` elements and links to external stylesheets (which aren't supported by
 all email services anyway), so styling has to be done inline in element attributes. 
-
-### Environment
-
-To begin developing, start with a REPL.
-
-```sh
-lein repl
-```
-
-Then load the development environment.
-
-```clojure
-user=> (dev)
-:loaded
-```
-
-Run `go` to initiate and start the system.
-
-```clojure
-dev=> (go)
-:started
-```
-
-By default this creates a web server at <http://localhost:3000>.
-
-When you make changes to your source files, use `reset` to reload any
-modified files and reset the server.
-
-```clojure
-dev=> (reset)
-:reloading (...)
-:resumed
-```
-
-Compile front-end code and watch for changes with figwheel:
-
-    lein figwheel
-
-### Testing
-
-Testing is fastest through the REPL, as you avoid environment startup
-time.
-
-```clojure
-dev=> (test)
-...
-```
-
-But you can also run tests through Leiningen.
-
-```sh
-lein test
-```
 
 ### Migrations
 

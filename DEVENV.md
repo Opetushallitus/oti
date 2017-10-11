@@ -1,4 +1,4 @@
-## Local Development Environment
+## Setting Up Local Development Environment
 
 ### 1. Set up local database
 
@@ -20,7 +20,7 @@ create database oti;
 
 That's it.
 
-### 2 Set up application
+### 2. Set up application
 
 The first time you clone this repository, run
 ```
@@ -155,6 +155,23 @@ And to stop it:
 dev=> (local/stop-fw)
 ```
 
-Now you should have a fully operational OTI system running locally. Happy coding!
+#### Running tests
 
-(These instructions should still be verified, tested and merged to README.md)
+Running tests is fastest through the REPL, as you avoid environment startup
+time.
+
+```clojure
+dev=> (test)
+...
+```
+
+But you can also run tests through Leiningen.
+
+```sh
+lein test
+```
+
+
+Now you should have a fully operational battle sta... er, OTI system running locally. Happy coding!
+
+(NOTE: These instructions should still be verified)
