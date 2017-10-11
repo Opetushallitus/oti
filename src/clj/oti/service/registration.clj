@@ -122,9 +122,7 @@
         :amount           amount
         :reference-number ref-number
         :order-number     order-number
-        :app-name         (loc/t localisation lang "vetuma-app-name")
-        :msg              (loc/t localisation lang "payment-name")
-        :payment-id       order-number})
+        :msg              (loc/t localisation lang "payment-name")})
 
 (defn- payment-params [{:keys [db localisation]} external-user-id amount lang]
   (let [ref-number (-> (str/split external-user-id #"\.") last gen-reference-number)
@@ -265,13 +263,13 @@
         (error "Invalid registration data. Spec errors: " (s/explain-data ::os/registration registration-data))
         (registration-response 400 :error "registration-invalid-data" old-session)))))
 
-(defn payment-data-for-retry [{:keys [db vetuma-payment] :as config}
+(defn payment-data-for-retry [{:keys [db paytrail-payment] :as config}
                               {{{:keys [registration-id registration-status]} :participant :as session} :session {:keys [lang]} :params}]
   (if (= :pending registration-status)
     (if-let [{payment-id :id :as db-pmt} (dba/unpaid-payment-by-registration db registration-id)]
       (->> (db-payment->payment-params config db-pmt lang)
            (update-db-payment! db payment-id)
-           (payment-util/form-data-for-payment vetuma-payment)
+           (payment-util/form-data-for-payment paytrail-payment)
            (registration-response 200 :pending "registration-payment-pending" session registration-id))
       (do
         (error "Tried to retry payment for registration" registration-id "but matching payment was not found")

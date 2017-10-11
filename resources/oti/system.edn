@@ -7,7 +7,6 @@
   :cas              oti.component.cas/cas-config
   :api-client       oti.component.api-client/api-client
   :localisation     oti.component.localisation/localisation
-  :vetuma-payment   oti.component.vetuma-payment/vetuma-payment
   :paytrail-payment oti.component.paytrail-payment/paytrail-payment
   :scheduler        oti.component.scheduler/scheduler
   :email-service    oti.component.email-service/email-service
@@ -31,11 +30,11 @@
   :frontend      [:url-helper :global-config]
   :localisation  [:url-helper]
   :email-service [:url-helper]
-  :participant   [:db :payments :api-client :localisation :vetuma-payment :paytrail-payment :url-helper :global-config]
-  :payment       [:vetuma-payment :paytrail-payment :db :api-client :email-service]
+  :participant   [:db :payments :api-client :localisation :paytrail-payment :url-helper :global-config]
+  :payment       [:paytrail-payment :db :api-client :email-service]
   :cas           [:url-helper]
   :api-client    [:cas :url-helper]
-  :scheduler     [:db :vetuma-payment :email-service]
+  :scheduler     [:db :email-service]
   :token-secured [:db :api-client]}
  :config
  {:app

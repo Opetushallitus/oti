@@ -19,8 +19,6 @@ Running the application will require a PostgreSQL DB instance with a database na
 working connections to OPH services (translations, LDAP, CAS etc.), so a VPN configuration and valid credentials are 
 required.
 
-Also, for vetuma payment to go through, return address must be HTTPS protocol. Self-signed certificates are enough, for example when used with a simple nodejs proxy.
-
 ### Configuration
 
 The application uses [Duct framework](https://github.com/duct-framework/duct) which is based on
@@ -205,72 +203,6 @@ via the Bamboo GUI.
 OTI provides two URLs for checking the application status. The path /oti/version will show the build number
 and the git commit revision of the running application. The path /oti/health will check that the database connection
 is working, and if so, respond with OK.
-
-## Useful local configurations for development
-
-local.edn (working configuration - replace placeholders with correct values for your environment):
-
-```clojure
-{:config {:db {:uri "jdbc:postgresql://localhost/oti"
-               :username "${db-username}"
-               :password "${db-password}"
-          :ldap {:server ${ldap-host}
-                 :port ${ldap-port}
-                 :userdn "${ldap-userdn}"
-                 :password "${ldap-password}"
-                 :ssl false}
-          :authentication {:oti-login-success-uri "http://localhost:3000/oti/auth/cas"}
-          :cas {:user {:username "${cas-username}" :password "${cas-password}"}}
-          :vetuma-payment {:oti-vetuma-uri "https://oti.local/oti/vetuma"}}}
-```
-
-node.js proxy for vetuma (needs a self-signed certificate in same dir):
-
-```js
-var fs = require('fs');
-var httpProxy = require('http-proxy');
-var http = require('http');
-
-http.createServer(function (req, res) {
-    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-    res.end();
-}).listen(80);
-
-httpProxy.createServer({
-    ssl: {
-        key: fs.readFileSync('key.pem', 'utf8'),
-        cert: fs.readFileSync('cert.pem', 'utf8')
-    },
-    target: {
-        host: 'localhost',
-        port: 3000
-    }
-}).listen(443);
-```
-
-oti.local (used above) defined in /etc/hosts:
-```
-127.0.0.1       oti.local
-```
-
-local.clj (start/stop figwheel in it's own JVM for hot reload):
-
-```clojure
-(ns local
-  (:require [figwheel-sidecar.repl-api :as ra]))
-
-(defn start-fw []
-  (ra/start-figwheel! "dev"))
-
-(defn stop-fw []
-  (ra/stop-figwheel!))
-```
-
-Start figwheel in REPL:
-```
-(local/start-fw)
-```
-
 
 ## License
 
