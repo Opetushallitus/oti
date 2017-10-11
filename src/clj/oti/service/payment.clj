@@ -25,10 +25,10 @@
           true)
       (error "Could not verify payment response message:" form-data))))
 
-(defn- send-confirmation-email! [config {:keys [ORDNR LG] :as payment-data}]
-  (if (not-any? str/blank? [ORDNR LG])
-    (some->> (user-data/participant-data config ORDNR LG)
-             (registration/send-confirmation-email! config LG))
+(defn- send-confirmation-email! [config {:keys [ORDER_NUMBER] :as payment-data}]
+  (if (not-any? str/blank? [ORDER_NUMBER])
+    (some->> (user-data/participant-data config ORDER_NUMBER :fi) ;;TODO: lang previously came with VETUMA response, now it needs to be resolved another way
+             (registration/send-confirmation-email! config :fi)) ;;TODO: lang previously came with VETUMA response, now it needs to be resolved another way
     (error "Can't send confirmation email because of missing data. Payment data:" payment-data)))
 
 (defn confirm-payment! [config form-data]
