@@ -122,7 +122,8 @@
         :amount           amount
         :reference-number ref-number
         :order-number     order-number
-        :msg              (loc/t localisation lang "payment-name")})
+        :msg              (loc/t localisation lang "payment-name")
+        :payment-id       order-number})
 
 (defn- payment-params [{:keys [db localisation]} external-user-id amount lang]
   (let [ref-number (-> (str/split external-user-id #"\.") last gen-reference-number)
