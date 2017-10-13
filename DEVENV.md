@@ -1,5 +1,10 @@
 ## Setting Up Local Development Environment
 
+### Prerequisities
+- Java 8
+- Leiningen
+- Docker (preferred) or local PostgreSQL instance
+
 ### 1. Set up local database
 
 For convenience, use Docker:
