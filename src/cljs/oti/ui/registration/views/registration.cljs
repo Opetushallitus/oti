@@ -1,6 +1,7 @@
 (ns oti.ui.registration.views.registration
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
+            [oti.routing :as routing]
             [oti.spec :as os]
             [oti.ui.i18n :refer [t]]
             [oti.ui.exam-sessions.utils :refer [parse-date unparse-date invalid-keys]]
@@ -266,8 +267,11 @@
                      (str (if (zero? price)
                             (t "register" "Ilmoittaudu")
                             (t "continue-to-payment" "Jatka maksamaan")))]
-                    [:span " >>"]])]]])]
-
+                    [:span " >>"]])]]
+               [:div.section.payment-terms
+                [:div.right
+                 [:a {:href (routing/pdf "maksupalveluntarjoaja.pdf") :target "_blank" :rel "noopener noreferrer"}
+                  (t "payment-service-provider" "Maksupalveluntarjoaja")]]]])]
            :else
            [:div
             [:h3 (t "error-enrollment-unavailable"

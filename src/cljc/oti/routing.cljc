@@ -35,5 +35,8 @@
 (defn img [file]
   (str app-root "/img/" file))
 
+(defn pdf [file]
+  (str app-root "/pdf/" file))
+
 (defn auth-route [path]
   (str app-root "/auth" path))
