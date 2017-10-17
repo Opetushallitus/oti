@@ -140,6 +140,26 @@ OTI provides two URLs for checking the application status. The path /oti/version
 and the git commit revision of the running application. The path /oti/health will check that the database connection
 is working, and if so, respond with OK.
 
+
+## Maintenance tips for test environment
+
+Removing all participants and their registrations and payments from database:
+```
+delete from registration_exam_content_section;
+delete from registration_exam_content_module;
+delete from payment;
+delete from registration;
+delete from accredited_exam_section;
+delete from accredited_exam_module;
+delete from email;
+delete from participant;
+```
+
+Removing all exam sessions from database:
+```
+delete from exam_session;
+```
+
 ## License
 
 Copyright © 2016 The Finnish National Board of Education - Opetushallitus
