@@ -125,7 +125,8 @@
                                   [eftest "0.1.4"]
                                   [com.gearswithingears/shrubbery "0.4.1"]
                                   [kerodon "0.8.0"]
-                                  [cider/cider-nrepl "0.15.1-SNAPSHOT"]]
+                                  [cider/cider-nrepl "0.15.1-SNAPSHOT"]
+                                  [figwheel-sidecar "0.5.14"]]
                    :source-paths   ["dev/src"]
                    :resource-paths ["dev/resources"]
                    :repl-options {:init-ns user}
