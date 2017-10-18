@@ -3,6 +3,7 @@
 ### Prerequisities
 - Java 8
 - Leiningen
+- NodeJS
 - Docker (preferred) or local PostgreSQL instance
 
 ### 1. Set up local database
@@ -76,9 +77,9 @@ Notice, that we are using this hostname in our configuration above.
 
 The development proxy is a nodejs application and can be found in tools/dev-proxy directory. It needs a self-signed certificate to work, so create one in that same directory:
 ```
-./create-ss-cert.sh
+cd tools/dev-proxy && ./create-ss-cert.sh
 ```
-Install dependencies with npm:
+Install proxy dependencies with npm:
 ```
 npm install
 ```
@@ -126,7 +127,7 @@ dev=> (go)
 By default this creates a web server at <http://localhost:3000>.
 
 When you make changes to your source files, use `reset` to reload any
-modified files and reset the server.
+modified files and reset the server (NOTE: not currently working. Tested on 18th Oct 2017).
 
 ```clojure
 dev=> (reset)
@@ -177,6 +178,4 @@ lein test
 ```
 
 
-Now you should have a fully operational battle sta... er, OTI system running locally. Happy coding!
-
-(NOTE: These instructions should still be verified)
+Now you should have a fully operational battle sta... erh, OTI system running locally. Happy times!
