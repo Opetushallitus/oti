@@ -19,7 +19,7 @@
     (error "API request error:" response)))
 
 (defn- parse-oid [{:keys [status body] :as response}]
-  (if (= status 200)
+  (if (= status 201)
     body
     (error "API request error:" response)))
 
