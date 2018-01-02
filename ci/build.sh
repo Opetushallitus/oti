@@ -1,6 +1,7 @@
 #!/bin/sh
 
 export JAVA_HOME="${bamboo_capability_system_jdk_JDK_1_8}"
+echo $JAVA_HOME
 export PATH=$JAVA_HOME/bin:$PATH
 
 test() {
