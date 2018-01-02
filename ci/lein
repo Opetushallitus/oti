@@ -359,6 +359,8 @@ else
         fi
         exec sh -c "exec $(cat "$TRAMPOLINE_FILE")"
     else
+        set -x
+
         export TRAMPOLINE_FILE
         "$LEIN_JAVA_CMD" \
             "${BOOTCLASSPATH[@]}" \

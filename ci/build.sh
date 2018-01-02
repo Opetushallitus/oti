@@ -10,6 +10,7 @@ test() {
 }
 
 uberjar() {
+  set -x
   ./ci/lein clean
   echo ${bamboo_buildResultKey} > ./resources/build.txt
   git rev-parse HEAD > ./resources/git-rev.txt
