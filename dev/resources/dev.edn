@@ -14,8 +14,8 @@
                      :oti-paytrail-uri "https://oti.local/oti/paytrail"
                      :merchant-id 13466
                      :merchant-secret "6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ"}
-  :url-helper {:virkailija-host "virkailija.untuva.aws.opintopolku.fi"
-               :tunnistus-host "tunnistus-testi.opintopolku.fi"
+  :url-helper {:virkailija-host "virkailija.untuvaopintopolku.fi"
+               :tunnistus-host "tunnistus.untuvaopintopolku.fi"
                :oti-host "http://localhost:3000"}
   :global-config {:env "dev"}
   :payments   {:amounts {:full  256
