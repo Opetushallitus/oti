@@ -1,12 +1,14 @@
 ; Configuration template for remote deployments
 {:config
- {:app {:middleware {:arguments {:session {:key "{{oti_session_cookie_key}}"
+ {:app
+  {:middleware {:arguments {:session {:key "{{oti_session_cookie_key}}"
                                            :cookie-attrs {:max-age 28800
                                                           :http-only true
                                                           :secure true
                                                           :domain "{{oti_cookie_domain}}"
                                                           :path "/oti"}}
                                  :ring-logger {:env "{{oti_env}}"}}}}
+  :http {:port {{palvelu_portti}}}
   :db {:uri "{{oti_db_uri}}"
        :username "{{oti_db_username}}"
        :password "{{oti_db_password}}"
