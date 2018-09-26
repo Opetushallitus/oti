@@ -28,9 +28,14 @@
    [:div.description (t localisation language "diploma-description")]
    [:div.content
     [:div.title (t localisation language "diploma-contains")]
+    [:div.module-title (t localisation language "diploma-module-administration")]
     [:ol.sections
-     (for [id (range 1 6)]
-       [:li (t localisation language (str "diploma-module-" id))])]]
+     (for [id (range 1 4)]
+       [:li (t localisation language (str "diploma-module-administration-" id))])]
+    [:div.module-title (t localisation language "diploma-module-lead")]
+    [:ol.sections
+     (for [id (range 1 4)]
+       [:li (t localisation language (str "diploma-module-lead-" id))])]]
    [:div.place-and-date
     [:span.place (t localisation language "in-helsinki")]
     [:span.date (db-date->str (:date diploma))]]
