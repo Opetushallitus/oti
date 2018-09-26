@@ -154,14 +154,14 @@
                          :on-click #(add-section form-data sections id {::os/accredit? true})}]
                 [:span (if (= (@lang name) "A")
                          (t "has-accreditation"
-                            "Olen saanut korvaavuuden")
+                            "Olen saanut korvaavuuden tai suorittanut osion aikaisemmin")
                          (t "has-accreditation-or-other-substitution"
-                            "Olen saanut korvaavuuden tai suorittanut esseellä koko osion"))]]]
+                            "olen saanut korvaavuuden tai suorittanut osion aikaisemmin"))]]]
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
                          :on-click #(swap! form-data update ::os/sections dissoc id)}]
-                [:span (t "not-participating" "En osallistu")]]]])))
+                [:span (t "not-participating" "En osallistu/Osallistun myöhemmin")]]]])))
        (when-not (empty? (attending-ids @form-data))
          [:div.exam-section
           [:h4 (t "exam-question-language"
