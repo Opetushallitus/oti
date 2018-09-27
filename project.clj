@@ -119,7 +119,7 @@
    :profiles/dev  {}
    :profiles/test {}
    :project/dev   {:dependencies [[duct/generate "0.8.2"]
-                                  [reloaded.repl "0.2.3"]
+                                  [reloaded.repl "0.2.4"]
                                   [org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/tools.nrepl "0.2.13"]
                                   [eftest "0.1.4"]
