@@ -23,6 +23,7 @@
                      :merchant-secret "{{oti_paytrail_merchant_secret}}"}
   :url-helper {:virkailija-host "{{host_virkailija}}"
                :tunnistus-host "{{host_tunnistus}}"
+               :alb-host "{{host_alb_virkailija}}"
                :oti-host "{{oti_host}}"}
   :global-config {:env "{{oti_env}}"}
   :payments   {:amounts {:full  {{oti_payment_amount_full}}
