@@ -9,7 +9,7 @@
   (doto (OphProperties. (into-array String ["/oti/oti_url.properties"]))
     (.addDefault "host-virkailija" virkailija-host)
     (.addDefault "host-tunnistus" tunnistus-host)
-    (.addDefault "host-alb" alb-host)
+    (.addDefault "alb-host" alb-host)
     (.addDefault "oti-host" oti-host)))
 
 (defrecord UrlHelper []

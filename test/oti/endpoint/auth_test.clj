@@ -37,7 +37,7 @@
 
 (def url-helper (->> (uh/url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
                                      :oti-host "http://localhost:3000"
-                                     :alb-host "itest-virkailija.oph.ware.fi"
+                                     :alb-host "https://itest-virkailija.oph.ware.fi"
                                      :tunnistus-host "tunnistus-testi.opintopolku.fi"})
                      (component/start)))
 
