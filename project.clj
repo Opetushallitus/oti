@@ -130,6 +130,7 @@
                    :source-paths   ["dev/src"]
                    :resource-paths ["dev/resources"]
                    :repl-options {:init-ns user}
+                   :jvm-opts ["-Doti.baseUrl=http://localhost:3000"]
                    :env {:port "3000"
                          :dev? "true"}}
    :project/test  {}})
