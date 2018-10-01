@@ -3,7 +3,6 @@
   :http             oti.component.http-kit-server/http-kit-server
   :db               duct.component.hikaricp/hikaricp
   :ragtime          duct.component.ragtime/ragtime
-  :ldap             oti.component.ldap/ldap
   :cas              oti.component.cas/cas-config
   :api-client       oti.component.api-client/api-client
   :localisation     oti.component.localisation/localisation
@@ -25,7 +24,7 @@
   :app           [:status :token-secured :frontend :auth :virkailija :participant :payment]
   :ragtime       [:db]
   :status        [:db]
-  :auth          [:cas :ldap :url-helper :global-config]
+  :auth          [:cas :api-client :url-helper :global-config]
   :virkailija    [:db :api-client :localisation :email-service]
   :frontend      [:url-helper :global-config]
   :localisation  [:url-helper]

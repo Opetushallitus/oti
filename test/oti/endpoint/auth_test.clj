@@ -3,12 +3,12 @@
             [oti.endpoint.auth :refer :all]
             [shrubbery.core :refer :all]
             [oti.component.cas]
-            [oti.boundary.ldap-access]
+            [oti.boundary.api-client-access]
             [oti.util.auth :as auth-util]
             [ring.middleware.defaults :refer [wrap-defaults]]
             [oti.component.url-helper :as uh]
             [com.stuartsierra.component :as component])
-  (:import [oti.boundary.ldap_access LdapAccess]
+  (:import [oti.boundary.api_client_access ApiClientAccess]
            [oti.component.cas CasAccess]))
 
 (def valid-user "virkailija")
@@ -19,12 +19,15 @@
 
 (def ticket-for-wrong-user "suspicious")
 
-(def ldap-stub
-  (reify LdapAccess
-    (fetch-authorized-user [t username]
+(def api-client-stub
+  (reify ApiClientAccess
+    (get-user-details [client username]
       (when (= username valid-user) {:username username
-                                     :given-name "Testi"
-                                     :surname "Testaaja"}))))
+                                     :authorities [{:authority "ROLE_APP_OTI_CRUD"}]}))
+    (get-person-by-id [client external-user-id]
+      {:etunimet "Testi"
+       :kutsumanimi "Testi"
+       :sukunimi "Testaaja"})))
 
 (def cas-stub
   (reify CasAccess
@@ -48,19 +51,19 @@
                                :given-name "Testi"
                                :surname "Testaaja"
                                :ticket "niceticket"}}}
-         (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub valid-ticket path))))
+         (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub valid-ticket path))))
 
 (deftest login-is-denied-for-invalid-ticket
   (is (= {:status 500, :body "Pääsyoikeuksien tarkistus epäonnistui", :headers {"Content-Type" "text/plain; charset=utf-8"}}
-        (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub "invalid" path))))
+        (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub "invalid" path))))
 
 (deftest login-is-denied-for-user-without-correct-role
   (is (= 403
-         (:status (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub ticket-for-wrong-user path)))))
+         (:status (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub ticket-for-wrong-user path)))))
 
 (deftest logout-works
   (let [request {:session {:identity {:ticket valid-ticket :username valid-user}}}]
-    (#'oti.endpoint.auth/login cas-stub url-helper ldap-stub valid-ticket path)
+    (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub valid-ticket path)
     (is (auth-util/logged-in? request))
     (is (= {:status 302, :headers {"Location" "https://itest-virkailija.oph.ware.fi/cas/logout?service=http%3A%2F%2Flocalhost%3A3000%2Foti%2Fauth%2Fcas"}, :body "", :session {:identity nil}}
            (#'oti.endpoint.auth/logout url-helper (:session request))))

@@ -1,7 +1,7 @@
 (ns oti.endpoint.auth
   (:require [compojure.core :refer :all]
-            [oti.boundary.ldap-access :as la]
             [oti.component.url-helper :refer [url]]
+            [oti.boundary.api-client-access :as api]
             [environ.core :refer [env]]
             [oti.component.cas :as cas]
             [ring.util.response :as resp]
@@ -11,21 +11,31 @@
   (:import [java.net URLEncoder]))
 
 (def oti-cas-path "/oti/auth/cas")
+(def user-right-name "ROLE_APP_OTI_CRUD")
 
 (defn- redirect-to-cas-login-page [opintopolku-login-uri login-callback]
   (resp/redirect (str opintopolku-login-uri (URLEncoder/encode login-callback "UTF-8"))))
 
-(defn- cas-login [cas-config login-callback ldap ticket path]
+(defn- fetch-authorized-user [api-client username]
+  (when-let [user (api/get-user-details api-client username)]
+    (when (->> (map :authority (:authorities user))
+               (some #(str/includes? % user-right-name)))
+      (let [person (api/get-person-by-id api-client (:username user))]
+        {:username username
+         :given-name (:etunimet person)
+         :surname (:sukunimi person)}))))
+
+(defn- cas-login [cas-config login-callback api-client ticket path]
   (info "validating ticket" ticket)
   (if-let [username (cas/username-from-valid-service-ticket cas-config login-callback ticket)]
-    (if-let [user (la/fetch-authorized-user ldap username)]
+    (if-let [user (fetch-authorized-user api-client username)]
       (do
         (auth/login ticket)
         (info "user" user "logged in")
         (-> (resp/redirect (or path "/oti/virkailija"))
             (assoc :session {:identity (assoc user :ticket ticket)})))
       (do
-        (info "username" username "tried to log in but does not have the correct role in LDAP")
+        (info "username" username "tried to log in but does not have the correct role in kayttooikeus-service")
         {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))
     (do
       (error "CAS did not validate our service ticket" ticket)
@@ -33,11 +43,11 @@
       ; want to cause an infinite redirect loop by redirecting the user back to the CAS from here.
       {:status 500 :body "Pääsyoikeuksien tarkistus epäonnistui" :headers {"Content-Type" "text/plain; charset=utf-8"}})))
 
-(defn- login [cas-config url-helper ldap ticket path]
+(defn- login [cas-config url-helper api-client ticket path]
   (let [login-callback (str (url url-helper "oti.cas-auth") (when path (str "?path=" path)))]
     (try
       (if ticket
-        (cas-login cas-config login-callback ldap ticket path)
+        (cas-login cas-config login-callback api-client ticket path)
         (redirect-to-cas-login-page (url url-helper "cas.login-uri") login-callback))
       (catch Exception e
         (error "Error in login ticket handling" e)
@@ -58,10 +68,10 @@
       (auth/logout ticket))
     {:status 200 :body ""}))
 
-(defn auth-endpoint [{:keys [ldap cas url-helper]}]
+(defn auth-endpoint [{:keys [api-client cas url-helper]}]
   (context "/oti/auth" []
     (GET "/cas" [ticket path]
-      (login cas url-helper ldap ticket path))
+      (login cas url-helper api-client ticket path))
     (POST "/cas" [logoutRequest]
       (cas-initiated-logout logoutRequest))
     (GET "/logout" {session :session}

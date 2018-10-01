@@ -14,11 +14,6 @@
        :password "{{oti_db_password}}"
        :pool-name "oti-pool"
        :maximum-pool-size {{oti_db_max_pool_size}}}
-  :ldap {:server "{{host_ldap}}"
-         :port 389
-         :userdn "{{ldap_manager_userdn}}"
-         :password "{{ldap_manager_password}}"
-         :ssl false}
   :cas {:user {:username "{{oti_cas_username}}"
                :password "{{oti_cas_password}}"}}
   :localisation {:default-parameters {:category "{{oti_localisation_default_category}}"}}
