@@ -30,7 +30,7 @@ script:
 
 - mv target/uberjar/oti.jar $DOCKER_BUILD_DIR/artifact/oti.jar
 - cp -vr oph-configuration $DOCKER_BUILD_DIR/config/
-#- ./ci-tools/build/build-fatjar.sh oti
+- ./ci-tools/build/build-fatjar.sh oti
 
 #deploy:
 #- provider: script
