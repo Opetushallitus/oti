@@ -1,0 +1,40 @@
+sudo: required
+language: clojure
+
+jdk:
+- oraclejdk8
+
+services:
+- docker
+
+#cache:
+#  directories:
+#  - $HOME/.m2
+
+env:
+  global:
+  # AWS_ACCESS_KEY_ID
+  - secure: "TODO"
+  # AWS_SECRET_ACCESS_KEY
+  - secure: "TODO"
+
+install:
+- export TZ=Europe/Helsinki
+- git clone https://github.com/Opetushallitus/ci-tools.git
+- source ci-tools/common/setup-tools.sh
+
+script:
+- ./ci/build.sh uberjar
+- export BASE_IMAGE="base-legacy:0.1"
+- ./ci-tools/common/pull-image.sh
+
+- mv target/uberjar/oti.jar $DOCKER_BUILD_DIR/artifact/oti.jar
+- cp -vr oph-configuration $DOCKER_BUILD_DIR/config/
+#- ./ci-tools/build/build-fatjar.sh oti
+
+#deploy:
+#- provider: script
+#  script:
+#    ./ci-tools/build/upload-image.sh oti;
+#  on:
+#    all_branches: true
