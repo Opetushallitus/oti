@@ -24,7 +24,7 @@ install:
 - source ci-tools/common/setup-tools.sh
 
 script:
-- ./ci/build.sh uberjar
+- ./ci/build_travis.sh uberjar
 - export BASE_IMAGE="base-legacy:0.1"
 - ./ci-tools/common/pull-image.sh
 
