@@ -32,9 +32,9 @@ script:
 - cp -vr oph-configuration $DOCKER_BUILD_DIR/config/
 - ./ci-tools/build/build-fatjar.sh oti
 
-#deploy:
-#- provider: script
-#  script:
-#    ./ci-tools/build/upload-image.sh oti;
-#  on:
-#    all_branches: true
+deploy:
+- provider: script
+  script:
+    ./ci-tools/build/upload-image.sh oti;
+  on:
+    all_branches: true
