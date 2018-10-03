@@ -6,7 +6,7 @@
                  ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/spec.alpha "0.1.123"]
-                 [org.clojure/tools.reader "1.0.1"]
+                 [org.clojure/tools.reader "1.3.0"]
                  [org.clojure/core.async "0.3.443"]
                  [org.clojure/java.jdbc "0.6.1"]
                  [org.clojure/tools.logging "0.3.1"]
@@ -19,8 +19,8 @@
                  [ring/ring-devel "1.6.1"]
                  [ring/ring-defaults "0.3.0"]
                  [ring/ring-json "0.4.0"]
-                 [com.cognitect/transit-clj "0.8.300"]
-                 [com.cognitect/transit-cljs "0.8.239"]
+                 [com.cognitect/transit-clj "0.8.309"]
+                 [com.cognitect/transit-cljs "0.8.256"]
                  [ring-middleware-format "0.7.2"]
                  [duct/hikaricp-component "0.1.0" :exclusions [org.slf4j/slf4j-nop]]
                  [org.postgresql/postgresql "9.4.1212"]
@@ -38,7 +38,7 @@
                  [selmer "1.10.8"]
 
                  ;; Frontend
-                 [org.clojure/clojurescript "1.9.908"]
+                 [org.clojure/clojurescript "1.10.339"]
                  [reagent "0.6.2"]
                  [binaryage/devtools "0.8.3"]
                  [re-frame "0.8.0"]
