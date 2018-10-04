@@ -2,8 +2,8 @@
   :description "Opetushallinnon tutkintoon ilmoittautuminen"
   :url "http://www.oph.fi/koulutus_ja_tutkinnot/opetushallinnon_tutkinto"
   :min-lein-version "2.4.0"
-  :repositories [["oph-sade-releases" "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local"]
-                 ["oph-sade-snapshots" "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local"]]
+  :repositories [["oph-sade-releases" "https://artifactory.opintopolku.fi/artifactory/oph-sade-release-local"]
+                 ["oph-sade-snapshots" "https://artifactory.opintopolku.fi/artifactory/oph-sade-snapshot-local"]]
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/spec.alpha "0.1.123"]
                  [org.clojure/tools.reader "1.3.0"]
