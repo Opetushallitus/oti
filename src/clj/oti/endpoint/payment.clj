@@ -3,7 +3,6 @@
             [clojure.tools.logging :refer [error]]
             [ring.util.response :as resp]
             [oti.service.payment :as payment-service]
-            [oti.util.logging.audit :as audit]
             [clojure.string :as str]))
 
 (defn- registration-response [status text {:keys [participant] :as session} & [lang]]

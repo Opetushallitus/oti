@@ -31,14 +31,14 @@
    :appenders {:rolling-audit-log-appender
                (assoc (rolling-appender {:path (str (logs-path) "/auditlog_oti.log")
                                          :date-format "yyyy-MM-dd"})
-                      :ns-whitelist ["fi.vm.sade.auditlog.*"]
+                      :ns-whitelist ["oti.util.logging.audit.*"]
                       :output-fn (fn [{:keys [msg_]}]
                                    (str (force msg_))))
 
                :rolling-application-log-appender
                (assoc (rolling-appender {:path (str (logs-path) "/oph-oti.log")
                                          :date-format "yyyy-MM-dd"})
-                      :ns-blacklist ["fi.vm.sade.auditlog.*" "oti.util.logging.access"]
+                      :ns-blacklist ["oti.util.logging.audit.*" "oti.util.logging.access"]
                       :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ss.SSSX"
                                        :locale (Locale. "fi")
                                        :timezone (TimeZone/getTimeZone "Europe/Helsinki")}

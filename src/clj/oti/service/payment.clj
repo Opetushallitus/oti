@@ -34,7 +34,6 @@
 (defn confirm-payment! [config form-data]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)
     (audit/log :app :admin
-               :who "SYSTEM"
                :on :payment
                :op :update
                :before {:order-number (:ORDER_NUMBER form-data)
@@ -51,7 +50,6 @@
 (defn cancel-payment! [config form-data]
   (when (process-response! config form-data dba/cancel-registration-and-payment!)
     (audit/log :app :admin
-               :who "SYSTEM"
                :on :payment
                :op :update
                :before {:order-number (:ORDER_NUMBER form-data)
@@ -63,7 +61,6 @@
 
 (defn- cancel-payment-by-order-number! [db {:keys [state order_number]}]
   (audit/log :app :admin
-             :who "SYSTEM"
              :on :payment
              :op :update
              :before {:order-number order_number
@@ -74,7 +71,7 @@
   (dba/cancel-registration-and-payment! db {:order-number order_number})
   :cancelled)
 
-(defn confirm-payment-manually! [{:keys [db] :as config} order-number user-lang {{authority :username} :identity}]
+(defn confirm-payment-manually! [{:keys [db] :as config} order-number user-lang {{authority :oid} :identity}]
   {:pre [order-number user-lang]}
   (audit/log :app :admin
              :who authority

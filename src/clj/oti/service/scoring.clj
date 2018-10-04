@@ -11,7 +11,7 @@
             [hiccup.core :refer [html]]))
 
 
-(defn- upsert-module-scores [db evaluator upserted-section [module-id {::spec/keys [module-score-points
+(defn- upsert-module-scores [db user-oid evaluator upserted-section [module-id {::spec/keys [module-score-points
                                                                                     module-score-accepted] :as module}]]
 
   (let [old-module (dba/module-score db {:module-id module-id
@@ -23,7 +23,7 @@
                                                      :section-score-id (:section-score-id upserted-section)})]
     (when (not= old-module upserted-module)
       (audit/log :app :admin
-                 :who evaluator
+                 :who user-oid
                  :op :create
                  :on :module-score
                  :before old-module
@@ -32,7 +32,7 @@
     (when upserted-module
       [module-id upserted-module])))
 
-(defn- upsert-section-and-module-scores [db evaluator participant-id exam-session-id [section-id {::spec/keys [section-score-accepted] :as section}]]
+(defn- upsert-section-and-module-scores [db user-oid evaluator participant-id exam-session-id [section-id {::spec/keys [section-score-accepted] :as section}]]
   (let [old-section (dba/section-score db {:section-id section-id
                                            :exam-session-id exam-session-id
                                            :participant-id participant-id})
@@ -47,11 +47,12 @@
                                                   :participant-id participant-id}))
         upserted-modules (into {} (mapv (partial upsert-module-scores
                                                  db
+                                                 user-oid
                                                  evaluator
                                                  upserted-section) (:modules section)))]
     (when (not= old-section upserted-section)
       (audit/log :app :admin
-                 :who evaluator
+                 :who user-oid
                  :op :create
                  :on :section-score
                  :before old-section
@@ -66,9 +67,11 @@
 (defn upsert-scores [{:keys [db]} request participant-id]
   (let [scores (get-in request [:params :scores])
         exam-session-id (get-in request [:params :exam-session-id])
+        user-oid (get-in request [:session :identity :oid])
         evaluator (get-in request [:session :identity :username])
         upserted-scores (into {} (mapv (partial upsert-section-and-module-scores
                                                 db
+                                                user-oid
                                                 evaluator
                                                 participant-id
                                                 exam-session-id) scores))]
@@ -78,7 +81,7 @@
        :body {:errors [:upsert-failed]}})))
 
 (defn delete-scores [{:keys [db]} {{:keys [scores]} :params :as request} participant-id]
-  (let [who (get-in request [:session :identity :username])
+  (let [who (get-in request [:session :identity :oid])
         section-score-ids (remove nil? (map ::spec/section-score-id (vals scores)))
         module-score-ids (remove nil? (mapv ::spec/module-score-id (mapcat (fn [s]
                                                                              (vals (:modules s))) (vals scores))))

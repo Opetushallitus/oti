@@ -58,7 +58,7 @@
                :after new-data
                :msg "Generating participant diploma.")))
 
-(defn generate-diplomas [{:keys [db] :as config} {::os/keys [participant-ids signer signer-title]} {{authority :username} :identity}]
+(defn generate-diplomas [{:keys [db] :as config} {::os/keys [participant-ids signer signer-title]} {{authority :oid} :identity}]
   (let [users (->> (map #(user-data/participant-data config %) participant-ids)
                    (remove nil?)
                    (filter #(not= (:filter %) :incomplete)))

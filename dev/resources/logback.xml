@@ -70,7 +70,7 @@
     </logger>
 
     <!-- Auditlog -->
-    <logger name="fi.vm.sade.auditlog.Audit" level="INFO" additivity="false">
+    <logger name="oti.util.logging.audit" level="INFO" additivity="false">
         <appender-ref ref="AUDIT_ROLLING" />
     </logger>
 

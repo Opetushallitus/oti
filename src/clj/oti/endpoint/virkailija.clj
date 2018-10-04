@@ -38,7 +38,7 @@
                            (fetch-exam-session db (:id (dba/add-exam-session! db conformed))))]
     (if (seq new-exam-session)
       (do (audit/log :app :admin
-                     :who (get-in session [:identity :username])
+                     :who (get-in session [:identity :oid])
                      :op :create
                      :on :exam-session
                      :after new-exam-session
@@ -88,7 +88,7 @@
                                (fetch-exam-session db id))]
     (if updated-exam-session
       (do (audit/log :app :admin
-                     :who (get-in session [:identity :username])
+                     :who (get-in session [:identity :oid])
                      :op :update
                      :on :exam-session
                      :before exam-session
@@ -102,7 +102,7 @@
   (let [exam-session (fetch-exam-session db id)]
     (if (pos? (dba/remove-exam-session! db id))
       (do (audit/log :app :admin
-                     :who (get-in session [:identity :username])
+                     :who (get-in session [:identity :oid])
                      :op :delete
                      :on :exam-session
                      :before exam-session
