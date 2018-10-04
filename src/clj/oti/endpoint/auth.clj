@@ -22,6 +22,7 @@
                (some #(str/includes? % user-right-name)))
       (let [person (api/get-person-by-id api-client (:username user))]
         {:username username
+         :oid (:oidHenkilo person)
          :given-name (:etunimet person)
          :surname (:sukunimi person)}))))
 
