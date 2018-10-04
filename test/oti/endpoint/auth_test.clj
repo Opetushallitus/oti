@@ -26,6 +26,7 @@
                                      :authorities [{:authority "ROLE_APP_OTI_CRUD"}]}))
     (get-person-by-id [client external-user-id]
       {:etunimet "Testi"
+       :oidHenkilo "1.2.3.4"
        :kutsumanimi "Testi"
        :sukunimi "Testaaja"})))
 
@@ -49,6 +50,7 @@
           :headers {"Location" "/oti/virkailija/henkilot"}
           :body ""
           :session {:identity {:username "virkailija"
+                               :oid "1.2.3.4"
                                :given-name "Testi"
                                :surname "Testaaja"
                                :ticket "niceticket"}}}
