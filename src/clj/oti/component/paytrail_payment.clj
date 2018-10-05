@@ -1,6 +1,6 @@
 (ns oti.component.paytrail-payment
   (:require [com.stuartsierra.component :as component]
-            [oti.boundary.payment :as pmt]
+            [oti.boundary.payment :as payment-util]
             [clojure.spec.alpha :as s]
             [oti.spec :as os]
             [clojure.string :as str]
@@ -59,7 +59,7 @@
   component/Lifecycle
   (start [this] this)
   (stop [this] this)
-  pmt/Payment
+  payment-util/Payment
   (form-data-for-payment [payment-component params]
     (generate-form-data payment-component params))
   (authentic-response? [payment-component form-data]
