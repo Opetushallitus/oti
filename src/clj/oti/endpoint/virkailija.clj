@@ -192,7 +192,6 @@
 
 (defn- participant-routes [config]
   (routes
-    (GET "/throw" [] (throw (Exception. "VIRHE!")))
     (GET "/participant-search" [q filter] (search-participant config q filter))
     (context "/diplomas" []
      (PUT "/" [] (partial generate-diplomas! config))
