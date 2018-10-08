@@ -48,7 +48,7 @@
      :restful-format   ring.middleware.format/wrap-restful-format
      :ring-logger      oti.util.logging.access/wrap-with-logger}
     :applied
-    [:not-found :restful-format :ring-defaults :ring-logger :log-exceptions :hide-errors :session]
+    [:not-found :restful-format :ring-defaults :log-exceptions :hide-errors :session :ring-logger]
     :arguments
     {:not-found   "Resource Not Found"
      :hide-errors "Internal Server Error"
