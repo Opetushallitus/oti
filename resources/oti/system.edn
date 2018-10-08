@@ -40,14 +40,15 @@
  {:app
   {:middleware
    {:functions
-    {:hide-errors      oti.util.logging.exception/wrap-hide-errors
+    {:hide-errors      duct.middleware.errors/wrap-hide-errors
+     :log-exceptions   oti.util.logging.exception/log-exceptions
      :not-found        duct.middleware.not-found/wrap-not-found
      :ring-defaults    ring.middleware.defaults/wrap-defaults
      :session          oti.util.session/wrap-session
      :restful-format   ring.middleware.format/wrap-restful-format
      :ring-logger      oti.util.logging.access/wrap-with-logger}
     :applied
-    [:not-found :restful-format :ring-defaults :ring-logger :hide-errors :session]
+    [:not-found :restful-format :ring-defaults :ring-logger :log-exceptions :hide-errors :session]
     :arguments
     {:not-found   "Resource Not Found"
      :hide-errors "Internal Server Error"

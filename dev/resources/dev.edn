@@ -2,7 +2,7 @@
  {:app
   {:middleware
    {:functions {}
-    :applied   ^:replace [:not-found :restful-format :ring-defaults :session :hide-errors]
+    :applied   ^:replace [:not-found :restful-format :ring-defaults :log-exceptions :hide-errors :session]
     :arguments {:session {:key "soroRfgsbxRTsnXc" :cookie-attrs {:max-age 28800
                                                                  :http-only true
                                                                  :secure false
