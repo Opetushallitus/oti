@@ -39,6 +39,8 @@
     (if (seq new-exam-session)
       (do (audit/log :app :admin
                      :who (get-in session [:identity :oid])
+                     :ip (get-in session [:identity :ip])
+                     :user-agent (get-in session [:identity :user-agent])
                      :op :create
                      :on :exam-session
                      :after new-exam-session
@@ -89,6 +91,8 @@
     (if updated-exam-session
       (do (audit/log :app :admin
                      :who (get-in session [:identity :oid])
+                     :ip (get-in session [:identity :ip])
+                     :user-agent (get-in session [:identity :user-agent])
                      :op :update
                      :on :exam-session
                      :before exam-session
@@ -103,6 +107,8 @@
     (if (pos? (dba/remove-exam-session! db id))
       (do (audit/log :app :admin
                      :who (get-in session [:identity :oid])
+                     :ip (get-in session [:identity :ip])
+                     :user-agent (get-in session [:identity :user-agent])
                      :op :delete
                      :on :exam-session
                      :before exam-session

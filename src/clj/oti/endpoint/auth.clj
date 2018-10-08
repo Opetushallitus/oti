@@ -8,7 +8,8 @@
             [clojure.tools.logging :refer [info error]]
             [clojure.string :as str]
             [oti.util.auth :as auth])
-  (:import [java.net URLEncoder]))
+  (:import [java.net URLEncoder]
+           [fi.vm.sade.javautils.http HttpServletRequestUtils]))
 
 (def oti-cas-path "/oti/auth/cas")
 (def user-right-name "ROLE_APP_OTI_CRUD")
@@ -26,7 +27,7 @@
          :given-name (:etunimet person)
          :surname (:sukunimi person)}))))
 
-(defn- cas-login [cas-config login-callback api-client ticket path]
+(defn- cas-login [cas-config login-callback api-client ticket path ip user-agent]
   (info "validating ticket" ticket)
   (if-let [username (cas/username-from-valid-service-ticket cas-config login-callback ticket)]
     (if-let [user (fetch-authorized-user api-client username)]
@@ -34,7 +35,7 @@
         (auth/login ticket)
         (info "user" user "logged in")
         (-> (resp/redirect (or path "/oti/virkailija"))
-            (assoc :session {:identity (assoc user :ticket ticket)})))
+            (assoc :session {:identity (assoc user :ip ip :user-agent user-agent :ticket ticket)})))
       (do
         (info "username" username "tried to log in but does not have the correct role in kayttooikeus-service")
         {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))
@@ -44,11 +45,11 @@
       ; want to cause an infinite redirect loop by redirecting the user back to the CAS from here.
       {:status 500 :body "Pääsyoikeuksien tarkistus epäonnistui" :headers {"Content-Type" "text/plain; charset=utf-8"}})))
 
-(defn- login [cas-config url-helper api-client ticket path]
+(defn- login [cas-config url-helper api-client ticket path ip user-agent]
   (let [login-callback (str (url url-helper "oti.cas-auth") (when path (str "?path=" path)))]
     (try
       (if ticket
-        (cas-login cas-config login-callback api-client ticket path)
+        (cas-login cas-config login-callback api-client ticket path ip user-agent)
         (redirect-to-cas-login-page (url url-helper "cas.login-uri") login-callback))
       (catch Exception e
         (error "Error in login ticket handling" e)
@@ -71,8 +72,14 @@
 
 (defn auth-endpoint [{:keys [api-client cas url-helper]}]
   (context "/oti/auth" []
-    (GET "/cas" [ticket path]
-      (login cas url-helper api-client ticket path))
+    (GET "/cas" [ticket path :as request]
+      (login cas url-helper api-client ticket path
+        (HttpServletRequestUtils/getRemoteAddress
+          (get-in request [:headers "x-real-ip"])
+          (get-in request [:headers "x-forwarded-for"])
+          (:remote-addr request)
+          (:uri request))
+        (get-in request [:headers "user-agent"])))
     (POST "/cas" [logoutRequest]
       (cas-initiated-logout logoutRequest))
     (GET "/logout" {session :session}

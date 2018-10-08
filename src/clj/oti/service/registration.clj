@@ -326,10 +326,12 @@
            regs))
     []))
 
-(defn cancel-registration! [{:keys [db]} registration-id state {{authority :oid} :identity}]
+(defn cancel-registration! [{:keys [db]} registration-id state session]
   {:pre [(pos-int? registration-id) (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} state)]}
   (audit/log :app :admin
-             :who authority
+             :who (get-in session [:identity :oid])
+             :ip (get-in session [:identity :ip])
+             :user-agent (get-in session [:identity :user-agent])
              :on :registration
              :op :update
              :before {:id registration-id

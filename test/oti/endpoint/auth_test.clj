@@ -45,6 +45,12 @@
 (def path
   "/oti/virkailija/henkilot")
 
+(def ip
+  "127.0.0.1")
+
+(def user-agent
+  "IE6")
+
 (deftest login-works-with-correct-user
   (is (= {:status 302
           :headers {"Location" "/oti/virkailija/henkilot"}
@@ -53,20 +59,22 @@
                                :oid "1.2.3.4"
                                :given-name "Testi"
                                :surname "Testaaja"
+                               :ip "127.0.0.1"
+                               :user-agent "IE6"
                                :ticket "niceticket"}}}
-         (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub valid-ticket path))))
+         (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub valid-ticket path ip user-agent))))
 
 (deftest login-is-denied-for-invalid-ticket
   (is (= {:status 500, :body "Pääsyoikeuksien tarkistus epäonnistui", :headers {"Content-Type" "text/plain; charset=utf-8"}}
-        (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub "invalid" path))))
+        (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub "invalid" path ip user-agent))))
 
 (deftest login-is-denied-for-user-without-correct-role
   (is (= 403
-         (:status (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub ticket-for-wrong-user path)))))
+         (:status (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub ticket-for-wrong-user path ip user-agent)))))
 
 (deftest logout-works
   (let [request {:session {:identity {:ticket valid-ticket :username valid-user}}}]
-    (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub valid-ticket path)
+    (#'oti.endpoint.auth/login cas-stub url-helper api-client-stub valid-ticket path ip user-agent)
     (is (auth-util/logged-in? request))
     (is (= {:status 302, :headers {"Location" "https://itest-virkailija.oph.ware.fi/cas/logout?service=http%3A%2F%2Flocalhost%3A3000%2Foti%2Fauth%2Fcas"}, :body "", :session {:identity nil}}
            (#'oti.endpoint.auth/logout url-helper (:session request))))
