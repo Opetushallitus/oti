@@ -1,8 +1,8 @@
 {:config
  {:app
   {:middleware
-   {:functions {:stacktrace ring.middleware.stacktrace/wrap-stacktrace}
-    :applied   ^:replace [:not-found :restful-format :ring-defaults :stacktrace :session]
+   {:functions {}
+    :applied   ^:replace [:not-found :restful-format :ring-defaults :session :hide-errors]
     :arguments {:session {:key "soroRfgsbxRTsnXc" :cookie-attrs {:max-age 28800
                                                                  :http-only true
                                                                  :secure false
