@@ -23,7 +23,8 @@
       (registration-response :error "registration-payment-error" session))))
 
 (defn- cancel-payment [config {:keys [params session]}]
-  (let [lang (payment-service/get-participant-language-by-order-number config order-number)]
+  (let [{order-number :ORDER_NUMBER} params
+        lang (payment-service/get-participant-language-by-order-number config order-number)]
     (if (payment-service/cancel-payment! config params)
       (registration-response :error "registration-payment-cancel" session lang)
       (registration-response :error "registration-payment-cancel" session))))
