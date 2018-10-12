@@ -28,7 +28,6 @@
                  [duct/ragtime-component "0.1.4"]
                  [suspendable "0.1.1"]
                  [http-kit "2.2.0"]
-                 [org.clojars.pntblnk/clj-ldap "0.0.12"]
                  [cheshire "5.6.3"]
                  [webjure/jeesql "0.4.6"]
                  [ring-logger "0.7.7"]

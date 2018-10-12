@@ -5,10 +5,11 @@
 (defprotocol UrlResolver
   (url [this key] [this key params]))
 
-(defn- oph-properties [{:keys [virkailija-host oti-host tunnistus-host]}]
+(defn- oph-properties [{:keys [virkailija-host oti-host tunnistus-host alb-host]}]
   (doto (OphProperties. (into-array String ["/oti/oti_url.properties"]))
     (.addDefault "host-virkailija" virkailija-host)
     (.addDefault "host-tunnistus" tunnistus-host)
+    (.addDefault "alb-host" alb-host)
     (.addDefault "oti-host" oti-host)))
 
 (defrecord UrlHelper []

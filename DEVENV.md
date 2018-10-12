@@ -42,11 +42,6 @@ Next, configure your local configuration.Add this to dev/resources/local.edn
 {:config {:db {:uri "jdbc:postgresql://localhost/oti"
                :username "admin"
                :password "admin"}
-          :ldap {:server "localhost"
-                 :port 31337
-                 :userdn <removed>
-                 :password <removed>
-                 :ssl false}
           :authentication {:oti-login-success-uri "http://localhost:3000/oti/auth/cas"}
           :cas {:user {:username <removed> :password <removed>}}
           :paytrail-payment {:oti-paytrail-uri "https://oti.local/oti/paytrail"}}}
@@ -96,12 +91,6 @@ Before you start the application, the following things need to be done:
 cd tools/dev-proxy && sudo node proxy.js
 ```
 You need to start the proxy as root, because it needs to be able to bind to port 80.
-
-3. Start an ssh tunnel for LDAP:
-```
-ssh -L31337:<ldap-address>:<ldap-port> <username>@<jump-machine-hostname>
-```
-This will bind the ldap service to localhost:31337, which was configured earlier in local.edn.
 
 That's the prerequisities. Now you're ready to start the application.
 
