@@ -115,9 +115,7 @@
                "Koeosiot, joihin osallistun")]
        (doall
          (for [{:keys [id name modules previously-attempted?]} sections]
-           (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))
-                 can-accredit-partially? (:can-accredit-partially? (get rules/rules-by-section-id id))
-                 attending? (contains? (attending-ids @form-data) id)]
+           (let [can-retry-partially? (:can-retry-partially? (get rules/rules-by-section-id id))]
              [:div.exam-section {:key id}
               [:h4 (str (t "section" "Osio") " " (@lang name))]
               [:div.row
@@ -136,32 +134,21 @@
                       [:label {:key (:id module)}
                        [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
                                 :on-click (module-selection form-data id (:id module) ::os/retry-modules)}]
-                       [:span (@lang (:name module))]]))])
-               (when (and can-accredit-partially? attending?)
-                 [:div.row.partial-accreditation
-                  [:span (str (t "accredited-for-following-modules"
-                                 "Olen saanut korvaavuuden seuraavista osa-alueista") ":")]
-                  [:div.modules
-                   (doall
-                     (for [module modules]
-                       [:label {:key (:id module)}
-                        [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                 :on-click (module-selection form-data id (:id module) ::os/accredit-modules)}]
-                        [:span (@lang (:name module))]]))]])]
+                       [:span (@lang (:name module))]]))])]
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
                          :on-click #(add-section form-data sections id {::os/accredit? true})}]
                 [:span (if (= (@lang name) "A")
                          (t "has-accreditation"
-                            "Olen saanut korvaavuuden")
+                            "Olen saanut korvaavuuden tai suorittanut osion aikaisemmin")
                          (t "has-accreditation-or-other-substitution"
-                            "Olen saanut korvaavuuden tai suorittanut esseellä koko osion"))]]]
+                            "olen saanut korvaavuuden tai suorittanut osion aikaisemmin"))]]]
               [:div.row
                [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
                          :on-click #(swap! form-data update ::os/sections dissoc id)}]
-                [:span (t "not-participating" "En osallistu")]]]])))
+                [:span (t "not-participating" "En osallistu/Osallistun myöhemmin")]]]])))
        (when-not (empty? (attending-ids @form-data))
          [:div.exam-section
           [:h4 (t "exam-question-language"
