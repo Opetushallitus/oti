@@ -92,8 +92,6 @@ cd tools/dev-proxy && sudo node proxy.js
 ```
 You need to start the proxy as root, because it needs to be able to bind to port 80.
 
-That's the prerequisities. Now you're ready to start the application.
-
 To start the local server and start developing, start a REPL:
 
 ```sh
@@ -136,19 +134,11 @@ etc.
 
 #### Compile front-end code and watch for changes using figwheel:
 
-For traditional approach, run
 ```
 lein figwheel
 ```
 
-Or even better, use our functions defined in local.clj, to run it in our existing repl session:
-```
-dev=> (local/start-fw)
-```
-And to stop it:
-```
-dev=> (local/stop-fw)
-```
+There are functions for running figwheel in the existing repl session with backend (local/start-fw) & (local/stop-fw) but this causes reloading backend changes to crash due to error in pikaday-component. 
 
 #### Running tests
 
@@ -166,5 +156,3 @@ But you can also run tests through Leiningen.
 lein test
 ```
 
-
-Now you should have a fully operational battle sta... erh, OTI system running locally. Happy times!

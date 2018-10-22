@@ -57,7 +57,7 @@
 
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
-            [lein-figwheel "0.5.8"]
+            [lein-figwheel "0.5.14"]
             [test2junit "1.2.2"]
             [lein-less "1.7.5"]
             [lein-ancient "0.6.10"]]
