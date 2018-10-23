@@ -25,7 +25,7 @@ install:
 
 script:
 - ./ci/build_travis.sh uberjar
-- export BASE_IMAGE="base-legacy:0.1"
+- export BASE_IMAGE="baseimage-fatjar:master"
 - ./ci-tools/common/pull-image.sh
 
 - mv target/uberjar/oti.jar $DOCKER_BUILD_DIR/artifact/oti.jar
