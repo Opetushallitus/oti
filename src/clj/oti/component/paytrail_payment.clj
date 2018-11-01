@@ -9,8 +9,8 @@
            [java.util Locale]
            [org.apache.commons.codec.digest DigestUtils]))
 
-(defn- format-number [n]
-  (String/format (Locale. "fi"), "%.2f", (to-array [(double n)])))
+(defn- format-number-us-locale [n]
+  (String/format (Locale. "us"), "%.2f", (to-array [(double n)])))
 
 (defn- calculate-authcode [{::os/keys [MERCHANT_ID LOCALE URL_SUCCESS URL_CANCEL
                                        AMOUNT ORDER_NUMBER REFERENCE_NUMBER MSG_SETTLEMENT_PAYER
@@ -31,7 +31,7 @@
                                :LOCALE       (case language-code :fi "fi_FI" :sv "sv_SE")
                                :URL_SUCCESS  (str oti-paytrail-uri "/success")
                                :URL_CANCEL   (str oti-paytrail-uri "/cancel")
-                               :AMOUNT       (format  "%.2f" (double amount))
+                               :AMOUNT       (format-number-us-locale amount)
                                :ORDER_NUMBER order-number
                                :REFERENCE_NUMBER reference-number
                                :MSG_SETTLEMENT_PAYER msg
