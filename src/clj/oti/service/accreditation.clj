@@ -18,7 +18,7 @@
   (select-keys user-data [:id :oidHenkilo :sections]))
 
 (defn approve-accreditations!
-  [{:keys [db] :as config} participant-id {:keys [accredited-sections accredited-modules]} {{accreditor :username} :identity}]
+  [{:keys [db] :as config} participant-id {:keys [accredited-sections accredited-modules]} {{accreditor :username oid :oid ip :ip user-agent :user-agent} :identity}]
   {:pre [(every? #(identity %) [participant-id accredited-sections accredited-modules accreditor])]}
   (let [db-params {:sections (ui-data->db-data participant-id accreditor accredited-sections)
                    :modules (ui-data->db-data participant-id accreditor accredited-modules)}
@@ -26,7 +26,9 @@
                                  (relevant-for-audit))]
     (dba/update-accreditations! db db-params)
     (audit/log :app :admin
-               :who accreditor
+               :who oid
+               :ip ip
+               :user-agent user-agent
                :op :update
                :on :accreditation
                :before existing-participant

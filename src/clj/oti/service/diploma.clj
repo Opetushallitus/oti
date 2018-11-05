@@ -46,19 +46,21 @@
          (diploma localisation user))]
       hiccup/html))
 
-(defn- write-audit-log! [old-user authority new-users-by-id]
+(defn- write-audit-log! [old-user session new-users-by-id]
   (let [old-data (select-keys old-user [:id :diploma])
         new-data (-> (get new-users-by-id (:id old-user))
                      (select-keys [:id :diploma]))]
     (audit/log :app :admin
-               :who authority
+               :who (get-in session [:identity :oid])
+               :ip (get-in session [:identity :ip])
+               :user-agent (get-in session [:identity :user-agent])
                :op :update
                :on :diploma
                :before old-data
                :after new-data
                :msg "Generating participant diploma.")))
 
-(defn generate-diplomas [{:keys [db] :as config} {::os/keys [participant-ids signer signer-title]} {{authority :username} :identity}]
+(defn generate-diplomas [{:keys [db] :as config} {::os/keys [participant-ids signer signer-title]} session]
   (let [users (->> (map #(user-data/participant-data config %) participant-ids)
                    (remove nil?)
                    (filter #(not= (:filter %) :incomplete)))
@@ -69,7 +71,7 @@
                (dba/update-participant-diploma-data! db))
           (let [updated-users (map #(user-data/participant-data config %) valid-ids)
                 users-by-id (reduce #(assoc %1 (:id %2) %2) {} updated-users)]
-            (dorun (map #(write-audit-log! % authority users-by-id) users))
+            (dorun (map #(write-audit-log! % session users-by-id) users))
             (-> (str/replace base-html "PAGE_CONTENT" (diplomas config updated-users))
                 (resp/response)
                 (resp/header "Content-Type" "text/html; charset=utf-8"))))

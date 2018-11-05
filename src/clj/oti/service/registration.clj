@@ -17,6 +17,7 @@
             [oti.db-states :as states])
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]
+           [fi.vm.sade.javautils.http HttpServletRequestUtils]
            [java.util Locale]))
 
 (defn- valid-address [data]
@@ -220,7 +221,7 @@
      :retry retry}))
 
 (defn register! [{:keys [db api-client paytrail-payment] :as config}
-                 {old-session :session {:keys [registration-data ui-lang]} :body-params}]
+                 {old-session :session {:keys [registration-data ui-lang]} :body-params headers :headers remote-addr :remote-addr uri :uri}]
   (let [conformed (s/conform ::os/registration registration-data)]
     (if-not (s/invalid? conformed)
       (let [lang (::os/language-code conformed)
@@ -248,6 +249,12 @@
                   registration-id (dba/register! db conformed external-user-id reg-state db-pmt existing-registration-id (= price-type :retry))]
               (audit/log :app :participant
                          :who external-user-id
+                         :ip (HttpServletRequestUtils/getRemoteAddress
+                           (get headers "x-real-ip")
+                           (get headers "x-forwarded-for")
+                           remote-addr
+                           uri)
+                         :user-agent (get headers "user-agent")
                          :op :create
                          :on :registration
                          :after {:id registration-id}
@@ -326,10 +333,12 @@
            regs))
     []))
 
-(defn cancel-registration! [{:keys [db]} registration-id state {{authority :username} :identity}]
+(defn cancel-registration! [{:keys [db]} registration-id state session]
   {:pre [(pos-int? registration-id) (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} state)]}
   (audit/log :app :admin
-             :who authority
+             :who (get-in session [:identity :oid])
+             :ip (get-in session [:identity :ip])
+             :user-agent (get-in session [:identity :user-agent])
              :on :registration
              :op :update
              :before {:id registration-id
