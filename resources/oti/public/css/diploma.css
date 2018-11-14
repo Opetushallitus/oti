@@ -16,6 +16,9 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 3px;
   font-size: 18pt;
+  text-align: center;
+  font-style: italic;
+  font-weight: bold;
 }
 
 h2 {
@@ -23,6 +26,7 @@ h2 {
   font-family: "Arial", sans-serif;
   font-size: 18pt;
   margin-top: 36pt;
+  text-align: center;
 }
 
 .participant {
@@ -32,6 +36,11 @@ h2 {
   font-size: 16pt;
   margin: 40pt 0;
   text-align: center;
+}
+
+.description {
+  border-top: 2pt solid black;
+  font-weight: bold;
 }
 
 .hetu {
@@ -62,4 +71,8 @@ h2 {
 
 .sections {
   padding-left: 18px;
+}
+
+.title {
+  margin-bottom: 20px;
 }
