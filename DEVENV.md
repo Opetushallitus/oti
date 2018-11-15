@@ -111,7 +111,7 @@ Run `go` to initiate and start the system.
 dev=> (go)
 :started
 ```
-By default this creates a web server at <http://localhost:3000>.
+By default this creates a web server at <http://localhost:3000>. Public site at <http://localhost:3000/oti/ilmoittaudu>.
 
 When you make changes to your source files, use `reset` to reload any
 modified files and reset the server (NOTE: not currently working. Tested on 18th Oct 2017).
