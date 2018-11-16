@@ -40,6 +40,7 @@
 (defmethod request-details :qa [_ _])
 (defmethod request-details :prod [_ _])
 
+;; req-headers are lower case here for some reason
 (defn- info-log [{:keys [logger] :as options}
                  {:keys [logger-start-time logger-end-time
                          request-method uri remote-addr] req-headers :headers :as req}
@@ -56,7 +57,8 @@
                                  "environment" (or env "-")
                                  "customer" "OPH" ;; ?
                                  "user-agent" (get req-headers "user-agent" "-")
-                                 "caller-id" "-" ;; ?
+                                 "Caller-Id" (get req-headers "caller-id" "-")
+                                 "clientSubSystemCode" (get req-headers "clientsubsystemcode" "-")
                                  "x-forwarded-for" (get req-headers "x-forwarded-for" "-")
                                  "remote-ip" remote-addr
                                  "session" "-"
