@@ -7,7 +7,8 @@
             [oti.service.user-data :as user-data]
             [oti.service.registration :as registration]
             [oti.util.logging.audit :as audit]
-            [oti.db-states :as states])
+            [oti.db-states :as states]
+            [oti.boundary.api-client-access :as api])
   (:import [java.time LocalDateTime]
            [java.net URLEncoder URLDecoder]))
 
@@ -25,13 +26,23 @@
           true)
       (error "Could not verify payment response message:" form-data))))
 
-(defn- send-confirmation-email! [config {:keys [ORDER_NUMBER] :as payment-data}]
+(defn- send-confirmation-email! [config {:keys [ORDER_NUMBER] :as payment-data} lang]
   (if (not-any? str/blank? [ORDER_NUMBER])
-    (some->> (user-data/participant-data config ORDER_NUMBER "fi") ;;TODO: lang previously came with VETUMA response, now it needs to be resolved another way
-             (registration/send-confirmation-email! config "fi")) ;;TODO: lang previously came with VETUMA response, now it needs to be resolved another way
+    (some->> (user-data/participant-data config ORDER_NUMBER lang)
+             (registration/send-confirmation-email! config lang))
     (error "Can't send confirmation email because of missing data. Payment data:" payment-data)))
 
-(defn confirm-payment! [config form-data]
+(defn- get-participant [api-client ext-reference-id]
+  (if-let [user (api/get-person-by-id api-client ext-reference-id)]
+    (:kieliKoodi (:asiointiKieli user) )
+      "fi" ))
+
+(defn get-participant-language-by-order-number [{:keys [api-client] :as config} order-number]
+  (let [participants (user-data/participant-data config order-number "fi")
+        ext-participant-id (:oidHenkilo participants)]
+    (if (string? ext-participant-id) (get-participant api-client ext-participant-id) "fi")))
+
+(defn confirm-payment! [config form-data lang]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)
     (audit/log :app :admin
                :on :payment
@@ -42,7 +53,7 @@
                        :state states/pmt-ok}
                :msg "Payment has been confirmed.")
     (try
-      (send-confirmation-email! config form-data)
+      (send-confirmation-email! config form-data lang)
       (catch Throwable t
         (error t "Could not send confirmation email. Payment data:" form-data)))
     :confirmed))

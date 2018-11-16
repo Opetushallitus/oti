@@ -15,14 +15,15 @@
         (assoc :session (assoc session :participant new-participant)))))
 
 (defn- confirm-payment [config {:keys [params session]}]
-  (let [{payment-id :PAYMENT_ID} params 
-        lang "fi"]  ;; TODO: lang was prevously included in VETUMA params, now we have to determine it some other way
-    (if (payment-service/confirm-payment! config params)
+  (let [{order-number :ORDER_NUMBER} params
+        lang (payment-service/get-participant-language-by-order-number config order-number) ]
+    (if (payment-service/confirm-payment! config params lang)
       (registration-response :success "registration-complete" session lang)
       (registration-response :error "registration-payment-error" session))))
 
 (defn- cancel-payment [config {:keys [params session]}]
-  (let [lang "fi"] ;; TODO: lang was previously included in VETUMA params, now we have to determine it some other way
+  (let [{order-number :ORDER_NUMBER} params
+        lang (payment-service/get-participant-language-by-order-number config order-number)]
     (if (payment-service/cancel-payment! config params)
       (registration-response :error "registration-payment-cancel" session lang)
       (registration-response :error "registration-payment-cancel" session))))
