@@ -177,7 +177,7 @@ HAVING
   COALESCE(bool_or(section_score_accepted), FALSE) IS FALSE AND
   (COALESCE(bool_or(module_score_accepted), FALSE) IS FALSE OR bool_and(s.executed_as_whole) IS TRUE) AND
   (max(session_date) IS NULL OR
-   (max(session_date) < current_date AND
+   (max(session_date + end_time) <= current_timestamp AT TIME ZONE 'Europe/Helsinki' AND
     (max(section_score_id) IS NOT NULL OR max(module_score_id) IS NOT NULL)))
 ORDER BY section_id, module_id;
 
