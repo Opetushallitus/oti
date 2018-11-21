@@ -137,8 +137,13 @@
                        [:span (@lang (:name module))]]))])]
               [:div.row
                [:label
+                [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation-essay"
+                         :on-click #(add-section form-data sections id {::os/accredit? true ::os/accreditation-type-id 2})}]
+                [:span (t "has-accreditation-essay" "Olen osallistunut Opetushallituksen järjestämälle opetushallinnon kurssille ja suoritan osion esseellä")]]]
+              [:div.row
+               [:label
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "accreditation"
-                         :on-click #(add-section form-data sections id {::os/accredit? true})}]
+                         :on-click #(add-section form-data sections id {::os/accredit? true ::os/accreditation-type-id 3})}]
                 [:span (if (= (@lang name) "A")
                          (t "has-accreditation"
                             "Olen saanut korvaavuuden tai suorittanut osion aikaisemmin")

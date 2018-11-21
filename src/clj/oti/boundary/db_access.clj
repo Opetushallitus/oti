@@ -92,8 +92,8 @@
 (defn- store-registration! [tx {::spec/keys [session-id language-code email sections]} external-user-id state existing-reg-id retry?]
   (let [conn tx]
     (q/insert-participant! conn {:external-user-id external-user-id :email email})
-    (doseq [[section-id _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
-      (q/insert-section-accreditation! conn {:section-id section-id :external-user-id external-user-id}))
+    (doseq [[section-id {::spec/keys [accreditation-type-id]} _] (filter (fn [[_ options]] (::spec/accredit? options)) sections)]
+      (q/insert-section-accreditation! conn {:section-id section-id :accreditation-type-id accreditation-type-id :external-user-id external-user-id}))
     (let [registarable-sections (remove (fn [[_ options]] (::spec/accredit? options)) sections)]
       (when (pos? (count registarable-sections))
         (if-let [reg-id (or existing-reg-id
