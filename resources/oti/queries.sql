@@ -55,7 +55,7 @@ SELECT es.id,
 FROM exam_session es
   JOIN exam_session_translation est ON es.id = est.exam_session_id
   LEFT JOIN registration r ON es.id = r.exam_session_id AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state)
-WHERE session_date > now() AND es.published = TRUE
+WHERE session_date > now() + INTERVAL '6 DAYS' AND es.published = TRUE
 GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
   est.street_address, est.language_code, est.other_location_info
 HAVING (es.max_participants - COUNT(r.id)) > 0
