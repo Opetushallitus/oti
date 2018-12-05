@@ -2,8 +2,12 @@
   (:require [oti.spec :as spec]))
 
 (def rules-by-section-id
-  {2 {:can-retry-partially? true
-      :can-accredit-partially? true}})
+  {
+    1 {:can-retry-partially? true
+       :can-accredit-partially? true},
+    2 {:can-retry-partially? true
+       :can-accredit-partially? true}
+  })
 
 (defn price-type-for-registration [registration]
   (let [retrying? (->> registration
