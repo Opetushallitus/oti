@@ -535,8 +535,8 @@ ORDER BY created DESC, sent DESC;
 -- ACCREDITATION
 
 -- name: insert-section-accreditation!
-INSERT INTO accredited_exam_section (section_id, participant_id)
-  SELECT :section-id, id FROM participant WHERE ext_reference_id = :external-user-id;
+INSERT INTO accredited_exam_section (section_id, participant_id, accreditation_type_id)
+  SELECT :section-id, id, :accreditation-type-id FROM participant WHERE ext_reference_id = :external-user-id;
 
 -- name: insert-module-accreditation!
 INSERT INTO accredited_exam_module (module_id, participant_id)
