@@ -14,9 +14,13 @@
 
 (def base-html (->> (io/resource "oti/html-templates/diploma.html")
                     slurp))
+(def now (java.time.LocalDateTime/now))
 
 (defn- db-date->str [date]
   (-> date (.toLocalDate) (.format formatter)))
+
+(defn- localdate [date]
+       (-> date (.format formatter)))
 
 (defn- diploma [localisation {:keys [etunimet sukunimi hetu language diploma]}]
   [:div.diploma
@@ -38,7 +42,7 @@
        [:li (t localisation language (str "diploma-module-lead-" id))])]]
    [:div.place-and-date
     [:span.place (t localisation language "in-helsinki")]
-    [:span.date (db-date->str (:date diploma))]]
+    [:span.date (localdate now)]]
    [:div.signature
     [:div.signer
      (:signer diploma)]
