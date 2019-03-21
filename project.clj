@@ -61,7 +61,7 @@
             [lein-figwheel "0.5.14"]
             [test2junit "1.2.2"]
             [lein-less "1.7.5"]
-            [lein-ancient "0.6.10"]]
+            [lein-ancient "0.6.15"]]
 
   :main ^:skip-aot oti.main
   :target-path "target/%s/"
