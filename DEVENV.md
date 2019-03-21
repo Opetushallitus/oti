@@ -10,21 +10,8 @@
 
 For convenience, use Docker:
 ```
-docker run --name postgres-oti -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -p 5432:5432 -d postgres
+docker run --name postgres-oti -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -e POSTGRES_DB=oti -p 5432:5432 -d postgres
 ```
-
-Connect with psql:
-
-```
-psql -h localhost -U admin -W
-```
-
-Create oti database:
-```
-create database oti;
-```
-
-That's it.
 
 ### 2. Set up application
 
