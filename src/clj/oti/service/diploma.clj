@@ -22,7 +22,7 @@
 (defn- localdate [date]
        (-> date (.format formatter)))
 
-(defn- diploma [localisation {:keys [etunimet sukunimi hetu language diploma]}]
+(defn- diploma [localisation {:keys [etunimet sukunimi hetu language diploma]} signerinfo]
   [:div.diploma
    [:h1 (t localisation language "diploma")]
    [:h2 (t localisation language "of-ot")]
@@ -45,14 +45,14 @@
     [:span.date (localdate now)]]
    [:div.signature
     [:div.signer
-     (:signer diploma)]
+     (:signer signerinfo)]
     [:div.signer-title
-     (:title diploma)]]])
+     [:span.title (get (get signerinfo :title ) language)]]]])
 
-(defn- diplomas [{:keys [localisation]} users]
+(defn- diplomas [{:keys [localisation]} users signerinfo]
   (-> [:div.diplomas
        (for [user users]
-         (diploma localisation user))]
+         (diploma localisation user signerinfo))]
       hiccup/html))
 
 (defn- write-audit-log! [old-user session new-users-by-id]
@@ -70,7 +70,8 @@
                :msg "Generating participant diploma.")))
 
 (defn generate-diplomas [{:keys [db] :as config} {::os/keys [participant-ids signer signer-title]} session]
-  (let [users (->> (map #(user-data/participant-data config %) participant-ids)
+      (let [signerinfo {:signer signer, :title signer-title}]
+      (let [users (->> (map #(user-data/participant-data config %) participant-ids)
                    (remove nil?)
                    (filter #(not= (:filter %) :incomplete)))
         valid-ids (map :id users)]
@@ -81,11 +82,11 @@
           (let [updated-users (map #(user-data/participant-data config %) valid-ids)
                 users-by-id (reduce #(assoc %1 (:id %2) %2) {} updated-users)]
             (dorun (map #(write-audit-log! % session users-by-id) users))
-            (-> (str/replace base-html "PAGE_CONTENT" (diplomas config updated-users))
+            (-> (str/replace base-html "PAGE_CONTENT" (diplomas config updated-users signerinfo))
                 (resp/response)
                 (resp/header "Content-Type" "text/html; charset=utf-8"))))
       (-> (resp/not-found "Käyttäjää ei löydy tai tutkintoa ei ole suoritettu.")
-          (resp/header "Content-Type" "text/plain; charset=utf-8")))))
+          (resp/header "Content-Type" "text/plain; charset=utf-8"))))))
 
 (defn default-signer-title [{:keys [localisation]}]
   {:fi (t localisation :fi "diploma-signer-title")
