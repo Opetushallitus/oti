@@ -34,7 +34,7 @@
    :before clojure datastructure before (ie. the entity being changed)
    :after resulting clojure datastructure
    :msg extra message field providing information about the operation."
-  [& {:keys [app who ip session user-agent op on before after msg]}]
+  [& {:keys [app who ip session user-agent op on before after msg participant]}]
   (let [[only-before only-after in-both] (data/diff before after)
         removed (if (nil? only-before) nil (.parse (JsonParser.) (json/generate-string only-before)))
         added (if (nil? only-after) nil (.parse (JsonParser.) (json/generate-string only-after)))
@@ -59,8 +59,10 @@
              :accreditation "ACCREDITATION"
              :diploma       "DIPLOMA"
              (throw (IllegalArgumentException. "Unknown or missing resource type.")))
+
         target (.build (doto (Target$Builder.)
           (.setField "resource" on)
+          (.setField "participant" (get participant :oidHenkilo))
           (.setField "message" msg)))
         changes (.build (doto (Changes$Builder.)
           (.removed removed)
