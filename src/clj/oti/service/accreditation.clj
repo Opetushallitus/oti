@@ -33,4 +33,5 @@
                :on :accreditation
                :before existing-participant
                :after (-> (user-data/participant-data config participant-id) relevant-for-audit)
-               :msg "Updating user accreditations.")))
+               :msg (str "Updating user accreditations.")
+               :participant existing-participant)))

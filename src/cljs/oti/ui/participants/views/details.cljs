@@ -16,6 +16,12 @@
     (and score-ts (not accepted?)) "Hylätty"
     :else "Ei arvosteltu"))
 
+(defn- exam-noscore-result-label [score-ts accepted?]
+   (cond
+     accepted? "Hyväksytty"
+     (and score-ts (not accepted?)) "\u2014"
+     :else "\u2014"))
+
 (defn- format-number [number]
   (when (transit/bigdec? number)
     (-> number .-rep)))
@@ -56,7 +62,7 @@
            [:td.location (str city ", " street-address)]
            [:td.section-result (exam-label score-ts accepted)]
            (for [{:keys [id name]} module-titles]
-             [:td.score {:key id :title name} (or (format-number (get-in modules [id :points])) "\u2014")])
+             [:td.score {:key id :title name} (or (format-number (get-in modules [id :points])) (exam-noscore-result-label  score-ts accepted))])
            [:td.show-functions
             (when editable?
               [:i {:class icon-class :on-click click-fn :title "Näytä toiminnot"}])]]
