@@ -3,7 +3,7 @@
   {:middleware
    {:functions {}
     :applied   ^:replace [:not-found :restful-format :ring-defaults :log-exceptions :hide-errors :session :ring-logger]
-    :arguments {:session {:key "soroRfgsbxRTsnXc" :cookie-attrs {:max-age 28800
+    :arguments {:session {:key "soroRfgsbxRTsnXc" :cookie-attrs {:max-age 3600
                                                                  :http-only true
                                                                  :secure false
                                                                  :path "/oti"}}}}}

@@ -2,7 +2,7 @@
 {:config
  {:app
   {:middleware {:arguments {:session {:key "{{oti_session_cookie_key}}"
-                                           :cookie-attrs {:max-age 28800
+                                           :cookie-attrs {:max-age 3600
                                                           :http-only true
                                                           :secure true
                                                           :domain "{{oti_cookie_domain}}"
