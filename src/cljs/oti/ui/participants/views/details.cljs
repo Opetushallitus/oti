@@ -74,7 +74,7 @@
               [:button.button-small.button-danger
                {:on-click #(re-frame/dispatch
                              [:launch-confirmation-dialog "Haluatko varmasti poistaa ilmoittautumisen?" "Poista"
-                              :cancel-registration registration-id participant-id])}
+                              :cancel-registration registration-id states/reg-cancelled participant-id])}
                "Poista ilmoittautuminen"])
             (when (= states/reg-ok registration-state)
               [:span
