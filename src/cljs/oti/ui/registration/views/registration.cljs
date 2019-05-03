@@ -171,7 +171,7 @@
   (let [input-type (if (= ::os/email spec-kw) "email" "text")]
     [:label
      [:span.label (str (t (name spec-kw)) ":")]
-     (if (spec-kw participant-data)
+     (if-not (str/blank? (spec-kw participant-data))
        [:span.value (spec-kw participant-data)]
        [:input {:type input-type :name (name spec-kw) :value (spec-kw @form-data)
                 :on-change (partial set-val form-data spec-kw)
