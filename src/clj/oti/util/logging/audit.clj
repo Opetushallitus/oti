@@ -30,11 +30,12 @@
    :session id of the session
    :user-agent browser user agent
    :on resource operated on, one of domain entities like :exam or :registrationgs
+   :id domain entity id
    :op operation, one of :create :delete :update
    :before clojure datastructure before (ie. the entity being changed)
    :after resulting clojure datastructure
    :msg extra message field providing information about the operation."
-  [& {:keys [app who ip session user-agent op on before after msg participant]}]
+  [& {:keys [app who ip session user-agent op on id before after msg participant]}]
   (let [[only-before only-after in-both] (data/diff before after)
         removed (if (nil? only-before) nil (.parse (JsonParser.) (json/generate-string only-before)))
         added (if (nil? only-after) nil (.parse (JsonParser.) (json/generate-string only-after)))
@@ -62,6 +63,7 @@
 
         target (.build (doto (Target$Builder.)
           (.setField "resource" on)
+          (.setField "id" (str id))
           (.setField "participant" (get participant :oidHenkilo))
           (.setField "message" msg)))
         changes (.build (doto (Changes$Builder.)

@@ -257,7 +257,7 @@
                          :user-agent (get headers "user-agent")
                          :op :create
                          :on :registration
-                         :after {:id registration-id}
+                         :id registration-id
                          :msg "New registration")
               (registration-response 200 status msg-key session registration-id payment-form-data))
             (catch Throwable t
@@ -341,9 +341,8 @@
              :user-agent (get-in session [:identity :user-agent])
              :on :registration
              :op :update
-             :before {:id registration-id
-                      :state (dba/registration-state-by-id db registration-id)}
-             :after {:id    registration-id
-                     :state state}
+             :id registration-id
+             :before {:state (dba/registration-state-by-id db registration-id)}
+             :after {:state state}
              :msg "Registration cancelled.")
   (= 1 (dba/update-registration-state! db registration-id state)))
