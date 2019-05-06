@@ -58,7 +58,7 @@
                   :absolute-redirects     true
                   :content-types          true
                   :default-charset        "utf-8"}
-      :security  {:hsts true}}}}}
+      :security  {:hsts false}}}}}
   :http
   {:port   http-port
    :thread 80}
