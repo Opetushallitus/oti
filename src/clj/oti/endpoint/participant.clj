@@ -71,9 +71,11 @@
       ; Other or missing registration status, just return the session as is
       session)))
 
-(defn authenticate [{:keys [db api-client global-config] :as config} callback user-hetu automatic-address]
+(defn authenticate [{:keys [db api-client url-helper global-config] :as config} callback user-hetu automatic-address]
   (if (not= (:env global-config) "prod")
-    (if-not (str/blank? callback)
+    (if (and (not (str/blank? callback)) (or
+        (= (:env global-config) "dev")
+        (str/starts-with? callback (str (:oti-host url-helper) "/"))))
       (let [hetu (if (s/valid? ::os/hetu user-hetu) user-hetu (random-hetu))
             {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client hetu)
             {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
@@ -93,7 +95,7 @@
                                             :id               id
                                             ::os/email        email}
                                            address)})))
-      {:status 400 :body {:error "Missing callback uri"}})
+      {:status 400 :body {:error "Missing or invalid callback uri"}})
     {:status 403 :body {:error "Forbidden"}}))
 
 (defn- participant-base-url [{:keys [url-helper]} lang]
