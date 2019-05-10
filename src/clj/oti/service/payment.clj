@@ -47,10 +47,9 @@
     (audit/log :app :admin
                :on :payment
                :op :update
-               :before {:order-number (:ORDER_NUMBER form-data)
-                        :state states/pmt-unpaid}
-               :after {:order-number (:ORDER_NUMBER form-data)
-                       :state states/pmt-ok}
+               :id (:ORDER_NUMBER form-data)
+               :before {:state states/pmt-unpaid}
+               :after {:state states/pmt-ok}
                :msg "Payment has been confirmed.")
     (try
       (send-confirmation-email! config form-data lang)
@@ -63,10 +62,9 @@
     (audit/log :app :admin
                :on :payment
                :op :update
-               :before {:order-number (:ORDER_NUMBER form-data)
-                        :state states/pmt-unpaid}
-               :after {:order-number (:ORDER_NUMBER form-data)
-                       :state states/pmt-error}
+               :id (:ORDER_NUMBER form-data)
+               :before {:state states/pmt-unpaid}
+               :after {:state states/pmt-error}
                :msg "Payment has been cancelled.")
     :cancelled))
 
@@ -74,10 +72,9 @@
   (audit/log :app :admin
              :on :payment
              :op :update
-             :before {:order-number order_number
-                      :state state}
-             :after {:order-number order_number
-                     :state states/pmt-error}
+             :id order_number
+             :before {:state state}
+             :after {:state states/pmt-error}
              :msg "Payment has been cancelled.")
   (dba/cancel-registration-and-payment! db {:order-number order_number})
   :cancelled)
@@ -90,10 +87,9 @@
              :user-agent (get-in session [:identity :user-agent])
              :on :payment
              :op :update
-             :before {:order-number order-number
-                      :state states/pmt-error}
-             :after {:order-number order-number
-                     :state states/pmt-ok}
+             :id order-number
+             :before {:state states/pmt-error}
+             :after {:state states/pmt-ok}
              :msg "Payment and related registration has been approved.")
   (when (= 1 (dba/confirm-registration-and-payment! db {:order-number order-number}))
     (some->> (user-data/participant-data config order-number user-lang)

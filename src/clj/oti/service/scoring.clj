@@ -28,6 +28,7 @@
                  :user-agent (get-in session [:identity :user-agent])
                  :op :create
                  :on :module-score
+                 :id (get upserted-module :module-score-id)
                  :before old-module
                  :after upserted-module
                  :msg "Inserted or updated a module score."))
@@ -59,6 +60,7 @@
                  :user-agent (get-in session [:identity :user-agent])
                  :op :create
                  :on :section-score
+                 :id (get upserted-section :section-score-id)
                  :before old-section
                  :after upserted-section
                  :msg "Inserted or updated a section score."))
@@ -102,8 +104,7 @@
                               :user-agent (get-in session [:identity :user-agent])
                               :op :delete
                               :on :module-score
-                              :before {:module-score-id id}
-                              :after nil
+                              :id id
                               :msg "Deleting a module score.")))
           (doall (for [id section-score-ids]
                    (audit/log :app :admin
@@ -112,8 +113,7 @@
                               :user-agent (get-in session [:identity :user-agent])
                               :op :delete
                               :on :section-score
-                              :before {:section-score-id id}
-                              :after nil
+                              :id id
                               :msg "Deleting a section score.")))
           (response {:success true}))
       {:status 400

@@ -65,6 +65,7 @@
                :user-agent (get-in session [:identity :user-agent])
                :op :update
                :on :diploma
+               :id (get new-data :id)
                :before old-data
                :after new-data
                :msg "Generating participant diploma.")))

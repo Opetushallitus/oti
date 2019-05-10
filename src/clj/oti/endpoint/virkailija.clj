@@ -43,6 +43,7 @@
                      :user-agent (get-in session [:identity :user-agent])
                      :op :create
                      :on :exam-session
+                     :id (get new-exam-session ::os/id)
                      :after new-exam-session
                      :msg "Creating a new exam session.")
           (response {:success true}))
@@ -95,6 +96,7 @@
                      :user-agent (get-in session [:identity :user-agent])
                      :op :update
                      :on :exam-session
+                     :id (get exam-session ::os/id)
                      :before exam-session
                      :after updated-exam-session
                      :msg "Updating an existing exam session.")
@@ -111,6 +113,7 @@
                      :user-agent (get-in session [:identity :user-agent])
                      :op :delete
                      :on :exam-session
+                     :id (get exam-session ::os/id)
                      :before exam-session
                      :msg "Deleting an exam session.")
           (response {:success true}))
