@@ -97,7 +97,7 @@
                         start-before-end-time?))
 
 ;; registration
-(s/def ::email (s/and string? #(re-matches #".+@.+\..+" %)))
+(s/def ::email (s/and string? #(re-matches #"[^<>]+@[^<>]+\.[^<>]+" %)))
 (s/def ::retry any?)
 (s/def ::accredit? any?)
 (s/def ::retry-modules (s/* ::id))
