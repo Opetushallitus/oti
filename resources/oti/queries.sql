@@ -59,7 +59,7 @@ WHERE session_date > now() + INTERVAL '6 DAYS' AND es.published = TRUE
 GROUP BY es.id, es.session_date, es.start_time, es.end_time, es.max_participants, es.exam_id, es.published, est.city,
   est.street_address, est.language_code, est.other_location_info
 HAVING (es.max_participants - COUNT(r.id)) > 0
-ORDER BY es.session_date, es.start_time;
+ORDER BY es.session_date, es.start_time, es.id;
 
 -- name: select-exam-session-access-token
 SELECT access_token FROM exam_session WHERE id = :id;
