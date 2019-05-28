@@ -30,7 +30,9 @@
         (when lang
           [:select#exam-session-select
            {:value (or session-id "")
+            :class (when (= session-id "") "invalid")
             :on-change (partial set-val form-data ::os/session-id)}
+           (when (= session-id "") [:option {:value ""} ""])
            [:option {:value -1 :key -1} (t "no-exam-session" "En osallistu koetilaisuuteen")]
            (doall
              (for [{::os/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
@@ -206,7 +208,7 @@
       (when-not (or (nil? @exam-sessions)
                     (= -1 (::os/session-id @form-data))
                     (some #(= (::os/id %) (::os/session-id @form-data)) @exam-sessions))
-        (swap! form-data assoc ::os/session-id (-> @exam-sessions first ::os/id))
+        (swap! form-data assoc ::os/session-id "")
         (note-invalid-session-id! session-id))
       (let [invalids (invalid-keys form-data ::os/registration)]
         [:div.registration
