@@ -126,8 +126,9 @@
 
 (defn- cancel-obsolete-payments-and-registrations! [spec]
   (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-    (q/cancel-obsolete-payments! tx)
-    (q/cancel-obsolete-registrations! tx)))
+    (let [payment-ids (-> (q/cancel-obsolete-payments<! tx) :id)
+          registration-ids (-> (q/cancel-obsolete-registrations<! tx) :id)]
+      {:payment-ids payment-ids :registration-ids registration-ids})))
 
 (defn- snake-keys [p]
   (let [vals (vals p)

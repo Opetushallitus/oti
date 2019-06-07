@@ -97,5 +97,4 @@
     true))
 
 (defn cancel-obsolete-payments! [db]
-  (info "Cancelling obsolete payments")
-  (dba/cancel-obsolete-registrations-and-payments! db))
+  (info "Cancelled obsolete payments" (dba/cancel-obsolete-registrations-and-payments! db)))
