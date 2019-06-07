@@ -95,3 +95,7 @@
     (some->> (user-data/participant-data config order-number user-lang)
              (registration/send-confirmation-email! config user-lang))
     true))
+
+(defn cancel-obsolete-payments! [db]
+  (info "Cancelling obsolete payments")
+  (dba/cancel-obsolete-registrations-and-payments! db))

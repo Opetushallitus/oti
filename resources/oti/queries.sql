@@ -448,6 +448,12 @@ FROM section s
 WHERE st.language_code = 'fi' AND s.exam_id = 1
 ORDER BY section_id, module_id;
 
+-- name: cancel-obsolete-registrations!
+UPDATE registration
+SET state = 'CANCELLED'::registration_state
+WHERE state = 'INCOMPLETE'::registration_state
+  AND created < current_timestamp AT TIME ZONE 'Europe/Helsinki' - interval '1 hour';
+
 -- PAYMENT
 
 -- name: insert-payment!
@@ -500,6 +506,15 @@ SELECT id, paym_call_id, order_number, created, state FROM payment
 WHERE state = 'OK'::payment_state
       AND created >= (SELECT current_date - interval '60 days')
       AND payment_method LIKE 'L%';
+
+-- name: cancel-obsolete-payments!
+UPDATE payment SET state = 'ERROR'::payment_state
+WHERE state = 'UNPAID'::payment_state
+  AND (
+    registration_id IN (SELECT id FROM registration WHERE created < current_timestamp AT TIME ZONE 'Europe/Helsinki' - interval '1 hour')
+    OR
+    (registration_id IS NULL AND created < current_timestamp AT TIME ZONE 'Europe/Helsinki' - interval '1 hour')
+  );
 
 -- EMAIL
 

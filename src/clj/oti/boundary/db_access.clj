@@ -124,6 +124,11 @@
       (q-fn tx (assoc params :state payment-state))
       (q/update-registration-state-by-payment-order! tx (assoc params :state registration-state)))))
 
+(defn- cancel-obsolete-payments-and-registrations! [spec]
+  (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+    (q/cancel-obsolete-payments! tx)
+    (q/cancel-obsolete-registrations! tx)))
+
 (defn- snake-keys [p]
   (let [vals (vals p)
         keys (keys p)
@@ -151,6 +156,7 @@
   (all-participants-by-ext-references [db ext-references])
   (confirm-registration-and-payment! [db params])
   (cancel-registration-and-payment! [db params])
+  (cancel-obsolete-registrations-and-payments! [db])
   (cancel-payment-set-reg-incomplete! [db params])
   (update-registration-state! [db id state])
   (next-order-number! [db])
@@ -254,6 +260,8 @@
     (update-payment-and-registration-state! spec params states/pmt-ok states/reg-ok))
   (cancel-registration-and-payment! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params states/pmt-error states/reg-cancelled))
+  (cancel-obsolete-registrations-and-payments! [{:keys [spec]}]
+    (cancel-obsolete-payments-and-registrations! spec))
   (cancel-payment-set-reg-incomplete! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params states/pmt-error states/reg-cancelled))
   (update-registration-state! [{:keys [spec]} id state]
