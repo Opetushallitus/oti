@@ -159,7 +159,7 @@
                             (filter :accreditation-requested?)
                             (accreditation-map accreditation-types))})
 
-(defn accreditation-inputs [form-data accreditation-types form-key id]
+(defn accreditation-inputs [form-data accreditation-types form-key id participant-id]
   (let [{:keys [approved? type name]} (-> @form-data form-key (get id))
         label-text (-> (if (= :accredited-sections form-key)
                          "Osio"
@@ -187,12 +187,20 @@
 (defn participation-section [sections accreditation-types form-data participant-id]
   [:div.participation-section
    (doall
-     (for [{:keys [name accreditation-requested? sessions id module-titles accredited-modules]} sections]
+     (for [{:keys [name accreditation-requested? sessions id module-titles accredited-modules accreditation-date]} sections]
        [:div.section {:key id}
         [:h3 (str "Osa " name)]
         (when accreditation-requested?
           [:div.accreditations
-           [accreditation-inputs form-data accreditation-types :accredited-sections id]])
+           [accreditation-inputs form-data accreditation-types :accredited-sections id participant-id]
+           (when (= accreditation-date nil)
+           [:button.button-small.button-danger
+            {:on-click #(re-frame/dispatch
+                          [:launch-confirmation-dialog
+                          "Haluatko varmasti poistaa korvaavuuden?"
+                          "Poista korvaavuus"
+                          :delete-section-accreditation participant-id id])}
+            "Poista korvaavuus"])])
         (when (seq accredited-modules)
           [:div.accreditations
            [:h4 "Osa-alueiden korvaavudet"]
@@ -200,7 +208,7 @@
             (doall
               (for [{:keys [id]} accredited-modules]
                 [:div.module {:key id}
-                 [accreditation-inputs form-data accreditation-types :accredited-modules id]]))]])
+                 [accreditation-inputs form-data accreditation-types :accredited-modules id participant-id]]))]])
         [session-table sessions module-titles participant-id]]))])
 
 (defn format-address [{::os/keys [registration-street-address registration-zip registration-post-office]}]

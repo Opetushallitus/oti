@@ -111,6 +111,17 @@
                   :on-failure      [:bad-response]}}))
 
 (re-frame/reg-event-fx
+  :delete-section-accreditation
+  [re-frame/trim-v]
+  (fn [_ [participant-id section-id]]
+    {:http-xhrio {:method          :delete
+                  :uri             (routing/v-a-route "/participant/" participant-id "/section/" section-id "/accreditation")
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:load-participant-details participant-id]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
   :load-default-signer-title
   (fn [_ _]
     {:http-xhrio {:method          :get

@@ -30,12 +30,13 @@
    :session id of the session
    :user-agent browser user agent
    :on resource operated on, one of domain entities like :exam or :registrationgs
+   :ids resource identifications
    :id domain entity id
    :op operation, one of :create :delete :update
    :before clojure datastructure before (ie. the entity being changed)
    :after resulting clojure datastructure
    :msg extra message field providing information about the operation."
-  [& {:keys [app who ip session user-agent op on id before after msg participant]}]
+  [& {:keys [app who ip session user-agent op on id ids before after msg participant]}]
   (let [[only-before only-after in-both] (data/diff before after)
         removed (if (nil? only-before) nil (.parse (JsonParser.) (json/generate-string only-before)))
         added (if (nil? only-after) nil (.parse (JsonParser.) (json/generate-string only-after)))
@@ -61,16 +62,19 @@
              :diploma       "DIPLOMA"
              (throw (IllegalArgumentException. "Unknown or missing resource type.")))
 
-        target (.build (doto (Target$Builder.)
+        targetBuilder (doto (Target$Builder.)
           (.setField "resource" on)
           (.setField "id" (str id))
           (.setField "participant" (get participant :oidHenkilo))
-          (.setField "message" msg)))
+          (.setField "message" msg))
         changes (.build (doto (Changes$Builder.)
           (.removed removed)
           (.added added)))]
+    (when-not (nil? ids)
+      (doseq [[k v] ids]
+        (-> targetBuilder (.setField (name k) (str v)))))
     (condp = app
 
-      :admin       (.log AdminAudit       user op target changes)
-      :participant (.log ParticipantAudit user op target changes)
+      :admin       (.log AdminAudit       user op (.build targetBuilder) changes)
+      :participant (.log ParticipantAudit user op (.build targetBuilder) changes)
       (throw (IllegalArgumentException. "Unknown or missing app type.")))))
