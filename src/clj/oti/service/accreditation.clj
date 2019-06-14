@@ -37,12 +37,13 @@
                :participant existing-participant)))
 
 (defn delete-section-accreditation! [{:keys [db] :as config} participant-id section-id {{oid :oid ip :ip user-agent :user-agent} :identity}]
-  (dba/delete-section-accreditation! db participant-id section-id)
-  (audit/log :app :admin
-             :who oid
-             :ip ip
-             :user-agent user-agent
-             :op :delete
-             :on :accreditation
-             :ids {:participant-id participant-id :section-id section-id}
-             :msg (str "Delete user section accreditation.")))
+  (if (dba/delete-section-accreditation! db participant-id section-id)
+    (audit/log :app :admin
+              :who oid
+              :ip ip
+              :user-agent user-agent
+              :op :delete
+              :on :accreditation
+              :ids {:participant-id participant-id :section-id section-id}
+              :msg (str "Delete user section accreditation."))
+    (IllegalArgumentException. "Delete user section accreditation failed")))
