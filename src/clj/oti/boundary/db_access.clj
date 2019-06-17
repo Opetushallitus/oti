@@ -159,6 +159,8 @@
   (unpaid-payment-by-registration [db registration-id])
   (update-payment-order-number-and-ts! [db params])
   (paid-credit-card-payments [db])
+  (language-code-by-order-number [db order-number])
+  (participant-ext-reference-by-order-number [db order-number])
   (registration-state-by-id [db id])
   (add-email-by-participant-id! [db params])
   (unsent-emails-for-update [db tx])
@@ -273,6 +275,14 @@
     (q/update-payment-order-and-timestamp! spec params))
   (paid-credit-card-payments [{:keys [spec]}]
     (q/select-credit-card-payments spec))
+  (language-code-by-order-number [{:keys [spec]} order-number]
+    (-> (q/select-language-code-by-order-number spec {:order-number order-number})
+        first
+        :language_code))
+  (participant-ext-reference-by-order-number [{:keys [spec]} order-number]
+    (-> (q/select-participant-ext-reference-by-order-number spec {:order-number order-number})
+        first
+        :ext_reference_id))
   (registration-state-by-id [{:keys [spec]} id]
     (-> (q/select-registration-state-by-id spec {:id id})
         first
