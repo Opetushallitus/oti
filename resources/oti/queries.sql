@@ -389,6 +389,7 @@ WITH pp AS (
     SELECT id FROM participant WHERE ext_reference_id = :external-user-id
 ), session AS (
     SELECT es.id FROM exam_session es LEFT JOIN registration r ON es.id = r.exam_session_id
+                                                              AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state)
       WHERE es.id = :session-id
     GROUP BY (es.id) HAVING (es.max_participants - COUNT(r.id)) > 0
 )
