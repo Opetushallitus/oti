@@ -33,14 +33,14 @@
     (error "Can't send confirmation email because of missing data. Payment data:" payment-data)))
 
 (defn- get-participant [api-client ext-reference-id]
-  (if-let [user (api/get-person-by-id api-client ext-reference-id)]
-    (:kieliKoodi (:asiointiKieli user) )
-      "fi" ))
+  (get-in (api/get-person-by-id api-client ext-reference-id) [:asiointiKieli :kieliKoodi]))
 
-(defn get-participant-language-by-order-number [{:keys [api-client] :as config} order-number]
-  (let [participants (user-data/participant-data config order-number "fi")
-        ext-participant-id (:oidHenkilo participants)]
-    (if (string? ext-participant-id) (get-participant api-client ext-participant-id) "fi")))
+(defn get-participant-language-by-order-number [{:keys [db api-client]} order-number]
+  (or
+    (dba/language-code-by-order-number db order-number)
+    (some->> (dba/participant-ext-reference-by-order-number db order-number)
+             (get-participant api-client))
+    "fi"))
 
 (defn confirm-payment! [config form-data lang]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)

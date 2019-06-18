@@ -501,6 +501,18 @@ WHERE state = 'OK'::payment_state
       AND created >= (SELECT current_date - interval '60 days')
       AND payment_method LIKE 'L%';
 
+-- name: select-language-code-by-order-number
+SELECT r.language_code
+FROM payment p
+JOIN registration r ON r.id = p.registration_id
+WHERE p.order_number = :order-number;
+
+-- name: select-participant-ext-reference-by-order-number
+SELECT pp.ext_reference_id
+FROM payment p
+JOIN participant pp on pp.id = p.participant_id
+WHERE p.order_number = :order-number;
+
 -- EMAIL
 
 -- name: insert-email-by-participant-id!
