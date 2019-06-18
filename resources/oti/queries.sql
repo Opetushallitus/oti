@@ -564,6 +564,11 @@ UPDATE accredited_exam_module
 SET accreditor = :accreditor, accreditation_date = :date, accreditation_type_id = :type
 WHERE participant_id = :participant-id AND module_id = :id;
 
+-- name: delete-section-accreditation!
+DELETE FROM accredited_exam_section
+WHERE participant_id = :participant-id AND section_id = :section-id
+AND accreditation_date IS NULL;
+
 --name: exam-by-lang
 SELECT s.id AS section_id,
        s.executed_as_whole AS section_executed_as_whole,

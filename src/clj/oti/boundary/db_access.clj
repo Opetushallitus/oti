@@ -169,6 +169,7 @@
   (health-check [db])
   (accreditation-types [db])
   (update-accreditations! [db params])
+  (delete-section-accreditation! [db participant-id section-id])
   (add-token-to-exam-session! [db id token])
   (access-token-for-exam-session [db id])
   (access-token-matches-session? [db id token])
@@ -310,6 +311,8 @@
         (q/update-section-accreditation! tx section))
       (doseq [module (:modules params)]
         (q/update-module-accreditation! tx module))))
+  (delete-section-accreditation! [{:keys [spec]} participant-id section-id]
+    (q/delete-section-accreditation! spec {:participant-id participant-id :section-id section-id}))
   (add-token-to-exam-session! [{:keys [spec]} id token]
     (q/update-exam-session-with-token! spec {:id id :token token}))
   (access-token-for-exam-session [{:keys [spec]} id]

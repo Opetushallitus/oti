@@ -212,6 +212,9 @@
        (try (accreditation/approve-accreditations! config id params session)
             (catch AssertionError _
               {:status 400 :body {:error "Invalid parameters"}})))
+     (DELETE "/section/:section-id{[0-9]+}/accreditation" [section-id :<< as-int :as {session :session}]
+       (try (accreditation/delete-section-accreditation! config id section-id session)
+            (catch IllegalArgumentException _ {:status 400 :body {:error "Invalid parameters"}})))
      (POST "/scores" request
        (scoring/upsert-scores config request id))
      (DELETE "/scores" request
