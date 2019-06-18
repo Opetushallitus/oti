@@ -11,13 +11,12 @@
 (def vtj-address-opts {:type "yhteystietotyyppi4"
                        :origin "alkupera1"})
 
-(def domestic-address-opts {:type "yhteystietotyyppi1"
-                            :origin "alkupera4"})
+(def domestic-address-opts {:type "yhteystietotyyppi2"
+                            :origin "alkupera2"})
 
 (def address-mapping {"YHTEYSTIETO_KATUOSOITE" ::os/registration-street-address
                       "YHTEYSTIETO_POSTINUMERO" ::os/registration-zip
-                      ; XXX: "KUNTA" seems to be used for post office in other places
-                      "YHTEYSTIETO_KUNTA" ::os/registration-post-office})
+                      "YHTEYSTIETO_KAUPUNKI" ::os/registration-post-office})
 
 (defonce C (atom (cache/ttl-cache-factory {} :ttl cache-ttl)))
 
@@ -45,13 +44,13 @@
        (filter (fn [{:keys [ryhmaKuvaus ryhmaAlkuperaTieto]}]
                  (and (= ryhmaKuvaus type) (= ryhmaAlkuperaTieto origin))))))
 
-(defn- api-address->map [{:keys [yhteystiedot]}]
+(defn- api-address->map [{:keys [yhteystieto]}]
   (reduce (fn [address {:keys [yhteystietoTyyppi yhteystietoArvo]}]
             (if-let [key (address-mapping yhteystietoTyyppi)]
               (assoc address key yhteystietoArvo)
               address))
           {}
-          yhteystiedot))
+          yhteystieto))
 
 (defn- user-data-with-address [api-client oid]
   (when-let [user (api/get-person-by-id api-client oid)]
