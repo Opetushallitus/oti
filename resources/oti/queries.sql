@@ -389,6 +389,7 @@ WITH pp AS (
     SELECT id FROM participant WHERE ext_reference_id = :external-user-id
 ), session AS (
     SELECT es.id FROM exam_session es LEFT JOIN registration r ON es.id = r.exam_session_id
+                                                              AND r.state IN ('INCOMPLETE'::registration_state, 'OK'::registration_state)
       WHERE es.id = :session-id
     GROUP BY (es.id) HAVING (es.max_participants - COUNT(r.id)) > 0
 )
@@ -447,6 +448,13 @@ FROM section s
   LEFT JOIN module_translation mt ON mt.module_id = m.id AND mt.language_code = 'fi'
 WHERE st.language_code = 'fi' AND s.exam_id = 1
 ORDER BY section_id, module_id;
+
+-- name: cancel-obsolete-registrations<!
+UPDATE registration
+SET state = 'CANCELLED'::registration_state
+WHERE state = 'INCOMPLETE'::registration_state
+  AND created < current_timestamp AT TIME ZONE 'Europe/Helsinki' - interval '1 hour'
+RETURNING id;
 
 -- PAYMENT
 
@@ -512,6 +520,16 @@ SELECT pp.ext_reference_id
 FROM payment p
 JOIN participant pp on pp.id = p.participant_id
 WHERE p.order_number = :order-number;
+
+-- name: cancel-obsolete-payments<!
+UPDATE payment SET state = 'ERROR'::payment_state
+WHERE state = 'UNPAID'::payment_state
+  AND (
+    registration_id IN (SELECT id FROM registration WHERE created < current_timestamp AT TIME ZONE 'Europe/Helsinki' - interval '1 hour')
+    OR
+    (registration_id IS NULL AND created < current_timestamp AT TIME ZONE 'Europe/Helsinki' - interval '1 hour')
+  )
+RETURNING id;
 
 -- EMAIL
 
