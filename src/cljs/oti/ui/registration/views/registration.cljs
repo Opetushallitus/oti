@@ -246,7 +246,7 @@
                [:div.section.price
                 [:div.right
                  [:span (str (t "participation-cost"
-                                "Osallistumismaksu") " " (format-price price))]]]
+                                "Tutkintomaksu") " " (format-price price))]]]
                [:div.section.buttons
                 [:div.left
                  (abort-button @lang)]
