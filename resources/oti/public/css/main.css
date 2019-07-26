@@ -803,7 +803,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   width: 200px;
 }
 .participant-details table .section-result {
-  width: 120px;
+  width: 80px;
 }
 .participant-details table th {
   vertical-align: bottom;
@@ -811,9 +811,8 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 .participant-details table .score,
 .participant-details table .module-name {
-  text-align: left;
+  text-align: right;
 }
-
 .participant-details table .show-functions {
   width: 0;
   padding: 0;
