@@ -164,6 +164,7 @@
   (unpaid-payments [db])
   (unpaid-payments-by-participant [db external-user-id])
   (unpaid-payment-by-registration [db registration-id])
+  (paid-payments [db start-date end-date])
   (update-payment-order-number-and-ts! [db params])
   (paid-credit-card-payments [db])
   (language-code-by-order-number [db order-number])
@@ -281,6 +282,8 @@
   (unpaid-payment-by-registration [{:keys [spec]} registration-id]
     (-> (q/select-unpaid-payment-by-registration-id spec {:registration-id registration-id})
         first))
+  (paid-payments [{:keys [spec]} start-date end-date]
+    (q/select-paid-payments spec {:start-date start-date :end-date end-date}))
   (update-payment-order-number-and-ts! [{:keys [spec]} params]
     (q/update-payment-order-and-timestamp! spec params))
   (paid-credit-card-payments [{:keys [spec]}]

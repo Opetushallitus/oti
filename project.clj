@@ -10,6 +10,7 @@
                  [org.clojure/core.async "0.3.443"]
                  [org.clojure/java.jdbc "0.6.1"]
                  [org.clojure/tools.logging "0.3.1"]
+                 [org.clojure/data.csv "0.1.4"]
                  [ch.qos.logback/logback-classic "1.1.11"]
                  [com.stuartsierra/component "0.3.2"]
                  [compojure "1.6.0"]

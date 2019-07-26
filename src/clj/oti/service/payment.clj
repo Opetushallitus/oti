@@ -42,6 +42,20 @@
              (get-participant api-client))
     "fi"))
 
+(defn get-paid-payments [{:keys [db api-client]} start-date end-date query]
+  (when-let [payments (seq (dba/paid-payments db start-date end-date))]
+    (let [oids (map :ext_reference_id payments)
+          users-by-oid (user-data/api-user-data-by-oid api-client oids)]
+      (->> payments
+           (map (fn [{:keys [ext_reference_id] :as payment}]
+                  (-> (get users-by-oid ext_reference_id)
+                  (merge payment))))
+           (filter (fn [payment-and-user]
+                     (or
+                       (str/blank? query)
+                       (str/includes? (get payment-and-user :etunimet) query)
+                       (str/includes? (get payment-and-user :sukunimi) query))))))))
+
 (defn confirm-payment! [config form-data lang]
   (when (process-response! config form-data dba/confirm-registration-and-payment!)
     (audit/log :app :admin

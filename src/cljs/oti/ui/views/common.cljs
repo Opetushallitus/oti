@@ -1,6 +1,12 @@
 (ns oti.ui.views.common
-  (:require [oti.ui.i18n :refer [t]]
+  (:require [oti.ui.i18n :refer [t pikaday-i18n]]
             [re-frame.core :as re-frame]))
+
+(def default-pikaday-opts
+  {:pikaday-attrs {:format   "D.M.YYYY"
+                   :i18n     pikaday-i18n
+                   :firstDay 1}
+   :input-attrs   {:type "text"}})
 
 (defn loader [loading?]
   (when (or (nil? loading?) loading?)

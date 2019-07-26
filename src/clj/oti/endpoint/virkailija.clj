@@ -14,6 +14,7 @@
             [oti.service.registration :as registration]
             [clojure.string :as str]
             [oti.util.request :as req]
+            [oti.util.csv :as csv]
             [compojure.coercions :refer [as-int]]
             [oti.utils :as utils]
             [oti.service.diploma :as diploma]
@@ -56,6 +57,18 @@
   (-> (Instant/ofEpochMilli ts)
       (LocalDateTime/ofInstant timezone)
       .toLocalDate))
+
+(defn- to-start-date [start-date]
+  (if start-date
+    (-> (as-int start-date)
+        (ts->local-date))
+    (LocalDate/of 2016 1 1)))
+
+(defn- to-end-date [end-date]
+  (if end-date
+    (-> (as-int end-date)
+        (ts->local-date))
+    (LocalDate/of 9999 12 31)))
 
 (defn- exam-sessions [{:keys [db]} start-date end-date]
   (let [sts (as-int start-date)
@@ -153,6 +166,13 @@
     (diploma/generate-diplomas config diploma-data session)
     {:status 400 :body {:error "Invalid parameters"}}))
 
+(defn- paid-payments-as-csv [config start-date end-date query]
+  (let [payments (payment/get-paid-payments config start-date end-date query)]
+    {:status 200
+     :headers {"content-type" "text/csv"
+               "content-disposition" "attachment; filename=\"payments.csv\""}
+     :body (csv/csv-output payments)}))
+
 (defn- exam-by-language [{:keys [db]} lang]
   (if-let [exam (dba/exam-by-lang db lang)]
     (response exam)
@@ -229,6 +249,8 @@
       (if (payment/confirm-payment-manually! config order-number lang session)
         (response {:success true})
         (not-found {:error "Payment not found"})))
+    (GET "/payments" [start-date end-date query]
+      (paid-payments-as-csv config (to-start-date start-date) (to-end-date end-date) query))
     (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session {state :state} :body-params}]
       (if (registration/cancel-registration! config id state session)
         (response {:success true})
