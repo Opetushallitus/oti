@@ -7,6 +7,7 @@
             [oti.spec :as os]
             [clojure.string :as s]
             [cljs-time.core :as time]
+            [cljs-time.format :as ctf]
             [oti.routing :as routing]
             [oti.db-states :as states]))
 
@@ -31,8 +32,11 @@
     (str  rep " €")))
 
 (defn- past-session? [date]
-  (-> (time/to-default-time-zone date)
-      (time/before? (time/now))))
+  (cond
+    (string? date) (-> (ctf/parse (ctf/formatters :date) date)
+                       (time/before? (time/now)))
+    :else (-> (time/to-default-time-zone date)
+              (time/before? (time/now)))))
 
 (defn- session-rows
   [module-titles

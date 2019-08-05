@@ -5,7 +5,7 @@
                                    other_location_info max_participants published registration_count]}]
   #:oti.spec{:id id
              :exam-id exam_id
-             :session-date session_date
+             :session-date (str (.toLocalDate session_date))
              :start-time (str (.toLocalTime start_time))
              :end-time (str (.toLocalTime end_time))
              :street-address street_address
