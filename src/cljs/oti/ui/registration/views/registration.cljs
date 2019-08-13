@@ -20,6 +20,15 @@
   (when (pos-int? session-id)
     (re-frame/dispatch [:launch-confirmation-dialog (t "invalid-exam-session-selected")])))
 
+(defn- session-as-str [{::os/keys [id street-address city other-location-info session-date start-time end-time]} lang]
+  (if-not (= id nil)
+    (str (unparse-date session-date) " " start-time " - " end-time " "
+         (lang city) ", " (lang street-address) ", " (lang other-location-info))
+    (t "no-exam-session" "En osallistu/Osallistun myöhemmin")))
+
+(defn- section-as-str [{:keys [name]} lang]
+  (str (lang name)))
+
 (defn session-select [lang exam-sessions form-data]
   (if (seq exam-sessions)
     (let [{::os/keys [session-id]} @form-data]
@@ -35,10 +44,9 @@
            (when (= session-id "") [:option {:value ""} ""])
            [:option {:value -1 :key -1} (t "no-exam-session" "En osallistu koetilaisuuteen")]
            (doall
-             (for [{::os/keys [id street-address city other-location-info session-date start-time end-time]} exam-sessions]
-               [:option {:value id :key id}
-                (str (unparse-date session-date) " " start-time " - " end-time " "
-                     (lang city) ", " (lang street-address) ", " (lang other-location-info))]))])]])
+             (for [exam-session exam-sessions]
+               [:option {:value (::os/id exam-session) :key (::os/id exam-session)}
+                (session-as-str exam-session lang)]))])]])
     [:div.section.exam-session-info (t "no-available-sessions-info")]))
 
 (defn format-price [number]
@@ -210,7 +218,18 @@
                     (some #(= (::os/id %) (::os/session-id @form-data)) @exam-sessions))
         (swap! form-data assoc ::os/session-id "")
         (note-invalid-session-id! session-id))
-      (let [invalids (invalid-keys form-data ::os/registration)]
+      (let [invalids (invalid-keys form-data ::os/registration)
+            selected-session (->> @exam-sessions
+                                  (filter #(= (::os/id %) (::os/session-id @form-data)))
+                                  first)
+            selected-section-ids (->> (::os/sections @form-data)
+                                      (filter (fn [[section-id section]]
+                                                (not (= (::os/accredit? section) true))))
+                                      keys)
+            selected-sections (->> (:sections @registration-options)
+                                   (filter #(some (fn [selected-section-id]
+                                                    (= selected-section-id (:id %)))
+                                            selected-section-ids)))]
         [:div.registration
          [confirmation-dialog]
          (cond
@@ -221,7 +240,16 @@
            [:form.registration {:on-submit (fn [e]
                                              (.preventDefault e)
                                              (reset! submitted? true)
-                                             (re-frame/dispatch [:store-registration @form-data @lang]))}
+                                             (re-frame/dispatch [:launch-confirmation-dialog-with-cancel-fn
+                                                                 [:div
+                                                                   [:div (str (t "session" "Tapahtuma") ": " (session-as-str selected-session @lang))]
+                                                                   [:ul
+                                                                     (doall
+                                                                       (for [selected-section selected-sections]
+                                                                         [:li {:key (:id selected-section)} (section-as-str selected-section @lang)]))]]
+                                                                 (t "continue-to-payment" "Jatka maksamaan")
+                                                                 [:store-registration @form-data @lang]
+                                                                 (fn [] (reset! submitted? false))]))}
             [session-select @lang @exam-sessions form-data]
             [:div.section.participant
              [:h3 (t "particulars" "Henkilötiedot")]

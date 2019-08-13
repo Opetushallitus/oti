@@ -81,6 +81,15 @@
                                     :event (when rf-event (vec rf-event))})))
 
 (rf/reg-event-db
+  :launch-confirmation-dialog-with-cancel-fn
+  [trim-v]
+  (fn [db [question button-text rf-event cancel-fn]]
+    (assoc db :confirmation-dialog {:question question
+                                    :button-text button-text
+                                    :event rf-event
+                                    :cancel-fn cancel-fn})))
+
+(rf/reg-event-db
   :confirmation-cancel
   [trim-v]
   (fn [db _]
