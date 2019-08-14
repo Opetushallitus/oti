@@ -52,6 +52,7 @@
                         (get users-by-oid ext_reference_id)
                         {:sukunimi "" :etunimet "" :kutsumanimi "" :hetu ""})
                   (merge payment)
+                  (update :created #(.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") %))
                   (select-keys [:sukunimi :etunimet :kutsumanimi :hetu :amount :created]))))
            (filter (fn [payment-and-user]
                      (or
