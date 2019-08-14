@@ -49,7 +49,8 @@
       (->> payments
            (map (fn [{:keys [ext_reference_id] :as payment}]
                   (-> (get users-by-oid ext_reference_id)
-                  (merge payment))))
+                  (merge payment)
+                  (select-keys [:sukunimi :etunimet :kutsumanimi :hetu :amount :created]))))
            (filter (fn [payment-and-user]
                      (or
                        (str/blank? query)
