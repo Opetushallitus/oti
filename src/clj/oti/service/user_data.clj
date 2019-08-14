@@ -97,7 +97,7 @@
                (-> (select-keys (sec-or-mod-props "section" session-rows) [:score-ts :accepted])
                    (merge
                      {:modules (reduce #(assoc %1 (:id %2) %2) {} modules)
-                      :session-date session_date
+                      :session-date (str (.toLocalDate session_date))
                       :start-time (str (.toLocalTime start_time))
                       :end-time (str (.toLocalTime end_time))
                       :session-id exam_session_id

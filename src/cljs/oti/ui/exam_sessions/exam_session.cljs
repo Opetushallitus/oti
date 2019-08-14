@@ -11,6 +11,7 @@
             [cljsjs.moment]
             [cljsjs.moment.locale.fi]
             [cljs-pikaday.reagent :as pikaday]
+            [cljs-time.coerce :as ctc]
             [oti.ui.i18n :as i18n]))
 
 (defn input-element [form-data invalids type key lang placeholder & [on-change-fn]]
@@ -56,7 +57,9 @@
            (routing/p-route "/" id)))))
 
 (defn exam-session-panel [existing-data]
-  (let [pikaday-date (r/atom (or (::spec/session-date existing-data) tomorrow))
+  (let [pikaday-date (r/atom (or (some->> (::spec/session-date existing-data)
+                                          ctc/to-date)
+                                 tomorrow))
         form-data (r/atom (or existing-data base-form-data))
         edit-id (::spec/id existing-data)]
     (add-watch pikaday-date :update-form-data

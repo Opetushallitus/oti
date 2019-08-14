@@ -17,8 +17,11 @@
       (catch js/Error _))))
 
 (defn unparse-date [date]
-  (->> (time/to-default-time-zone date)
-       (ctf/unparse date-format)))
+  (cond
+    (string? date) (->> (ctf/parse (ctf/formatters :date) date)
+                        (ctf/unparse date-format))
+    :else (->> (time/to-default-time-zone date)
+               (ctf/unparse date-format))))
 
 (defn unparse-datetime [date]
   (when date
