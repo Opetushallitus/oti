@@ -6,6 +6,6 @@
 (defn csv-output [data]
   (let [headers (map name (keys (first data)))
         rows (map vals data)
-        stream-csv (fn [ostream] (csv/write-csv ostream (cons headers rows))
+        stream-csv (fn [ostream] (csv/write-csv ostream (cons headers rows) :separator \tab)
                                  (.flush ostream))]
     (ring-io/piped-input-stream #(stream-csv (io/make-writer % {})))))
