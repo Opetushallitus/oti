@@ -509,8 +509,7 @@ SELECT payment.id AS payment_id, payment.created, payment.type, payment.amount, 
 FROM payment
 JOIN participant ON participant.id = payment.participant_id
 WHERE payment.created BETWEEN :start-date AND :end-date
---AND payment.state = 'OK'::payment_state
-;
+AND payment.state = 'OK'::payment_state;
 
 -- name: select-credit-card-payments
 SELECT id, paym_call_id, order_number, created, state FROM payment
