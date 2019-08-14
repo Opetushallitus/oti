@@ -48,7 +48,9 @@
           users-by-oid (user-data/api-user-data-by-oid api-client oids)]
       (->> payments
            (map (fn [{:keys [ext_reference_id] :as payment}]
-                  (-> (get users-by-oid ext_reference_id)
+                  (-> (or
+                        (get users-by-oid ext_reference_id)
+                        {:sukunimi "" :etunimet "" :kutsumanimi "" :hetu ""})
                   (merge payment)
                   (select-keys [:sukunimi :etunimet :kutsumanimi :hetu :amount :created]))))
            (filter (fn [payment-and-user]
