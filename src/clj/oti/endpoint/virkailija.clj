@@ -169,7 +169,7 @@
 (defn- paid-payments-as-csv [config start-date end-date query]
   (let [payments (payment/get-paid-payments config start-date end-date query)]
     {:status 200
-     :headers {"content-type" "text/csv"
+     :headers {"content-type" "text/csv; charset=iso-8859-1"
                "content-disposition" "attachment; filename=\"payments.csv\""}
      :body (csv/csv-output payments)}))
 

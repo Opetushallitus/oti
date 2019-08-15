@@ -8,4 +8,4 @@
         rows (map vals data)
         stream-csv (fn [ostream] (csv/write-csv ostream (cons headers rows) :separator \;)
                                  (.flush ostream))]
-    (ring-io/piped-input-stream #(stream-csv (io/make-writer % {})))))
+    (ring-io/piped-input-stream #(stream-csv (io/make-writer % {:encoding "iso-8859-1"})))))
