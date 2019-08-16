@@ -6,6 +6,7 @@
             [oti.ui.participants.views.search :as search]
             [oti.ui.participants.views.details :as details]
             [oti.ui.scoring.views :as scoring]
+            [oti.ui.reporting.views :as reporting]
             [oti.ui.routes :refer [virkailija-routes]]
             [oti.ui.views.common :refer [flash-message confirmation-dialog]]
             [oti.routing :as routing]))
@@ -18,6 +19,7 @@
 (defmethod panels :participant-search-panel [] search/search-panel)
 (defmethod panels :participant-details-panel [] details/participant-details-panel)
 (defmethod panels :scoring-panel [] scoring/scoring-panel)
+(defmethod panels :reporting-panel [] reporting/reporting-panel)
 (defmethod panels :default [] :div)
 
 (defn show-panel [panel-name data]

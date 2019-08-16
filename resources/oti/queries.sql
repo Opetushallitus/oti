@@ -503,6 +503,14 @@ SELECT p.id, p.paym_call_id, p.order_number, p.created, p.amount, p.reference, p
 FROM payment p
 WHERE p.state = 'UNPAID'::payment_state AND p.registration_id = :registration-id;
 
+-- name: select-paid-payments
+SELECT payment.id AS payment_id, payment.created, payment.type, payment.amount, payment.payment_method,
+       participant.id AS participant_id, participant.ext_reference_id, participant.email
+FROM payment
+JOIN participant ON participant.id = payment.participant_id
+WHERE payment.created BETWEEN :start-date AND :end-date
+AND payment.state = 'OK'::payment_state;
+
 -- name: select-credit-card-payments
 SELECT id, paym_call_id, order_number, created, state FROM payment
 WHERE state = 'OK'::payment_state
