@@ -16,6 +16,7 @@
             [oti.service.user-data :as user-data]
             [oti.db-states :as states])
   (:import [java.time LocalDateTime]
+           [java.time LocalDate]
            [java.time.format DateTimeFormatter]
            [fi.vm.sade.javautils.http HttpServletRequestUtils]
            [java.util Locale]))
@@ -291,7 +292,7 @@
 (defn- format-date-and-time [{:keys [session-date start-time end-time]}]
   (if session-date
     (str
-      (-> session-date .toLocalDate (.format formatter))
+      (-> (LocalDate/parse session-date) (.format formatter))
       " " start-time " - " end-time)
     "-"))
 
