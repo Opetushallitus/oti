@@ -29,6 +29,24 @@
 (defn- section-as-str [{:keys [name]} lang]
   (str (lang name)))
 
+(defn- selected-section-as-str [section selected-section]
+  (cond
+    (and (not (= selected-section nil))
+        (= (::os/accredit? selected-section) true)
+        (= (::os/accreditation-type-id selected-section) 2))
+      (t "has-accreditation-essay"
+        "Olen osallistunut Opetushallituksen järjestämälle opetushallinnon kurssille ja suoritan osion esseellä")
+    (and (not (= selected-section nil))
+        (= (::os/accredit? selected-section) true)
+        (= (::os/accreditation-type-id selected-section) 3))
+      (t "has-accreditation" "Olen saanut korvaavuuden tai suorittanut osion aikaisemmin")
+    (not (= selected-section nil))
+      (if (:previously-attempted? section)
+        (t "retake-the-exam" "Osallistun uusintakokeeseen")
+        (t "participate-exam" "Osallistun kokeeseen"))
+    :else
+      (t "not-participating" "En osallistu/Osallistun myöhemmin")))
+
 (defn session-select [lang exam-sessions form-data]
   (if (seq exam-sessions)
     (let [{::os/keys [session-id]} @form-data]
@@ -221,15 +239,7 @@
       (let [invalids (invalid-keys form-data ::os/registration)
             selected-session (->> @exam-sessions
                                   (filter #(= (::os/id %) (::os/session-id @form-data)))
-                                  first)
-            selected-section-ids (->> (::os/sections @form-data)
-                                      (filter (fn [[section-id section]]
-                                                (not (= (::os/accredit? section) true))))
-                                      keys)
-            selected-sections (->> (:sections @registration-options)
-                                   (filter #(some (fn [selected-section-id]
-                                                    (= selected-section-id (:id %)))
-                                            selected-section-ids)))]
+                                  first)]
         [:div.registration
          [confirmation-dialog]
          (cond
@@ -243,10 +253,13 @@
                                              (re-frame/dispatch [:launch-confirmation-dialog-with-cancel-fn
                                                                  [:div
                                                                    [:div (str (t "session" "Tapahtuma") ": " (session-as-str selected-session @lang))]
-                                                                   [:ul
-                                                                     (doall
-                                                                       (for [selected-section selected-sections]
-                                                                         [:li {:key (:id selected-section)} (section-as-str selected-section @lang)]))]]
+                                                                   (doall
+                                                                     (for [section (:sections @registration-options)]
+                                                                       [:div {:key (:id section)} (section-as-str section @lang)
+                                                                         [:ul
+                                                                           [:li
+                                                                             (selected-section-as-str section
+                                                                               (get (::os/sections @form-data) (:id section)))]]]))]
                                                                  (t "continue-to-payment" "Jatka maksamaan")
                                                                  [:store-registration @form-data @lang]
                                                                  (fn [] (reset! submitted? false))]))}
