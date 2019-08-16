@@ -10,7 +10,8 @@
             [clojure.string :as str]
             [oti.utils :as utils]
             [oti.util.coercion :as c])
-  (:import [java.time.format DateTimeFormatter]))
+  (:import [java.time.format DateTimeFormatter]
+           [java.time LocalDate]))
 
 (defn- fetch-exam-session [db id]
   (->> (dba/exam-session db id)
@@ -58,7 +59,7 @@
             {::os/keys [street-address city other-location-info session-date start-time end-time]} (fetch-exam-session db id)]
         [:div [:h2 "Ilmoittautumiset"]
          [:div.exam-session-selection
-          (str (-> session-date .toLocalDate (.format formatter)) " " start-time " - " end-time " "
+          (str (-> (LocalDate/parse session-date) (.format formatter)) " " start-time " - " end-time " "
                (:fi city) ", " (:fi street-address) ", " (:fi other-location-info))]
          [:div.registrations
           (if (seq registrations)
