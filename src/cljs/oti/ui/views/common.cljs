@@ -38,7 +38,10 @@
           [:div.buttons
            [:div.right
             [:button
-             {:on-click #(re-frame/dispatch [:confirmation-cancel])}
+             {:on-click (fn []
+                          (when-not (= (:cancel-fn @data) nil)
+                            (apply (:cancel-fn @data) nil))
+                          (re-frame/dispatch [:confirmation-cancel]))}
              (if (:event @data) "Peruuta" "OK")]
             (when (:event @data)
               [:button.button-danger
