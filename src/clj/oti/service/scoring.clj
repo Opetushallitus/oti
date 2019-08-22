@@ -140,8 +140,8 @@
                                       {:exam-session-date (:session_date registration)
                                        :exam-session-start-time (:start_time registration)
                                        :exam-session-end-time (:end_time registration)
-                                       :exam-session-street-address (registration registration)
-                                       :exam-session-city (:city participant-data)
+                                       :exam-session-street-address (:street_address registration)
+                                       :exam-session-city (:city registration)
                                        :exam-session-other-info (:other_location_info registration)}
                                       {}))))
 
