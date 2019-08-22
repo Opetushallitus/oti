@@ -127,20 +127,23 @@
      :body {:errors [:registration-state-update-failed]}}))
 
 (defn- as-participants [[ext-reference-id participant-data] & {:keys [exam-session-data?]}]
-  (merge {:ext-reference-id ext-reference-id
-          :id (some :id participant-data)
-          :exam-session-id (some :exam_session_id participant-data)
-          :registration-id (some :registration_id participant-data)
-          :registration-state (some :registration_state participant-data)
-          :registration-language (some :registration_language participant-data)
-          :data participant-data} (if exam-session-data?
-                                    {:exam-session-date (some :session_date participant-data)
-                                     :exam-session-start-time (some :start_time participant-data)
-                                     :exam-session-end-time (some :end_time participant-data)
-                                     :exam-session-street-address (some :street_address participant-data)
-                                     :exam-session-city (some :city participant-data)
-                                     :exam-session-other-info (some :other_location_info participant-data)}
-                                    {})))
+  (let [registration (or
+                       (first (filter #(= (:registration_state %) "OK") participant-data))
+                       (first participant-data))]
+    (merge {:ext-reference-id ext-reference-id
+            :id (:id registration)
+            :exam-session-id (:exam_session_id registration)
+            :registration-id (:registration_id registration)
+            :registration-state (:registration_state registration)
+            :registration-language (:registration_language registration)
+            :data participant-data} (if exam-session-data?
+                                      {:exam-session-date (:session_date registration)
+                                       :exam-session-start-time (:start_time registration)
+                                       :exam-session-end-time (:end_time registration)
+                                       :exam-session-street-address (:street_address registration)
+                                       :exam-session-city (:city registration)
+                                       :exam-session-other-info (:other_location_info registration)}
+                                      {}))))
 
 (defn- conforms-filter
   "Returns distinct elements that conforms to spec."
