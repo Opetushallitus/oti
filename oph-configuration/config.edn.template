@@ -10,8 +10,8 @@
                                  :ring-logger {:env "{{oti_env}}"}}}}
   :http {:port {{palvelu_portti}}}
   :db {:uri "{{oti_db_uri}}"
-       :username "{{oti_db_username}}"
-       :password "{{oti_db_password}}"
+       :username "{{postgres_app_user}}"
+       :password "{{oti_db_app_password}}"
        :pool-name "oti-pool"
        :maximum-pool-size {{oti_db_max_pool_size}}}
   :cas {:user {:username "{{oti_cas_username}}"
