@@ -88,14 +88,7 @@
                                "Haluatko varmasti merkitä ilmoittautumisen perutuksi hyväksytyllä syyllä?"
                                "Peru ilmoittautuminen"
                                :cancel-registration registration-id states/reg-absent-approved participant-id])}
-                "Peruutettu hyväksytysti"]
-               [:button.button-small.button-danger
-                {:on-click #(re-frame/dispatch
-                              [:launch-confirmation-dialog
-                               "Haluatko varmasti merkitä ilmoittautumisen perutuksi ilman hyväksyttyä syytä?"
-                               "Peru ilmoittautuminen"
-                               :cancel-registration registration-id states/reg-absent participant-id])}
-                "Peruutettu"]])]]]
+                "Peruutettu hyväksytysti"]])]]]
          (concat rows))))
 
 (defn session-table [sessions module-titles participant-id]
