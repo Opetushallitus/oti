@@ -57,6 +57,7 @@
              :module-score  "MODULE_SCORE"
              :participant   "PARTICIPANT"
              :registration  "REGISTRATION"
+             :registration-section-and-module "REGISTRATION-SECTION-AND-MODULE"
              :payment       "PAYMENT"
              :accreditation "ACCREDITATION"
              :diploma       "DIPLOMA"

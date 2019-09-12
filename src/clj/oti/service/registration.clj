@@ -334,6 +334,19 @@
            regs))
     []))
 
+(defn cancel-registration-by-section! [{:keys [db]} registration-id section-id state session]
+  {:pre [(pos-int? registration-id) (pos-int? section-id) (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} state)]}
+  (let [audit-data (dba/cancel-registration-by-section! db registration-id section-id state)]
+    (if (not (nil? audit-data))
+      (do
+        (apply audit/log (apply concat (merge {:app :admin
+                                               :who (get-in session [:identity :oid])
+                                               :ip (get-in session [:identity :ip])
+                                               :user-agent (get-in session [:identity :user-agent])}
+                                              audit-data)))
+        true)
+      false)))
+
 (defn cancel-registration! [{:keys [db]} registration-id state session]
   {:pre [(pos-int? registration-id) (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} state)]}
   (audit/log :app :admin

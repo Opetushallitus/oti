@@ -99,6 +99,18 @@
                   :on-failure      [:bad-response]}}))
 
 (re-frame/reg-event-fx
+  :cancel-registration-by-section
+  [re-frame/trim-v]
+  (fn [_ [registration-id cancel-state participant-id section-id]]
+    {:http-xhrio {:method          :delete
+                  :uri             (routing/v-a-route "/registrations/" registration-id "/sections/" section-id)
+                  :params          {:state cancel-state}
+                  :format          (ajax/transit-request-format)
+                  :response-format (ajax/transit-response-format)
+                  :on-success      [:load-participant-details participant-id]
+                  :on-failure      [:bad-response]}}))
+
+(re-frame/reg-event-fx
   :cancel-registration
   [re-frame/trim-v]
   (fn [_ [registration-id cancel-state participant-id]]

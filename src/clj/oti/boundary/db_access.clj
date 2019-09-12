@@ -159,6 +159,7 @@
   (cancel-registration-and-payment! [db params])
   (cancel-obsolete-registrations-and-payments! [db])
   (cancel-payment-set-reg-incomplete! [db params])
+  (cancel-registration-by-section! [db registration-id section-id state])
   (update-registration-state! [db id state])
   (next-order-number! [db])
   (unpaid-payments [db])
@@ -269,6 +270,29 @@
     (cancel-obsolete-payments-and-registrations! spec))
   (cancel-payment-set-reg-incomplete! [{:keys [spec]} params]
     (update-payment-and-registration-state! spec params states/pmt-error states/reg-cancelled))
+  (cancel-registration-by-section! [{:keys [spec] :as db} registration-id section-id new-state]
+    (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
+      (let [old-state (registration-state-by-id db registration-id)]
+        (when (not (nil? old-state))
+          (if (-> (q/count-other-section-registration spec {:section-id section-id :registration-id registration-id})
+                  first
+                  :count
+                  pos?)
+            (do
+              (q/delete-section-registration! spec {:section-id section-id :registration-id registration-id})
+              (q/delete-module-registration-by-section-id! spec {:section-id section-id :registration-id registration-id})
+              {:on :registration-section-and-module
+               :op :delete
+               :ids {:registration-id registration-id :section-id section-id}
+               :msg "Registration to section removed."})
+            (do
+              (q/update-registration-state! spec {:state new-state :id registration-id})
+              {:on :registration
+               :op :update
+               :id registration-id
+               :before {:state old-state}
+               :after {:state new-state}
+               :msg "Registration cancelled."}))))))
   (update-registration-state! [{:keys [spec]} id state]
     (q/update-registration-state! spec {:state state :id id}))
   (next-order-number! [{:keys [spec]}]

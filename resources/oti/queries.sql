@@ -401,12 +401,25 @@ RETURNING registration.id;
 INSERT INTO registration_exam_content_section (section_id, participant_id, registration_id)
 SELECT :section-id, id, :registration-id FROM participant WHERE ext_reference_id = :external-user-id;
 
+-- name: delete-section-registration!
+DELETE FROM registration_exam_content_section
+WHERE section_id = :section-id AND registration_id = :registration-id;
+
+-- name: count-other-section-registration
+SELECT count(*) AS count
+FROM registration_exam_content_section
+WHERE section_id <> :section-id AND registration_id = :registration-id;
+
 -- name: select-modules-for-section
 SELECT id FROM module WHERE section_id = :section-id;
 
 -- name: insert-module-registration!
 INSERT INTO registration_exam_content_module (module_id, participant_id, registration_id)
 SELECT :module-id, id, :registration-id FROM participant WHERE ext_reference_id = :external-user-id;
+
+-- name: delete-module-registration-by-section-id!
+DELETE FROM registration_exam_content_module
+WHERE module_id IN (SELECT id FROM module WHERE section_id = :section-id) AND registration_id = :registration-id;
 
 -- name: update-registration-state!
 UPDATE registration SET state = :state::registration_state WHERE id = :id;

@@ -41,6 +41,7 @@
 (defn- session-rows
   [module-titles
    participant-id
+   section-id
    open-rows
    rows
    {:keys [session-date start-time end-time session-id registration-state street-address city score-ts accepted modules registration-id]}]
@@ -87,11 +88,11 @@
                               [:launch-confirmation-dialog
                                "Haluatko varmasti merkitä ilmoittautumisen perutuksi hyväksytyllä syyllä?"
                                "Peru ilmoittautuminen"
-                               :cancel-registration registration-id states/reg-absent-approved participant-id])}
+                               :cancel-registration-by-section registration-id states/reg-absent-approved participant-id section-id])}
                 "Peruutettu hyväksytysti"]])]]]
          (concat rows))))
 
-(defn session-table [sessions module-titles participant-id]
+(defn session-table [sessions module-titles participant-id section-id]
   (let [open-rows (r/atom #{})]
     (fn [sessions module-titles participant-id]
       (if (seq sessions)
@@ -105,7 +106,7 @@
              (for [{:keys [id name]} module-titles]
                [:th.module-name {:key id :title name} name]))]]
          [:tbody
-          (reduce (partial session-rows module-titles participant-id open-rows) [] sessions)]]
+          (reduce (partial session-rows module-titles participant-id section-id open-rows) [] sessions)]]
         [:div "Ei ilmoittautumisia"]))))
 
 (defn- format-payment-state [state]
@@ -206,7 +207,7 @@
               (for [{:keys [id]} accredited-modules]
                 [:div.module {:key id}
                  [accreditation-inputs form-data accreditation-types :accredited-modules id participant-id]]))]])
-        [session-table sessions module-titles participant-id]]))])
+        [session-table sessions module-titles participant-id id]]))])
 
 (defn format-address [{::os/keys [registration-street-address registration-zip registration-post-office]}]
   (if (s/blank? registration-street-address)
