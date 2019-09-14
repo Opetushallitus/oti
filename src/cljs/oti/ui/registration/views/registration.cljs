@@ -182,10 +182,11 @@
                 [:input {:type "radio" :name (str "section-" id "-participation") :value "false"
                          :on-click #(swap! form-data update ::os/sections dissoc id)}]
                 [:span (t "not-participating" "En osallistu/Osallistun myöhemmin")]]]])))
-       (when-not (empty? (attending-ids @form-data))
+       (let [lang-title (if-not (empty? (attending-ids @form-data))
+                          (t "exam-question-language" "Tenttikysymysten kieli")
+                          (t "diploma-language" "Tutkintotodistuksen kieli"))]
          [:div.exam-section
-          [:h4 (t "exam-question-language"
-                  "Tenttikysymysten kieli")]
+          [:h4 lang-title]
           (doall
             (for [lang os/recognized-languages]
               [:div.row {:key (name lang)}
