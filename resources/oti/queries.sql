@@ -187,10 +187,9 @@ SELECT r.state, r.retry, p.type AS payment_type
 LEFT JOIN payment p ON r.id = p.registration_id
 WHERE r.participant_id = :id;
 
--- name: insert-participant!
-INSERT INTO participant (ext_reference_id, email, language_code)
-  SELECT :external-user-id, :email, :language-code
-  WHERE NOT EXISTS (SELECT id FROM participant WHERE ext_reference_id = :external-user-id);
+-- name: upsert-participant!
+INSERT INTO participant (ext_reference_id, email, language_code) VALUES (:external-user-id, :email, :language-code)
+ON CONFLICT (ext_reference_id) DO UPDATE SET language_code = :language-code;
 
 -- name: select-participant
 SELECT id,
