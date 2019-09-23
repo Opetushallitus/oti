@@ -58,17 +58,9 @@
       (LocalDateTime/ofInstant timezone)
       .toLocalDate))
 
-(defn- to-start-date [start-date]
-  (if start-date
-    (-> (as-int start-date)
-        (ts->local-date))
-    (LocalDate/of 2016 1 1)))
-
-(defn- to-end-date [end-date]
-  (if end-date
-    (-> (as-int end-date)
-        (ts->local-date))
-    (LocalDate/of 9999 12 31)))
+(defn- ts->local-date-time [ts]
+  (-> (Instant/ofEpochMilli ts)
+      (LocalDateTime/ofInstant timezone)))
 
 (defn- exam-sessions [{:keys [db]} start-date end-date]
   (let [sts (as-int start-date)
@@ -249,8 +241,8 @@
       (if (payment/confirm-payment-manually! config order-number lang session)
         (response {:success true})
         (not-found {:error "Payment not found"})))
-    (GET "/payments" [start-date end-date query]
-      (paid-payments-as-csv config (to-start-date start-date) (to-end-date end-date) query))
+    (GET "/payments" [start-date :<< as-int end-date :<< as-int query]
+      (paid-payments-as-csv config (ts->local-date-time start-date) (ts->local-date-time end-date) query))
     (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session {state :state} :body-params}]
       (if (registration/cancel-registration! config id state session)
         (response {:success true})
