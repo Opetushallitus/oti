@@ -187,10 +187,9 @@ SELECT r.state, r.retry, p.type AS payment_type
 LEFT JOIN payment p ON r.id = p.registration_id
 WHERE r.participant_id = :id;
 
--- name: insert-participant!
-INSERT INTO participant (ext_reference_id, email)
-  SELECT :external-user-id, :email
-  WHERE NOT EXISTS (SELECT id FROM participant WHERE ext_reference_id = :external-user-id);
+-- name: upsert-participant!
+INSERT INTO participant (ext_reference_id, email, language_code) VALUES (:external-user-id, :email, :language-code)
+ON CONFLICT (ext_reference_id) DO UPDATE SET language_code = :language-code;
 
 -- name: select-participant
 SELECT id,
@@ -393,8 +392,8 @@ WITH pp AS (
       WHERE es.id = :session-id
     GROUP BY (es.id) HAVING (es.max_participants - COUNT(r.id)) > 0
 )
-INSERT INTO registration (state, retry, exam_session_id, participant_id, language_code)
-  SELECT :state::registration_state, :retry, session.id, pp.id, :language-code FROM pp, session
+INSERT INTO registration (state, retry, exam_session_id, participant_id)
+  SELECT :state::registration_state, :retry, session.id, pp.id FROM pp, session
 RETURNING registration.id;
 
 -- name: insert-section-registration!
@@ -415,7 +414,7 @@ UPDATE registration SET state = :state::registration_state WHERE id = :id;
 SELECT
   r.id,
   r.created,
-  r.language_code,
+  p.language_code,
   p.id AS participant_id,
   p.ext_reference_id,
   recs.section_id,
@@ -518,9 +517,10 @@ WHERE state = 'OK'::payment_state
       AND payment_method LIKE 'L%';
 
 -- name: select-language-code-by-order-number
-SELECT r.language_code
+SELECT pp.language_code
 FROM payment p
 JOIN registration r ON r.id = p.registration_id
+JOIN participant pp ON pp.id = r.participant_id
 WHERE p.order_number = :order-number;
 
 -- name: select-participant-ext-reference-by-order-number
