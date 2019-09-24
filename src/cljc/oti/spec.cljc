@@ -27,10 +27,16 @@
                 .toInstant
                 (.atZone (java.time.ZoneId/of "Europe/Helsinki"))
                 .toLocalDate)
+            (string? x)
+            (try
+              (java.time.LocalDate/parse x)
+              (catch java.time.format.DateTimeParseException e ::s/invalid))
             :else ::s/invalid)
-     :cljs (if (and (inst? x) (future-date? x))
+     :cljs (cond
+             (and (inst? x) (future-date? x))
              (inst-ms x)
-             ::s/invalid)))
+             (string? x) x
+             :else ::s/invalid)))
 
 (defn datetime-conformer [x]
   #?(:clj (if (instance? java.sql.Timestamp x)
