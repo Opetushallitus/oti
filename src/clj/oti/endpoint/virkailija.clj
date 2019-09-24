@@ -251,6 +251,10 @@
         (not-found {:error "Payment not found"})))
     (GET "/payments" [start-date end-date query]
       (paid-payments-as-csv config (to-start-date start-date) (to-end-date end-date) query))
+    (DELETE "/registrations/:id{[0-9]+}/sections/:section-id{[0-9]+}" [id :<< as-int section-id :<< as-int :as {session :session {state :state} :body-params}]
+      (if (registration/cancel-registration-by-section! config id section-id state session)
+        (response {:success true})
+        (not-found {:error "Registration not found"})))
     (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session {state :state} :body-params}]
       (if (registration/cancel-registration! config id state session)
         (response {:success true})
