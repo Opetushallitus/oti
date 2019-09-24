@@ -27,7 +27,7 @@
              :on-change #(reset! query (-> % .-target .-value))}]]
         [:div.buttons
           (let [start-date-epoch (when (inst? @start-date) (.getTime @start-date))
-                end-date-epoch (when (inst? @end-date) (.getTime @end-date))]
+                end-date-epoch (when (inst? @end-date) (.setHours @end-date 23 59 59 999))]
             [:a {:href (str "/oti/api/virkailija/payments?start-date=" start-date-epoch "&end-date=" end-date-epoch "&query=" @query)} "Lataa raportti"])]])))
 
 (defn reporting-panel []
