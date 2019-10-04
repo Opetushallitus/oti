@@ -1,5 +1,6 @@
 (ns oti.ui.participants.handlers
   (:require [ajax.core :as ajax]
+            [oti.http :refer [http-default-headers]]
             [oti.routing :as routing]
             [re-frame.core :as re-frame]
             [oti.spec :as os]))
@@ -12,6 +13,7 @@
                   :uri             (routing/v-a-route "/participant-search")
                   :params          {:q      (get-in db [:participant-search-query :query])
                                     :filter (name (get-in db [:participant-search-query :filter]))}
+                  :headers         (http-default-headers)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :participant-search-results]
                   :on-failure      [:bad-response]}
@@ -27,6 +29,7 @@
 (defn participant-load-xhrio [id]
   {:method          :get
    :uri             (routing/v-a-route "/participant/" id)
+   :headers         (http-default-headers)
    :response-format (ajax/transit-response-format)
    :on-success      [:store-participant-details id]
    :on-failure      [:bad-response]})
@@ -56,6 +59,7 @@
     {:http-xhrio {:method          :post
                   :uri             (routing/v-a-route "/participant/" participant-id "/accreditations")
                   :params          data
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:accreditations-saved participant-id]
@@ -76,6 +80,7 @@
     (let [window-handle (.open js/window "" "Todistukset" "width=800,height=800,left=100,top=100,resizable,scrollbars")]
       (ajax/PUT (routing/v-a-route "/diplomas")
                 {:params          params
+                 :headers         (http-default-headers)
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/text-response-format)
                  :handler         (fn [markup]
@@ -93,6 +98,7 @@
   (fn [_ [order-number participant-id lang]]
     {:http-xhrio {:method          :put
                   :uri             (routing/v-a-route "/payment/" order-number "/approve?lang=" (name lang))
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:load-participant-details participant-id]
@@ -105,6 +111,7 @@
     {:http-xhrio {:method          :delete
                   :uri             (routing/v-a-route "/registrations/" registration-id "/sections/" section-id)
                   :params          {:state cancel-state}
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:load-participant-details participant-id]
@@ -117,6 +124,7 @@
     {:http-xhrio {:method          :delete
                   :uri             (routing/v-a-route "/registrations/" registration-id)
                   :params          {:state cancel-state}
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:load-participant-details participant-id]
@@ -128,6 +136,7 @@
   (fn [_ [participant-id section-id]]
     {:http-xhrio {:method          :delete
                   :uri             (routing/v-a-route "/participant/" participant-id "/section/" section-id "/accreditation")
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:load-participant-details participant-id]
@@ -138,6 +147,7 @@
   (fn [_ _]
     {:http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/diplomas/default-signer-title")
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :default-signer-title]

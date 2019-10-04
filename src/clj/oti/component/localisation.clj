@@ -3,6 +3,7 @@
             [org.httpkit.client :as http]
             [cheshire.core :refer [parse-string]]
             [clojure.tools.logging :as log]
+            [oti.util.http :refer [http-default-headers]]
             [oti.component.url-helper :refer [url]]))
 
 (defprotocol LocalisationQuery
@@ -21,7 +22,8 @@
 (defn- fetch-translations [{:keys [url-helper default-parameters]}]
   (let [uri (url url-helper "lokalisointi.base")
         _ (log/debug "Fetching translations from:" uri "with query parameters:" default-parameters)
-        {:keys [status body]} @(http/get uri {:query-params default-parameters})]
+        {:keys [status body]} @(http/get uri {:query-params default-parameters
+                                              :headers (http-default-headers)})]
     (if (= status 200)
       (try
         (parse-translations (parse-string body true))

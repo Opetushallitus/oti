@@ -7,6 +7,7 @@
             [clojure.java.jdbc :as jdbc]
             [clojure.spec.alpha :as s]
             [oti.service.email-templates :as templates]
+            [oti.util.http :refer [http-default-headers]]
             [oti.component.url-helper :refer [url]]))
 
 (defprotocol EmailSender
@@ -19,7 +20,7 @@
   (log/info "Trying to send email" subject "to" recipients)
   (let [wrapped-recipients (mapv (fn [rcp] {:email rcp}) recipients)
         email-service-url (url url-helper "ryhmasahkoposti-service.email")
-        {:keys [status]} @(http/post email-service-url {:headers {"content-type" "application/json"}
+        {:keys [status]} @(http/post email-service-url {:headers (merge {"content-type" "application/json"} (http-default-headers))
                                                         :body    (json/generate-string {:email     {:subject subject
                                                                                                     :isHtml  true
                                                                                                     :body    body
