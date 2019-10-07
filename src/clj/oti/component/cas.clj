@@ -4,6 +4,7 @@
             [clojure.string :as str]
             [clojure.xml :as xml]
             [clojure.java.io :as io]
+            [oti.util.http :refer [http-default-headers]]
             [oti.component.url-helper :refer [url]]
             [clojure.tools.logging :as log]))
 
@@ -38,11 +39,13 @@
     (error (str "Invalid HTTP status " status " for TGT request"))))
 
 (defn- fetch-ticket-granting-ticket [{:keys [url-helper user]}]
-  (-> @(http/post (url url-helper "cas.tickets") {:form-params user})
+  (-> @(http/post (url url-helper "cas.tickets") {:form-params user
+                                                  :headers (http-default-headers)})
       decode-tgt))
 
 (defn- fetch-service-ticket [service-uri tgt-uri]
-  (let [{:keys [body status]} @(http/post tgt-uri {:form-params {:service service-uri}})]
+  (let [{:keys [body status]} @(http/post tgt-uri {:form-params {:service service-uri}
+                                                   :headers (http-default-headers)})]
     (if-not (str/blank? body)
       (or (last (re-find #"(ST-.*)" body))
           (error "No service ticket found from response"))
@@ -58,6 +61,7 @@
 
 (defn- fetch-jsessionid [service-uri service-ticket]
   (-> @(http/get service-uri {:query-params {:ticket service-ticket}
+                              :headers (http-default-headers)
                               :follow-redirects false})
       decode-jsession))
 
@@ -86,7 +90,7 @@
   CasAccess
   (request [cas service-path request-options]
     (let [session (get-cas-session cas service-path)
-          headers {"Cookie" (str "JSESSIONID=" session)}
+          headers (merge {"Cookie" (str "JSESSIONID=" session)} (http-default-headers))
           response @(http/request (-> (assoc request-options :follow-redirects false)
                                       (update :headers merge headers)))]
       (if (session-expired? response)
@@ -95,7 +99,8 @@
         response)))
   (username-from-valid-service-ticket [{:keys [url-helper]} service-uri ticket]
     (let [uri (url url-helper "cas.service-validate")
-          {:keys [status body]} @(http/get uri {:query-params {:ticket ticket :service service-uri}})]
+          {:keys [status body]} @(http/get uri {:query-params {:ticket ticket :service service-uri}
+                                                :headers (http-default-headers)})]
       (when (= status 200)
         (with-open [in (io/input-stream (.getBytes body))]
           (let [parsed (xml/parse in)]

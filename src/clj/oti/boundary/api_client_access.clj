@@ -3,6 +3,7 @@
             [org.httpkit.client :as http]
             [cheshire.core :as json]
             [clojure.tools.logging :refer [error info]]
+            [oti.util.http :refer [http-default-headers]]
             [oti.component.api-client]
             [oti.component.url-helper :refer [url]])
   (:import [oti.component.api_client ApiClient]))
@@ -34,7 +35,7 @@
   ApiClient
   (get-user-details [{:keys [url-helper]} username]
     (let [uri (url url-helper "kayttooikeus-service.user-details" username)
-          response @(http/get uri)]
+          response @(http/get uri {:headers (http-default-headers)})]
       (parse response)))
   (get-persons [{:keys [oppijanumerorekisteri-service cas url-helper]} ids]
     (info "Requesting user details for" (count ids) "user ids")

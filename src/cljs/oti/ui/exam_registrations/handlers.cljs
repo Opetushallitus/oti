@@ -1,6 +1,7 @@
 (ns oti.ui.exam-registrations.handlers
   (:require [re-frame.core :as re-frame]
             [ajax.core :as ajax]
+            [oti.http :refer [http-default-headers]]
             [oti.routing :as routing]))
 
 (re-frame/reg-event-fx
@@ -9,6 +10,7 @@
   (fn [_ [exam-session-id]]
     {:http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/exam-sessions/" exam-session-id "/registrations")
+                  :headers         (http-default-headers)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-registrations exam-session-id]
                   :on-failure      [:bad-response]}}))
@@ -26,6 +28,7 @@
   (fn [_ [exam-session-id]]
     {:http-xhrio {:method          :put
                   :uri             (routing/v-a-route "/exam-sessions/" exam-session-id "/token")
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-access-token exam-session-id]

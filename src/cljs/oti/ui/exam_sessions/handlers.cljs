@@ -1,6 +1,7 @@
 (ns oti.ui.exam-sessions.handlers
   (:require [re-frame.core :as re-frame]
             [ajax.core :as ajax]
+            [oti.http :refer [http-default-headers]]
             [oti.routing :as routing]))
 
 (re-frame/reg-event-fx
@@ -21,6 +22,7 @@
     {:http-xhrio {:method          :post
                   :uri             (routing/v-a-route "/exam-sessions")
                   :params          data
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:exam-session-saved]
@@ -32,6 +34,7 @@
     {:http-xhrio {:method          :put
                   :uri             (routing/v-a-route "/exam-sessions/" id)
                   :params          data
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:exam-session-saved]
@@ -45,6 +48,7 @@
                   :uri             (routing/v-a-route "/exam-sessions")
                   :params          {:start-date (when (inst? start-date) (.getTime start-date))
                                     :end-date (when (inst? end-date) (.getTime end-date))}
+                  :headers         (http-default-headers)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :exam-sessions]
                   :on-failure      [:bad-response]}
@@ -56,6 +60,7 @@
     {:db         (assoc db :active-panel-data nil)
      :http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/exam-sessions/" (first params))
+                  :headers         (http-default-headers)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:exam-session-loaded]
                   :on-failure      [:bad-response]}}))
@@ -71,6 +76,7 @@
   (fn [_ [_ id]]
     {:http-xhrio {:method          :delete
                   :uri             (routing/v-a-route "/exam-sessions/" id)
+                  :headers         (http-default-headers)
                   :format          (ajax/transit-request-format)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:exam-session-deleted]
@@ -83,6 +89,7 @@
     {:http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/diplomas/count")
                   :params          dates
+                  :headers         (http-default-headers)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :diploma-count]
                   :on-failure      [:bad-response]}}))

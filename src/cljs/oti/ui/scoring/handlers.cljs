@@ -2,6 +2,7 @@
   (:require [re-frame.core :as rf :refer [trim-v debug]]
             [cognitect.transit :as transit]
             [clojure.string :as str]
+            [oti.http :refer [http-default-headers]]
             [oti.routing :as routing]
             [oti.ui.handlers :as handlers]
             [oti.spec :as spec]
@@ -148,6 +149,7 @@
  (fn [_ _]
    {:http-xhrio {:method          :get
                  :uri             (routing/v-a-route "/exam-sessions/full")
+                 :headers         (http-default-headers)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-exam-sessions-full-success]
                  :on-failure      [:handle-exam-sessions-full-failure]}
@@ -317,6 +319,7 @@
                  :params          {:scores (-> (only-scores-that-changed scores initial-scores)
                                                module-points-to-bigdecs)
                                    :exam-session-id exam-session-id}
+                 :headers         (http-default-headers)
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-persist-scores-success
@@ -336,6 +339,7 @@
                  :uri             (routing/v-a-route "/participant/" participant-id "/scores")
                  :params          {:exam-session-id exam-session-id
                                    :scores scores}
+                 :headers         (http-default-headers)
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-delete-scores-success
@@ -356,6 +360,7 @@
                  :params          {:exam-session-id exam-session-id
                                    :registration-id (get-in db [:scoring :exam-sessions exam-session-id :participants participant-id :registration-id])
                                    :registration-state registration-state}
+                 :headers         (http-default-headers)
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-persist-registration-state-success
@@ -519,6 +524,7 @@
    {:http-xhrio {:method          :get
                  :uri             (routing/v-a-route "/participant/" participant-id "/scores/email")
                  :params          {:exam-session-id exam-session-id}
+                 :headers         (http-default-headers)
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-scores-email-sent-success
@@ -554,6 +560,7 @@
                                                      :participants
                                                      participant-id
                                                      :registration-language])}
+                 :headers         (http-default-headers)
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-scores-email-sent-success

@@ -5,6 +5,7 @@
             [ajax.core :as ajax]
             [oti.ui.routes :as routes]
             [oti.routing :as routing]
+            [oti.http :refer [http-default-headers]]
             [oti.utils :as utils]))
 
 (rf/reg-event-db
@@ -68,6 +69,7 @@
   (fn [_ _]
     {:http-xhrio {:method          :get
                   :uri             (routing/v-a-route "/frontend-config")
+                  :headers         (http-default-headers)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :root]
                   :on-failure      [:bad-response]}}))
@@ -105,6 +107,7 @@
                                               (when-not (nil? (:language db))
                                                 (name (:language db)))
                                               "fi")}
+                  :headers         (http-default-headers)
                   :response-format (ajax/transit-response-format)
                   :on-success      [:store-response-to-db :exam]
                   :on-failure      [:bad-response]}}))
