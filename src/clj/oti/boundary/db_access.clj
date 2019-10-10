@@ -150,6 +150,7 @@
   (existing-registration-id [db exam-session-id external-user-id])
   (section-and-module-names [db])
   (participant-by-ext-id [db external-user-id])
+  (participant-by-ext-reference-id [db ext-reference-id])
   (participant-by-id [db id])
   (participant-by-order-number [db order-number lang])
   (all-participants [db])
@@ -253,6 +254,8 @@
                  {})))
   (participant-by-ext-id [{:keys [spec]} external-user-id]
     (q/select-participant spec {:external-user-id external-user-id}))
+  (participant-by-ext-reference-id [{:keys [spec]} ext-reference-id]
+    (q/select-participant-by-ext-reference-id spec {:ext-reference-id ext-reference-id}))
   (participant-by-id [{:keys [spec]} id]
     (q/select-participant-by-id spec {:id id}))
   (participant-by-order-number [{:keys [spec]} order-number lang]

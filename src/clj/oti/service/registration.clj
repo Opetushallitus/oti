@@ -221,6 +221,42 @@
     {:full full
      :retry retry}))
 
+(def formatter (DateTimeFormatter/ofPattern "d.M.yyyy"))
+
+(defn- format-date-and-time [{:keys [session-date start-time end-time]}]
+  (if session-date
+    (str
+      (-> (LocalDate/parse session-date) (.format formatter))
+      " " start-time " - " end-time)
+    "-"))
+
+(defn- format-registration-selections [sections]
+  (->> sections
+       (map
+         (fn [{:keys [name sessions]}]
+           (let [modules (->> (first sessions)
+                              :modules
+                              vals
+                              (filter :registered-to?)
+                              (map :name))]
+             (str name " (" (str/join ", " modules) ")"))))
+       (str/join ", ")))
+
+(defn- format-amount [n]
+  (String/format (Locale. "fi"), "%.2f", (to-array [(double n)])))
+
+(defn send-confirmation-email! [{:keys [db email-service]} lang {:keys [sections payments id]}]
+  "Note that participant data is expected to contain data about one exam session only"
+  (let [values {:date-and-time (-> sections first :sessions first format-date-and-time)
+                :sections (format-registration-selections sections)
+                :amount (-> payments first :amount format-amount)}
+        email-data {:participant-id id
+                    :email-type "REGISTRATION_CONFIRMATION"
+                    :lang lang
+                    :template-id :registration-success
+                    :template-values values}]
+    (email/send-email-to-participant! email-service db email-data)))
+
 (defn register! [{:keys [db api-client paytrail-payment] :as config}
                  {old-session :session {:keys [registration-data ui-lang]} :body-params headers :headers remote-addr :remote-addr uri :uri}]
   (let [conformed (s/conform ::os/registration registration-data)]
@@ -260,6 +296,12 @@
                          :on :registration
                          :id registration-id
                          :msg "New registration")
+              (when (= status :success)
+                (try
+                  (some->> (user-data/participant-data-by-ext-reference-id config external-user-id)
+                           (send-confirmation-email! config lang))
+                  (catch Throwable t
+                    (error t "Could not send confirmation email. Participant:" external-user-id))))
               (registration-response 200 status msg-key session registration-id payment-form-data))
             (catch Throwable t
               (error t "Error inserting registration")
@@ -286,42 +328,6 @@
     (do
       (error "Tried to retry payment for registration" registration-id "but it's status is not pending")
       (registration-response 400 :error "registration-unknown-error" session))))
-
-(def formatter (DateTimeFormatter/ofPattern "d.M.yyyy"))
-
-(defn- format-date-and-time [{:keys [session-date start-time end-time]}]
-  (if session-date
-    (str
-      (-> (LocalDate/parse session-date) (.format formatter))
-      " " start-time " - " end-time)
-    "-"))
-
-(defn- format-registration-selections [sections]
-  (->> sections
-       (map
-         (fn [{:keys [name sessions]}]
-           (let [modules (->> (first sessions)
-                              :modules
-                              vals
-                              (filter :registered-to?)
-                              (map :name))]
-             (str name " (" (str/join ", " modules) ")"))))
-       (str/join ", ")))
-
-(defn- format-amount [n]
-  (String/format (Locale. "fi"), "%.2f", (to-array [(double n)])))
-
-(defn send-confirmation-email! [{:keys [db email-service]} lang {:keys [sections payments id]}]
-  "Note that participant data is expected to contain data about one exam session only"
-  (let [values {:date-and-time (-> sections first :sessions first format-date-and-time)
-                :sections (format-registration-selections sections)
-                :amount (-> payments first :amount format-amount)}
-        email-data {:participant-id id
-                    :email-type "REGISTRATION_CONFIRMATION"
-                    :lang lang
-                    :template-id :registration-success
-                    :template-values values}]
-    (email/send-email-to-participant! email-service db email-data)))
 
 (defn fetch-registrations [{:keys [db api-client]} session-id]
   (if-let [regs (seq (dba/registrations-for-session db session-id))]

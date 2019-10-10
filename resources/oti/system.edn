@@ -29,7 +29,7 @@
   :frontend      [:url-helper :global-config]
   :localisation  [:url-helper]
   :email-service [:url-helper]
-  :participant   [:db :payments :api-client :localisation :paytrail-payment :url-helper :global-config]
+  :participant   [:db :payments :api-client :localisation :paytrail-payment :url-helper :global-config :email-service]
   :payment       [:paytrail-payment :db :api-client :email-service]
   :cas           [:url-helper]
   :api-client    [:cas :url-helper]
