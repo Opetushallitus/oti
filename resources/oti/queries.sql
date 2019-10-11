@@ -326,7 +326,7 @@ ORDER BY id;
 -- name: select-participant-by-ext-reference-id
 SELECT * FROM all_participant_data
 WHERE ext_reference_id = :ext-reference-id AND lang = 'fi'
-ORDER BY section_id, session_date, registration_id, module_id;
+ORDER BY registration_id DESC, section_id, module_id;
 
 -- name: select-participant-by-id
 SELECT * FROM all_participant_data
