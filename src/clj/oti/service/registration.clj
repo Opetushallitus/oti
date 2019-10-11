@@ -247,8 +247,13 @@
 
 (defn send-confirmation-email! [{:keys [db email-service]} lang {:keys [sections payments id]}]
   "Note that participant data is expected to contain data about one exam session only"
-  (let [values {:date-and-time (-> sections first :sessions first format-date-and-time)
-                :sections (format-registration-selections sections)
+  (let [session (-> sections first :sessions first)
+        registration-id (:registration-id session)
+        values {:date-and-time (-> session format-date-and-time)
+                :sections (format-registration-selections (filter
+                                                            (fn [section]
+                                                              (some #(= registration-id (:registration-id %)) (:sessions section)))
+                                                            sections))
                 :amount (-> payments first :amount format-amount)}
         email-data {:participant-id id
                     :email-type "REGISTRATION_CONFIRMATION"
