@@ -177,3 +177,8 @@
   ([{:keys [db] :as config} order-number lang]
    (->> (dba/participant-by-order-number db order-number lang)
         (merge-db-and-api-data config))))
+
+(defn participant-data-by-ext-reference-id
+  ([{:keys [db] :as config} ext-reference-id]
+   (->> (dba/participant-by-ext-reference-id db ext-reference-id)
+        (merge-db-and-api-data config))))
