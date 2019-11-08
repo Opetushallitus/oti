@@ -72,16 +72,18 @@
 
 (defn sec-or-mod-props [kw-prefix rows]
   (let [get-fn (make-get-fn kw-prefix)
+        created-kw (make-kw kw-prefix "score_created")
+        sorted-rows (sort-by created-kw #(compare %2 %1) rows)
         first-row (first rows)]
     {:id (get-fn first-row "id")
      :name (get-fn first-row "name")
-     :score-ts (some #(get-fn % "score_created") rows)
-     :accepted (some #(get-fn % "score_accepted") rows)
-     :points (some #(get-fn % "score_points") rows)
-     :accreditation-requested? (some #(get-fn % (str "accreditation_" kw-prefix "_id")) rows)
-     :accreditation-date (some #(get-fn % "accreditation_date") rows)
-     :accreditation-type (some #(get-fn % "accreditation_type") rows)
-     :registered-to? (some #(get-fn % "registration_id") rows)}))
+     :score-ts (some #(get-fn % "score_created") sorted-rows)
+     :accepted (some #(get-fn % "score_accepted") sorted-rows)
+     :points (some #(get-fn % "score_points") sorted-rows)
+     :accreditation-requested? (some #(get-fn % (str "accreditation_" kw-prefix "_id")) sorted-rows)
+     :accreditation-date (some #(get-fn % "accreditation_date") sorted-rows)
+     :accreditation-type (some #(get-fn % "accreditation_type") sorted-rows)
+     :registered-to? (some #(get-fn % "registration_id") sorted-rows)}))
 
 (defn- group-by-registration [rows]
   (->> (partition-by :registration_id rows)
