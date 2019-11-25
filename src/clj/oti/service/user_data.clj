@@ -131,21 +131,16 @@
                         :accredited-modules accredited-modules
                         :module-titles module-titles)))))))
 
-(defn- payments [participant-rows]
-  (->> (group-by :payment_id participant-rows)
-       (map
-         (fn [[id payment-rows]]
-           (let [{:keys [payment_id amount payment_state payment_created order_number payment_type registration_id]} (first payment-rows)]
-             (when payment_id
-               {:id payment_id
-                :amount amount
-                :state payment_state
-                :order-number order_number
-                :type payment_type
-                :registration-id registration_id
-                :registration-state (some :registration_state payment-rows)
-                :created payment_created}))))
-       (remove nil?)))
+(defn- payments [db participant-id]
+  (->> (seq (dba/payments-by-participant-id db participant-id))
+       (map (fn [payment] {:id (:id payment)
+                           :amount (:amount payment)
+                           :state (:state payment)
+                           :order-number (:order_number payment)
+                           :type (:type payment)
+                           :registration-id (:registration_id payment)
+                           :registration-state (:registration_state payment)
+                           :created (:created payment)}))))
 
 (defn user-status-filter [db sections diploma-delivered?]
   (let [completed-sections (->> sections
@@ -170,7 +165,7 @@
          :sections (group-by-section db-data)
          :filter (user-status-filter db sections diploma_date)
          :language (keyword (or (->> db-data (sort-by :registration_id) last :registration_language) (:asiointikieli api-data) :fi))
-         :payments (payments db-data)}))))
+         :payments (payments db id)}))))
 
 (defn participant-data
   ([{:keys [db] :as config} participant-id]
