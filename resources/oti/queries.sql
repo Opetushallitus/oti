@@ -505,6 +505,13 @@ WHERE registration.id = p.registration_id AND p.order_number = :order-number;
 -- name: select-next-order-number-suffix
 SELECT nextval('payment_order_number_seq');
 
+-- name: select-payments-by-participant-id
+SELECT p.id, p.created, p.state, type, p.ext_reference_id, p.registration_id, p.amount, p.reference, p.order_number,
+  p.paym_call_id, p.payment_method, p.participant_id, r.state AS registration_state
+FROM payment p
+LEFT JOIN registration r ON r.id = p.registration_id
+WHERE p.participant_id = :participant-id;
+
 -- name: select-unpaid-payments
 SELECT id, paym_call_id, order_number, created, state FROM payment WHERE state = 'UNPAID'::payment_state;
 

@@ -162,6 +162,7 @@
   (cancel-registration-by-section! [db registration-id section-id state])
   (update-registration-state! [db id state])
   (next-order-number! [db])
+  (payments-by-participant-id [db participant-id])
   (unpaid-payments [db])
   (unpaid-payments-by-participant [db external-user-id])
   (unpaid-payment-by-registration [db registration-id])
@@ -301,6 +302,8 @@
     (-> (q/select-next-order-number-suffix spec)
         first
         :nextval))
+  (payments-by-participant-id [{:keys [spec]} participant-id]
+    (q/select-payments-by-participant-id spec {:participant-id participant-id}))
   (unpaid-payments [{:keys [spec]}]
     (q/select-unpaid-payments spec))
   (unpaid-payments-by-participant [{:keys [spec]} external-user-id]
