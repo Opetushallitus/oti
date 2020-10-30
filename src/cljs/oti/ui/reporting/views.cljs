@@ -1,7 +1,11 @@
 (ns oti.ui.reporting.views
   (:require [oti.ui.views.common :refer [default-pikaday-opts]]
+            [oti.ui.reporting.handlers]
             [cljs-pikaday.reagent :as pikaday]
+            [re-frame.core :as rf]
             [reagent.core :as r]))
+
+
 
 (defn- paid-payments-report []
   (let [default-start (-> (js/moment.) (.subtract 1 "month") (.startOf "day") .toDate)
@@ -28,8 +32,10 @@
         [:div.buttons
           (let [start-date-epoch (when (inst? @start-date) (.getTime @start-date))
                 end-date-epoch (when (inst? @end-date) (.setHours @end-date 23 59 59 999))]
-            [:a {:href (str "/oti/api/virkailija/payments?start-date=" start-date-epoch "&end-date=" end-date-epoch "&query=" @query)} "Lataa raportti"])]])))
-
-(defn reporting-panel []
+            ;;[:a {:href (str "/oti/api/virkailija/payments?start-date=" start-date-epoch "&end-date=" end-date-epoch "&query=" @query)} "Lataa raportti"])]])))
+            [:a {:on-click (fn [_]
+              (rf/dispatch [:load-reports start-date-epoch end-date-epoch @query]))}
+    "Lataa raportti"])]])))
+ (defn reporting-panel []
   (fn []
     paid-payments-report))
