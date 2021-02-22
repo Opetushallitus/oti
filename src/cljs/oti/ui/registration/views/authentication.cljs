@@ -23,7 +23,7 @@
                 "Tunnistaudu pankkitunnuksillasi tai mobiilivarmenteella.")]
        [:div.buttons
         [:a.button.button-primary
-         {:href (routing/p-a-route "/authenticate?lang=" (if @lang (name @lang) "fi") "&callback=" (cb-uri @lang))}
+         {:href (routing/p-a-route "/authenticate?lang=" (if @lang (name @lang) "fi"))}
          (t "authenticate")]]
        (when debug?
          [:div.dummy-auth

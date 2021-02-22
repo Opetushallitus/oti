@@ -28,7 +28,7 @@
                  [ragtime "0.6.4"]
                  [duct/ragtime-component "0.1.4"]
                  [suspendable "0.1.1"]
-                 [http-kit "2.2.0"]
+                 [http-kit "2.4.0"]
                  [cheshire "5.6.3"]
                  [webjure/jeesql "0.4.6"]
                  [ring-logger "0.7.7"]
@@ -36,6 +36,7 @@
                  [overtone/at-at "1.2.0"]
                  [hiccup "1.0.5"]
                  [selmer "1.10.8"]
+                 [org.clojure/data.xml "0.0.8"]
 
                  ;; Frontend
                  [org.clojure/clojurescript "1.10.339"]
