@@ -191,7 +191,7 @@
     )))
 
 (defn- redirect-to-cas-oppija-login  [{:keys [url-helper]} lang]
-  (-> (redirect (str (url url-helper "cas-oppija.login") "?service=" (url url-helper "oti.participant.authenticate.baseurl")) :see-other)
+  (-> (redirect (str (url url-helper "cas-oppija.login") "?service=" (url url-helper "oti.participant.authenticate.baseurl") "&locale=" lang) :see-other)
       (assoc :session {:original-lang lang})))
 
 (defn- convert-oppija-cas-response-data [xml-data]
