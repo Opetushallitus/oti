@@ -2,7 +2,7 @@ sudo: required
 language: clojure
 
 jdk:
-- openjdk8
+- openjdk11
 
 services:
 - docker
@@ -25,7 +25,7 @@ install:
 
 script:
 - ./ci/build_travis.sh uberjar
-- export BASE_IMAGE="baseimage-fatjar-openjdk8:master"
+- export BASE_IMAGE="baseimage-fatjar-openjdk11:master"
 - ./ci-tools/common/pull-image.sh
 
 - mv target/uberjar/oti.jar $DOCKER_BUILD_DIR/artifact/oti.jar
