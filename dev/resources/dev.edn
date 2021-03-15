@@ -17,7 +17,8 @@
   :url-helper {:virkailija-host "virkailija.untuvaopintopolku.fi"
                :tunnistus-host "tunnistus.untuvaopintopolku.fi"
                :alb-host "https://virkailija.untuvaopintopolku.fi"
-               :oti-host "http://localhost:3000"}
+               :oti-host "http://localhost:3000"
+               :oppija-host "untuvaopintopolku.fi"}
   :global-config {:env "dev"}
   :payments   {:amounts {:full  256
                          :retry 87}}}}

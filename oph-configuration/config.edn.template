@@ -24,7 +24,8 @@
   :url-helper {:virkailija-host "{{host_virkailija}}"
                :tunnistus-host "{{host_tunnistus}}"
                :alb-host "{{host_alb}}"
-               :oti-host "{{oti_host}}"}
+               :oti-host "{{oti_host}}"
+               :oppija-host "{{host_oppija}}"}
   :global-config {:env "{{oti_env}}"}
   :payments   {:amounts {:full  {{oti_payment_amount_full}}
                          :retry {{oti_payment_amount_retry}}}}}}
