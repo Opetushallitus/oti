@@ -1,5 +1,6 @@
 (ns oti.ui.app
-  (:require [reagent.core :as reagent]
+  (:require [reagent.dom :as reagentdom]
+            [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [devtools.core :as devtools]
             [oti.ui.handlers]
@@ -21,7 +22,7 @@
 (defonce mode-atom (reagent/atom ""))
 
 (defn mount-root []
-  (reagent/render (if (= "virkailija" @mode-atom)
+  (reagentdom/render (if (= "virkailija" @mode-atom)
                     [virkailija/main-panel]
                     [registration/main-panel])
                   (.getElementById js/document "app")))
