@@ -216,7 +216,7 @@
 
 (defn valid-email? [email] (re-matches #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$" email))
 
-(defn editable-email-address [email]
+(defn editable-email-address [email id]
   (let [email (r/atom email)]
     (fn []
       [:form
@@ -230,11 +230,11 @@
                  :on-change #(reset! email (.-value (.-target %)))}]]
        [:div.row
         [:button.button-primary
-         {:on-click #(->> (.preventDefault %) (js/console.log @email))
+         {:on-click #(->> (.preventDefault %) (re-frame/dispatch [:update-participant-email @email id]))
           :disabled (not (valid-email? @email))}
          "Tallenna sähköpostiosoite"]]])))
 
-(defn person-details [{:keys [hetu etunimet sukunimi address email]}]
+(defn person-details [{:keys [hetu etunimet sukunimi address email id]}]
   [:div.person
    [:h3 "Henkilötiedot"]
    [:div.row
@@ -246,7 +246,7 @@
    [:div.row
     [:span.label "Katuosoite"]
     [:span.value (format-address address)]]
-   [editable-email-address email]])
+   [editable-email-address email id]])
 
 (defn participant-main-component [initial-form-data accreditation-types]
   (let [form-data (r/atom initial-form-data)]

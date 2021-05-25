@@ -144,9 +144,10 @@
     (response data)
     (not-found {})))
 
-(defn- update-participant-email [{:keys [db]} {:keys [email]} id]
-  ((dba/update-participant-email db email id)
-   {:status 200}))
+(defn- update-participant-email [{:keys [db]} email id]
+  (dba/update-participant-email db email id)
+  {:status 200
+   :body {:message "OK"}})
 
 (def secure-random (SecureRandom.))
 
@@ -224,8 +225,8 @@
      (GET "/count" [start-date end-date] (diploma-count config start-date end-date)))
    (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))
-     (PUT "/email" request
-       (update-participant-email config request id))
+     (PUT "/email" {{:keys [email]} :params}
+       (update-participant-email config email id))
      (POST "/accreditations" {params :body-params session :session :as request}
        (try (accreditation/approve-accreditations! config id params session)
             (catch AssertionError _

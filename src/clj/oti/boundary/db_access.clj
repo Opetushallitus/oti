@@ -261,7 +261,8 @@
   (participant-by-id [{:keys [spec]} id]
     (q/select-participant-by-id spec {:id id}))
   (update-participant-email [{:keys [spec]} email id]
-    (q/update-participant-email spec {:email email :id id}))
+    (jdbc/with-db-transaction [_ spec {:isolation :serializable}]
+      (q/update-participant-email! spec {:email email :id id})))
   (participant-by-order-number [{:keys [spec]} order-number lang]
     (q/select-participant-by-payment-order-number spec {:order-number order-number :lang lang}))
   (all-participants [{:keys [spec]}]
