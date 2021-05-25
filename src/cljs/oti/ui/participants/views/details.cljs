@@ -214,19 +214,24 @@
     "Ei osoitetietoa saatavilla"
     (str registration-street-address ", " registration-zip " " registration-post-office)))
 
+(defn valid-email? [email] (re-matches #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$" email))
+
 (defn editable-email-address [email]
   (let [email (r/atom email)]
     (fn []
       [:form
        [:div.row
         [:span.label "Sähköpostiosoite"]
-        [:input {:type "email"
+        [:input {:id "email"
+                 :type "email"
                  :name "email"
                  :value @email
+                 :class (when-not (valid-email? @email) "invalid")
                  :on-change #(reset! email (.-value (.-target %)))}]]
        [:div.row
         [:button.button-primary
-         {:on-click #(.preventDefault %)}
+         {:on-click #(->> (.preventDefault %) (js/console.log @email))
+          :disabled (not (valid-email? @email))}
          "Tallenna sähköpostiosoite"]]])))
 
 (defn person-details [{:keys [hetu etunimet sukunimi address email]}]
