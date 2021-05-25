@@ -214,6 +214,21 @@
     "Ei osoitetietoa saatavilla"
     (str registration-street-address ", " registration-zip " " registration-post-office)))
 
+(defn editable-email-address [email]
+  (let [email (r/atom email)]
+    (fn []
+      [:form
+       [:div.row
+        [:span.label "Sähköpostiosoite"]
+        [:input {:type "email"
+                 :name "email"
+                 :value @email
+                 :on-change #(reset! email (.-value (.-target %)))}]]
+       [:div.row
+        [:button.button-primary
+         {:on-click #(.preventDefault %)}
+         "Tallenna sähköpostiosoite"]]])))
+
 (defn person-details [{:keys [hetu etunimet sukunimi address email]}]
   [:div.person
    [:h3 "Henkilötiedot"]
@@ -226,9 +241,7 @@
    [:div.row
     [:span.label "Katuosoite"]
     [:span.value (format-address address)]]
-   [:div.row
-    [:span.label "Sähköpostiosoite"]
-    [:span.value email]]])
+   [editable-email-address email]])
 
 (defn participant-main-component [initial-form-data accreditation-types]
   (let [form-data (r/atom initial-form-data)]
