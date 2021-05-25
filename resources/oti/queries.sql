@@ -333,6 +333,11 @@ SELECT * FROM all_participant_data
 WHERE id = :id AND lang = 'fi'
 ORDER BY section_id, session_date, registration_id, module_id;
 
+-- name: update-participant-email
+UPDATE participant
+SET email = :email
+WHERE id = :id;
+
 -- name: select-participant-by-payment-order-number
 SELECT * FROM all_participant_data
 WHERE order_number = :order-number AND lang = :lang

@@ -153,6 +153,7 @@
   (participant-by-ext-reference-id [db ext-reference-id])
   (participant-by-id [db id])
   (participant-by-order-number [db order-number lang])
+  (update-participant-email [db email id])
   (all-participants [db])
   (all-participants-by-ext-references [db ext-references])
   (confirm-registration-and-payment! [db params])
@@ -259,6 +260,8 @@
     (q/select-participant-by-ext-reference-id spec {:ext-reference-id ext-reference-id}))
   (participant-by-id [{:keys [spec]} id]
     (q/select-participant-by-id spec {:id id}))
+  (update-participant-email [{:keys [spec]} email id]
+    (q/update-participant-email spec {:email email :id id}))
   (participant-by-order-number [{:keys [spec]} order-number lang]
     (q/select-participant-by-payment-order-number spec {:order-number order-number :lang lang}))
   (all-participants [{:keys [spec]}]
@@ -337,8 +340,8 @@
     (q/mark-email-sent! tx {:id email-id}))
   (scores-email [{:keys [spec]} {:keys [participant-id exam-session-id email-type]}]
     (first (q/select-email spec {:participant-id participant-id
-                            :exam-session-id exam-session-id
-                            :email-type email-type})))
+                                 :exam-session-id exam-session-id
+                                 :email-type email-type})))
   (health-check [{:keys [spec]}]
     (-> (q/select-exam-count spec)
         first
@@ -378,18 +381,18 @@
       (->> (group-by :section_id section-module-sequence)
            vals
            (mapv (fn [section-seq]
-                  (let [section {:id (:section_id (first section-seq))
-                                 :name (:section_name (first section-seq))
-                                 :executed-as-whole? (:section_executed_as_whole (first section-seq))
-                                 :modules []}]
-                    (reduce (fn [ss m]
-                              (update ss :modules conj {:id (:module_id m)
-                                                        :name (:module_name m)
-                                                        :points? (:module_points m)
-                                                        :section-id (:section_id m)
-                                                        :accepted-separately? (:module_accepted_separately m)}))
-                            section
-                            section-seq)))))))
+                   (let [section {:id (:section_id (first section-seq))
+                                  :name (:section_name (first section-seq))
+                                  :executed-as-whole? (:section_executed_as_whole (first section-seq))
+                                  :modules []}]
+                     (reduce (fn [ss m]
+                               (update ss :modules conj {:id (:module_id m)
+                                                         :name (:module_name m)
+                                                         :points? (:module_points m)
+                                                         :section-id (:section_id m)
+                                                         :accepted-separately? (:module_accepted_separately m)}))
+                             section
+                             section-seq)))))))
   (upsert-section-score [{:keys [spec]} section-score]
     (snake-keys (q/upsert-participant-section-score<! spec section-score)))
   (upsert-module-score [{:keys [spec]} module-score]
