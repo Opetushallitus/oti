@@ -214,25 +214,28 @@
     "Ei osoitetietoa saatavilla"
     (str registration-street-address ", " registration-zip " " registration-post-office)))
 
-(defn participant-main-component [participant-data initial-form-data accreditation-types]
+(defn person-details [{:keys [hetu etunimet sukunimi address email]}]
+  [:div.person
+   [:h3 "Henkilötiedot"]
+   [:div.row
+    [:span.label "Henkilötunnus"]
+    [:span.value hetu]]
+   [:div.row
+    [:span.label "Nimi"]
+    [:span.value (str etunimet " " sukunimi)]]
+   [:div.row
+    [:span.label "Katuosoite"]
+    [:span.value (format-address address)]]
+   [:div.row
+    [:span.label "Sähköpostiosoite"]
+    [:span.value email]]])
+
+(defn participant-main-component [initial-form-data accreditation-types]
   (let [form-data (r/atom initial-form-data)]
     (fn [participant-data initial-form-data]
-      (let [{:keys [id etunimet sukunimi hetu email sections payments address language]} participant-data]
+      (let [{:keys [id sections payments language]} participant-data]
         [:div.participant-details
-         [:div.person
-          [:h3 "Henkilötiedot"]
-          [:div.row
-           [:span.label "Henkilötunnus"]
-           [:span.value hetu]]
-          [:div.row
-           [:span.label "Nimi"]
-           [:span.value (str etunimet " " sukunimi)]]
-          [:div.row
-           [:span.label "Katuosoite"]
-           [:span.value (format-address address)]]
-          [:div.row
-           [:span.label "Sähköpostiosoite"]
-           [:span.value email]]]
+         [person-details participant-data]
          [participation-section sections accreditation-types form-data id]
          [payment-section payments id language]
          [:div.buttons
