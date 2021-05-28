@@ -18,10 +18,10 @@
     :else "Ei arvosteltu"))
 
 (defn- exam-noscore-result-label [score-ts accepted?]
-   (cond
-     accepted? "Hyväksytty"
-     (and score-ts (not accepted?)) "\u2014"
-     :else "\u2014"))
+  (cond
+    accepted? "Hyväksytty"
+    (and score-ts (not accepted?)) "\u2014"
+    :else "\u2014"))
 
 (defn- format-number [number]
   (when (transit/bigdec? number)
@@ -55,7 +55,7 @@
                     :class (cond
                              (#{states/reg-cancelled states/reg-absent states/reg-absent-approved} registration-state) "cancelled"
                              open? "open-row")}
-                   editable? (assoc :on-click click-fn))
+             editable? (assoc :on-click click-fn))
            [:td.date
             (when (not= states/reg-ok registration-state)
               [:i.icon-attention {:class (if (= states/reg-incomplete registration-state) "warn" "error")
@@ -78,17 +78,17 @@
             (when (= states/reg-incomplete registration-state)
               [:button.button-small.button-danger
                {:on-click #(re-frame/dispatch
-                             [:launch-confirmation-dialog "Haluatko varmasti poistaa ilmoittautumisen?" "Poista"
-                              :cancel-registration registration-id states/reg-cancelled participant-id])}
+                            [:launch-confirmation-dialog "Haluatko varmasti poistaa ilmoittautumisen?" "Poista"
+                             :cancel-registration registration-id states/reg-cancelled participant-id])}
                "Poista ilmoittautuminen"])
             (when (= states/reg-ok registration-state)
               [:span
                [:button.button-small.button-danger
                 {:on-click #(re-frame/dispatch
-                              [:launch-confirmation-dialog
-                               "Haluatko varmasti merkitä ilmoittautumisen perutuksi hyväksytyllä syyllä?"
-                               "Peru ilmoittautuminen"
-                               :cancel-registration-by-section registration-id states/reg-absent-approved participant-id section-id])}
+                             [:launch-confirmation-dialog
+                              "Haluatko varmasti merkitä ilmoittautumisen perutuksi hyväksytyllä syyllä?"
+                              "Peru ilmoittautuminen"
+                              :cancel-registration-by-section registration-id states/reg-absent-approved participant-id section-id])}
                 "Peruutettu hyväksytysti"]])]]]
          (concat rows))))
 
@@ -103,8 +103,8 @@
            [:th "Katuosoite"]
            [:th "Koe"]
            (doall
-             (for [{:keys [id name]} module-titles]
-               [:th.module-name {:key id :title name} name]))]]
+            (for [{:keys [id name]} module-titles]
+              [:th.module-name {:key id :title name} name]))]]
          [:tbody
           (reduce (partial session-rows module-titles participant-id section-id open-rows) [] sessions)]]
         [:div "Ei ilmoittautumisia"]))))
@@ -129,16 +129,16 @@
         [:th.functions "Toiminnot"]]]
       [:tbody
        (doall
-         (for [{:keys [id created amount state order-number]} payments]
-           [:tr {:key id}
-            [:td.date (unparse-date created)]
-            [:td.amount (format-price amount)]
-            [:td.state {:class (if (= state states/pmt-error) "error")} (format-payment-state state)]
-            [:td.functions
-             (when (= state states/pmt-error)
-               [:button.button-small
-                {:on-click #(re-frame/dispatch [:confirm-payment order-number participant-id language])}
-                "Merkitse maksetuksi"])]]))]]
+        (for [{:keys [id created amount state order-number]} payments]
+          [:tr {:key id}
+           [:td.date (unparse-date created)]
+           [:td.amount (format-price amount)]
+           [:td.state {:class (if (= state states/pmt-error) "error")} (format-payment-state state)]
+           [:td.functions
+            (when (= state states/pmt-error)
+              [:button.button-small
+               {:on-click #(re-frame/dispatch [:confirm-payment order-number participant-id language])}
+               "Merkitse maksetuksi"])]]))]]
      [:div "Ei maksutietoja"])])
 
 (defn accreditation-map [accreditation-types items]
@@ -179,60 +179,81 @@
                               (let [new-type (-> e .-target .-value js/parseInt)]
                                 (swap! form-data update form-key meta-merge {id {:type new-type}})))}
         (doall
-          (for [{:keys [id description]} accreditation-types]
-            [:option {:value id :key id} description]))]]]]))
+         (for [{:keys [id description]} accreditation-types]
+           [:option {:value id :key id} description]))]]]]))
 
 (defn participation-section [sections accreditation-types form-data participant-id]
   [:div.participation-section
    (doall
-     (for [{:keys [name accreditation-requested? sessions id module-titles accredited-modules accreditation-date]} sections]
-       [:div.section {:key id}
-        [:h3 (str "Osa " name)]
-        (when accreditation-requested?
-          [:div.accreditations
-           [accreditation-inputs form-data accreditation-types :accredited-sections id participant-id]
-           (when (= accreditation-date nil)
-           [:button.button-small.button-danger
-            {:on-click #(re-frame/dispatch
+    (for [{:keys [name accreditation-requested? sessions id module-titles accredited-modules accreditation-date]} sections]
+      [:div.section {:key id}
+       [:h3 (str "Osa " name)]
+       (when accreditation-requested?
+         [:div.accreditations
+          [accreditation-inputs form-data accreditation-types :accredited-sections id participant-id]
+          (when (= accreditation-date nil)
+            [:button.button-small.button-danger
+             {:on-click #(re-frame/dispatch
                           [:launch-confirmation-dialog
-                          "Haluatko varmasti poistaa korvaavuuden?"
-                          "Poista korvaavuus"
-                          :delete-section-accreditation participant-id id])}
-            "Poista korvaavuus"])])
-        (when (seq accredited-modules)
-          [:div.accreditations
-           [:h4 "Osa-alueiden korvaavudet"]
-           [:div.module-accreditations
-            (doall
-              (for [{:keys [id]} accredited-modules]
-                [:div.module {:key id}
-                 [accreditation-inputs form-data accreditation-types :accredited-modules id participant-id]]))]])
-        [session-table sessions module-titles participant-id id]]))])
+                           "Haluatko varmasti poistaa korvaavuuden?"
+                           "Poista korvaavuus"
+                           :delete-section-accreditation participant-id id])}
+             "Poista korvaavuus"])])
+       (when (seq accredited-modules)
+         [:div.accreditations
+          [:h4 "Osa-alueiden korvaavudet"]
+          [:div.module-accreditations
+           (doall
+            (for [{:keys [id]} accredited-modules]
+              [:div.module {:key id}
+               [accreditation-inputs form-data accreditation-types :accredited-modules id participant-id]]))]])
+       [session-table sessions module-titles participant-id id]]))])
 
 (defn format-address [{::os/keys [registration-street-address registration-zip registration-post-office]}]
   (if (s/blank? registration-street-address)
     "Ei osoitetietoa saatavilla"
     (str registration-street-address ", " registration-zip " " registration-post-office)))
 
-(defn participant-main-component [participant-data initial-form-data accreditation-types]
+(defn valid-email? [email] (re-matches #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$" email))
+
+(defn editable-email-address [email id]
+  (let [email (r/atom email)]
+    (fn []
+      [:form
+       [:div.row
+        [:span.label "Sähköpostiosoite"]
+        [:input {:id "email"
+                 :type "email"
+                 :name "email"
+                 :value @email
+                 :class (when-not (valid-email? @email) "invalid")
+                 :on-change #(reset! email (.-value (.-target %)))}]]
+       [:div.row
+        [:button.button-primary
+         {:on-click #(->> (.preventDefault %) (re-frame/dispatch [:update-participant-email @email id]))
+          :disabled (not (valid-email? @email))}
+         "Tallenna sähköpostiosoite"]]])))
+
+(defn person-details [{:keys [hetu etunimet sukunimi address email id]}]
+  [:div.person
+   [:h3 "Henkilötiedot"]
+   [:div.row
+    [:span.label "Henkilötunnus"]
+    [:span.value hetu]]
+   [:div.row
+    [:span.label "Nimi"]
+    [:span.value (str etunimet " " sukunimi)]]
+   [:div.row
+    [:span.label "Katuosoite"]
+    [:span.value (format-address address)]]
+   [editable-email-address email id]])
+
+(defn participant-main-component [initial-form-data accreditation-types]
   (let [form-data (r/atom initial-form-data)]
     (fn [participant-data initial-form-data]
-      (let [{:keys [id etunimet sukunimi hetu email sections payments address language]} participant-data]
+      (let [{:keys [id sections payments language]} participant-data]
         [:div.participant-details
-         [:div.person
-          [:h3 "Henkilötiedot"]
-          [:div.row
-           [:span.label "Henkilötunnus"]
-           [:span.value hetu]]
-          [:div.row
-           [:span.label "Nimi"]
-           [:span.value (str etunimet " " sukunimi)]]
-          [:div.row
-           [:span.label "Katuosoite"]
-           [:span.value (format-address address)]]
-          [:div.row
-           [:span.label "Sähköpostiosoite"]
-           [:span.value email]]]
+         [person-details participant-data]
          [participation-section sections accreditation-types form-data id]
          [payment-section payments id language]
          [:div.buttons

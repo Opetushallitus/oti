@@ -144,6 +144,11 @@
     (response data)
     (not-found {})))
 
+(defn- update-participant-email [{:keys [db]} email id]
+  (dba/update-participant-email db email id)
+  {:status 200
+   :body {:message "OK"}})
+
 (def secure-random (SecureRandom.))
 
 (defn- generate-access-token-for-registrations! [{:keys [db]} session-id]
@@ -213,13 +218,15 @@
 
 (defn- participant-routes [config]
   (routes
-    (GET "/participant-search" [q filter] (search-participant config q filter))
-    (context "/diplomas" []
+   (GET "/participant-search" [q filter] (search-participant config q filter))
+   (context "/diplomas" []
      (PUT "/" [] (partial generate-diplomas! config))
      (GET "/default-signer-title" [] (response (diploma/default-signer-title config)))
      (GET "/count" [start-date end-date] (diploma-count config start-date end-date)))
-    (context "/participant/:id{[0-9]+}" [id :<< as-int]
+   (context "/participant/:id{[0-9]+}" [id :<< as-int]
      (GET "/" [] (participant-by-id config id))
+     (PUT "/email" {{:keys [email]} :params}
+       (update-participant-email config email id))
      (POST "/accreditations" {params :body-params session :session :as request}
        (try (accreditation/approve-accreditations! config id params session)
             (catch AssertionError _
@@ -237,20 +244,20 @@
        (scoring/scores-email-sent? config request id))
      (PUT "/registration" request
        (scoring/update-registration-state config request id)))
-    (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]
-      (if (payment/confirm-payment-manually! config order-number lang session)
-        (response {:success true})
-        (not-found {:error "Payment not found"})))
-    (GET "/payments" [start-date :<< as-int end-date :<< as-int query]
-      (paid-payments-as-csv config (ts->local-date-time start-date) (ts->local-date-time end-date) query))
-    (DELETE "/registrations/:id{[0-9]+}/sections/:section-id{[0-9]+}" [id :<< as-int section-id :<< as-int :as {session :session {state :state} :body-params}]
-      (if (registration/cancel-registration-by-section! config id section-id state session)
-        (response {:success true})
-        (not-found {:error "Registration not found"})))
-    (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session {state :state} :body-params}]
-      (if (registration/cancel-registration! config id state session)
-        (response {:success true})
-        (not-found {:error "Registration not found"})))))
+   (PUT "/payment/:order-number/approve" [order-number lang :as {session :session}]
+     (if (payment/confirm-payment-manually! config order-number lang session)
+       (response {:success true})
+       (not-found {:error "Payment not found"})))
+   (GET "/payments" [start-date :<< as-int end-date :<< as-int query]
+     (paid-payments-as-csv config (ts->local-date-time start-date) (ts->local-date-time end-date) query))
+   (DELETE "/registrations/:id{[0-9]+}/sections/:section-id{[0-9]+}" [id :<< as-int section-id :<< as-int :as {session :session {state :state} :body-params}]
+     (if (registration/cancel-registration-by-section! config id section-id state session)
+       (response {:success true})
+       (not-found {:error "Registration not found"})))
+   (DELETE "/registrations/:id{[0-9]+}" [id :<< as-int :as {session :session {state :state} :body-params}]
+     (if (registration/cancel-registration! config id state session)
+       (response {:success true})
+       (not-found {:error "Registration not found"})))))
 
 (defn- exam-routes [config]
   (routes
