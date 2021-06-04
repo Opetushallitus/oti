@@ -230,11 +230,11 @@
                  :on-change #(reset! email (.-value (.-target %)))}]]
        [:div.row
         [:button.button-primary
-         {:on-click #(->> (.preventDefault %) (re-frame/dispatch [:update-participant-email @email id]))
+         {:on-click #(->> (re-frame/dispatch [:update-participant-email @email id]) (.preventDefault %))
           :disabled (not (valid-email? @email))}
          "Tallenna sähköpostiosoite"]]])))
 
-(defn person-details [{:keys [hetu etunimet sukunimi address email id]}]
+(defn person-section [{:keys [hetu etunimet sukunimi address email id]}]
   [:div.person
    [:h3 "Henkilötiedot"]
    [:div.row
@@ -248,12 +248,12 @@
     [:span.value (format-address address)]]
    [editable-email-address email id]])
 
-(defn participant-main-component [initial-form-data accreditation-types]
+(defn participant-main-component [participant-data initial-form-data accreditation-types]
   (let [form-data (r/atom initial-form-data)]
     (fn [participant-data initial-form-data]
       (let [{:keys [id sections payments language]} participant-data]
         [:div.participant-details
-         [person-details participant-data]
+         [person-section participant-data]
          [participation-section sections accreditation-types form-data id]
          [payment-section payments id language]
          [:div.buttons
