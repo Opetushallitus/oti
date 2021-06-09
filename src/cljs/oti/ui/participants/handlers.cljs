@@ -1,6 +1,6 @@
 (ns oti.ui.participants.handlers
   (:require [ajax.core :as ajax]
-            [oti.http :refer [http-default-headers]]
+            [oti.http :refer [http-default-headers, csrf-header]]
             [oti.routing :as routing]
             [re-frame.core :as re-frame]
             [oti.spec :as os]))
@@ -59,7 +59,7 @@
    {:http-xhrio {:method          :post
                  :uri             (routing/v-a-route "/participant/" participant-id "/accreditations")
                  :params          data
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:accreditations-saved participant-id]
@@ -98,7 +98,7 @@
  (fn [_ [order-number participant-id lang]]
    {:http-xhrio {:method          :put
                  :uri             (routing/v-a-route "/payment/" order-number "/approve?lang=" (name lang))
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:load-participant-details participant-id]
@@ -111,7 +111,7 @@
    {:http-xhrio {:method          :delete
                  :uri             (routing/v-a-route "/registrations/" registration-id "/sections/" section-id)
                  :params          {:state cancel-state}
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:load-participant-details participant-id]
@@ -124,7 +124,7 @@
    {:http-xhrio {:method          :delete
                  :uri             (routing/v-a-route "/registrations/" registration-id)
                  :params          {:state cancel-state}
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:load-participant-details participant-id]
@@ -136,7 +136,7 @@
  (fn [_ [participant-id section-id]]
    {:http-xhrio {:method          :delete
                  :uri             (routing/v-a-route "/participant/" participant-id "/section/" section-id "/accreditation")
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:load-participant-details participant-id]
@@ -161,7 +161,7 @@
     :http-xhrio {:method          :put
                  :uri             (routing/v-a-route "/participant/" participant-id "/email")
                  :params          {:email email-address}
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:load-participant-details participant-id]
