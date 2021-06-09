@@ -2,7 +2,7 @@
   (:require [re-frame.core :as rf :refer [trim-v debug]]
             [cognitect.transit :as transit]
             [clojure.string :as str]
-            [oti.http :refer [http-default-headers]]
+            [oti.http :refer [http-default-headers, csrf-header]]
             [oti.routing :as routing]
             [oti.ui.handlers :as handlers]
             [oti.spec :as spec]
@@ -140,7 +140,7 @@
                                              (into {}))
                         section-score-changed (section-score-changed? section-score initial-scores)]
                     [section-id (assoc section-score :modules changed-modules
-                                                     :changed? section-score-changed)])) scores)))
+                                       :changed? section-score-changed)])) scores)))
 
 ;; HANDLERS
 
@@ -235,8 +235,8 @@
          (let [pre-selected-registration-id (get-in db [:scoring :selected-registration-id])
                pre-selected-exam-session-id (when pre-selected-registration-id
                                               (some (fn [es]
-                                                   (when (has-registration-id? pre-selected-registration-id es)
-                                                     (:id es))) (vals (get-in db [:scoring :exam-sessions]))))
+                                                      (when (has-registration-id? pre-selected-registration-id es)
+                                                        (:id es))) (vals (get-in db [:scoring :exam-sessions]))))
                pre-selected-participant-id (when pre-selected-exam-session-id
                                              (->> (get-in db [:scoring :exam-sessions pre-selected-exam-session-id])
                                                   :participants
@@ -298,7 +298,7 @@
        :section #_(update-in db [:scoring :form-data exam-session-id participant-id :scores]
                              (fn [scores]
                                (assoc-in scores [id :section-score] value)))
-               (throw (js/Error. "Sections aren't scored as whole. Check your dispatch type."))
+       (throw (js/Error. "Sections aren't scored as whole. Check your dispatch type."))
        :module (update-in db [:scoring :form-data exam-session-id participant-id :scores]
                           (fn [scores]
                             (assoc-in scores [section-id :modules id ::spec/module-score-points] (filter-chars value))))
@@ -319,7 +319,7 @@
                  :params          {:scores (-> (only-scores-that-changed scores initial-scores)
                                                module-points-to-bigdecs)
                                    :exam-session-id exam-session-id}
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-persist-scores-success
@@ -339,7 +339,7 @@
                  :uri             (routing/v-a-route "/participant/" participant-id "/scores")
                  :params          {:exam-session-id exam-session-id
                                    :scores scores}
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-delete-scores-success
@@ -360,7 +360,7 @@
                  :params          {:exam-session-id exam-session-id
                                    :registration-id (get-in db [:scoring :exam-sessions exam-session-id :participants participant-id :registration-id])
                                    :registration-state registration-state}
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-persist-registration-state-success
@@ -461,13 +461,13 @@
      (cond
        ;; Only scores changed
        (and (= registration-state states/reg-ok)
-              (not registration-state-changed)
-              scores-changed) {:db (assoc-in db [:scoring :initial-form-data selected-exam-session selected-participant :scores] current-scores)
-                               :dispatch [:persist-scores
-                                          selected-exam-session
-                                          selected-participant
-                                          current-scores
-                                          initial-scores]}
+            (not registration-state-changed)
+            scores-changed) {:db (assoc-in db [:scoring :initial-form-data selected-exam-session selected-participant :scores] current-scores)
+                             :dispatch [:persist-scores
+                                        selected-exam-session
+                                        selected-participant
+                                        current-scores
+                                        initial-scores]}
 
        ;; Registration changed to absent or absent approved
        (and (#{states/reg-absent states/reg-absent-approved} registration-state)
@@ -560,7 +560,7 @@
                                                      :participants
                                                      participant-id
                                                      :registration-language])}
-                 :headers         (http-default-headers)
+                 :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:handle-scores-email-sent-success
