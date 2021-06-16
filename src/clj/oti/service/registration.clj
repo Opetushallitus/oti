@@ -61,7 +61,7 @@
                                     :yhteystiedotRyhma
                                     conj {:ryhmaAlkuperaTieto origin
                                           :ryhmaKuvaus type
-                                          :yhteystiedot address-list}))
+                                          :yhteystieto address-list}))
         (info "Not storing address for user" external-user-id "because address already exists as id" existing-address-id)))
     (do (error "Could not retrieve user" external-user-id "from API for address update, cannot proceed")
         (throw (Exception. "Could not store address for user")))))
