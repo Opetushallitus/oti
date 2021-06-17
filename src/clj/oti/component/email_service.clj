@@ -20,7 +20,7 @@
   (log/info "Trying to send email" subject "to" recipients)
   (let [wrapped-recipients (mapv (fn [rcp] {:email rcp}) recipients)
         email-service-url (url url-helper "ryhmasahkoposti-service.email")
-        {:keys [status]} @(http/post email-service-url {:headers (merge {"content-type" "application/json"} (http-default-headers))
+        {:keys [status]} @(http/post email-service-url {:headers (merge {"cookie" "csrf=csrf" "content-type" "application/json"} (http-default-headers))
                                                         :body    (json/generate-string {:email     {:subject subject
                                                                                                     :isHtml  true
                                                                                                     :body    body
