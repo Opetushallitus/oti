@@ -1,9 +1,9 @@
 (ns oti.spec
   (:require
-    #?(:clj  [clojure.spec.alpha :as s]
-       :cljs [cljs.spec.alpha :as s])
-             [clojure.string :as str]
-             [oti.utils :refer [parse-int]]))
+   #?(:clj  [clojure.spec.alpha :as s]
+      :cljs [cljs.spec.alpha :as s])
+   [clojure.string :as str]
+   [oti.utils :refer [parse-int]]))
 
 (defn future-date? [candidate]
   #?(:clj (.after candidate (java.util.Date.))
@@ -90,23 +90,23 @@
 (s/def ::registration-count  int?)
 
 (s/def ::exam-session (s/and
-                        (s/keys :req [::session-date
-                                      ::start-time
-                                      ::end-time
-                                      ::street-address
-                                      ::city
-                                      ::other-location-info
-                                      ::max-participants
-                                      ::exam-id
-                                      ::published]
-                                :opt [::id])
-                        start-before-end-time?))
+                       (s/keys :req [::session-date
+                                     ::start-time
+                                     ::end-time
+                                     ::street-address
+                                     ::city
+                                     ::other-location-info
+                                     ::max-participants
+                                     ::exam-id
+                                     ::published]
+                               :opt [::id])
+                       start-before-end-time?))
 
 ;; registration
 (s/def ::email (s/and string? #(re-matches #"[^<>]+@[^<>]+\.[^<>]+" %)))
 (s/def ::retry any?)
 (s/def ::accredit? any?)
-(s/def ::retry-modules (s/* ::id))
+(s/def ::retry-modules (s/and set? (s/coll-of ::id)))
 (s/def ::accredit-modules (s/* ::id))
 (s/def ::session-id integer?)
 (s/def ::preferred-name ::non-blank-string)
@@ -124,7 +124,7 @@
                         retry-or-accredit?))
 
 (s/def ::sections (s/and (s/map-of ::id ::section)
-                         seq))
+                         seqable?))
 
 (s/def ::registration (s/keys :req [::email
                                     ::session-id
