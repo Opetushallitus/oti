@@ -200,7 +200,7 @@
                  (find-value response
                              [:serviceResponse :authenticationSuccess]))
         using-valtuudet (using-valtuudet? response)]
-    (info "Response: %s" response)
+    (info "Response: " (str/replace (str response) #"([0-9]{6}[-+A])[0-9]{3}[0-9A-z]" "$1****"))
     {:success? success
      :error (when-not success
               (first
@@ -227,7 +227,7 @@
 (defn validate-oppija-ticket [config ticket lang session]
   (info "validating cas-oppija ticket" ticket)
   (let [responsebody (cas-oppija-ticket-validation config ticket session)]
-    (info "validation response" responsebody)
+    (info "validation response" (str/replace responsebody #"([0-9]{6}[-+A])[0-9]{3}[0-9A-z]" "$1****"))
     (let [xml-data (parse-str responsebody)]
       (convert-oppija-cas-response-data xml-data))))
 
