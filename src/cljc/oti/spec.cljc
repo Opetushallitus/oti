@@ -1,9 +1,9 @@
 (ns oti.spec
   (:require
-    #?(:clj  [clojure.spec.alpha :as s]
-       :cljs [cljs.spec.alpha :as s])
-             [clojure.string :as str]
-             [oti.utils :refer [parse-int]]))
+   #?(:clj  [clojure.spec.alpha :as s]
+      :cljs [cljs.spec.alpha :as s])
+   [clojure.string :as str]
+   [oti.utils :refer [parse-int]]))
 
 (defn future-date? [candidate]
   #?(:clj (.after candidate (java.util.Date.))
@@ -90,17 +90,17 @@
 (s/def ::registration-count  int?)
 
 (s/def ::exam-session (s/and
-                        (s/keys :req [::session-date
-                                      ::start-time
-                                      ::end-time
-                                      ::street-address
-                                      ::city
-                                      ::other-location-info
-                                      ::max-participants
-                                      ::exam-id
-                                      ::published]
-                                :opt [::id])
-                        start-before-end-time?))
+                       (s/keys :req [::session-date
+                                     ::start-time
+                                     ::end-time
+                                     ::street-address
+                                     ::city
+                                     ::other-location-info
+                                     ::max-participants
+                                     ::exam-id
+                                     ::published]
+                               :opt [::id])
+                       start-before-end-time?))
 
 ;; registration
 (s/def ::email (s/and string? #(re-matches #"[^<>]+@[^<>]+\.[^<>]+" %)))
@@ -241,7 +241,7 @@
 
 ;; diploma
 
-(s/def ::participant-ids (s/and set? (s/+ ::id)))
+(s/def ::participant-ids (s/and set? (s/coll-of ::id) not-empty))
 (s/def ::signer ::non-blank-string)
 (s/def ::signer-title ::i18n-string)
 

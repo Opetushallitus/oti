@@ -5,8 +5,7 @@
             [oti.filters :as filters]
             [oti.ui.views.common :refer [small-loader]]
             [oti.routing :as routing]
-            [reagent.core :as r]
-            [clojure.string :as str]
+            [reagent.core :as r]            
             [oti.ui.exam-sessions.utils :as utils]
             [oti.spec :as os]
             [clojure.spec.alpha :as s]))
@@ -51,7 +50,7 @@
             [:td
              (when (not= filter-kw :incomplete)
                [:input {:type "checkbox"
-                        :checked ((::os/participant-ids @form-data) id)
+                        :checked (contains? (@form-data ::os/participant-ids) id)
                         :on-change (fn [e]
                                      (let [op (if (-> e .-target .-checked) conj disj)]
                                        (swap! form-data update ::os/participant-ids op id)))}])]
