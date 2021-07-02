@@ -90,7 +90,7 @@
   CasAccess
   (request [cas service-path request-options]
     (let [session (get-cas-session cas service-path)
-          headers (merge {"Cookie" (str "JSESSIONID=" session)} (http-default-headers))
+          headers (merge {"Cookie" (str "JSESSIONID=" session "; csrf=csrf")} (http-default-headers))
           response @(http/request (-> (assoc request-options :follow-redirects false)
                                       (update :headers merge headers)))]
       (if (session-expired? response)
