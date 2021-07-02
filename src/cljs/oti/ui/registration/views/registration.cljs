@@ -161,7 +161,8 @@
                     (for [module modules]
                       [:label {:key (:id module)}
                        [:input {:type "checkbox" :name (str "section-" id "-module-" (:id module))
-                                :on-click (module-selection form-data id (:id module) ::os/retry-modules)}]
+                                :checked (contains? (get-in @form-data [::os/sections id ::os/retry-modules]) (:id module))
+                                :on-change (module-selection form-data id (:id module) ::os/retry-modules)}]
                        [:span (@lang (:name module))]]))])]
               [:div.row
                [:label

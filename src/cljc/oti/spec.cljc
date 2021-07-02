@@ -106,7 +106,7 @@
 (s/def ::email (s/and string? #(re-matches #"[^<>]+@[^<>]+\.[^<>]+" %)))
 (s/def ::retry any?)
 (s/def ::accredit? any?)
-(s/def ::retry-modules (s/* ::id))
+(s/def ::retry-modules (s/and set? (s/coll-of ::id)))
 (s/def ::accredit-modules (s/* ::id))
 (s/def ::session-id integer?)
 (s/def ::preferred-name ::non-blank-string)
@@ -124,7 +124,7 @@
                         retry-or-accredit?))
 
 (s/def ::sections (s/and (s/map-of ::id ::section)
-                         seq))
+                         seqable?))
 
 (s/def ::registration (s/keys :req [::email
                                     ::session-id
