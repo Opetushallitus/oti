@@ -2,39 +2,38 @@ sudo: required
 language: clojure
 
 jdk:
-- openjdk11
+  - openjdk11
 
 services:
-- docker
+  - docker
 
 cache:
   directories:
-  - $HOME/.m2
+    - $HOME/.m2
 
 env:
   global:
-  # AWS_ACCESS_KEY_ID
-  - secure: "TTM6TyOVuhYtyMEUFdQ0zWvwrCpP+Ote2HTHWGBfYYxohmLk6/p0c/H9ZgAzfBQhH++dGjfJGvUrqWiKDlYijUgMySOoYICYMn5LY1DmorHl9hgPAHs7rTedpOAP3+MhlcwP+Z5emeHFxrcQVkrjieQD0gk9O3sgxy9dnTzmOlx/cTj8n53meADPwvONWVCv7vvBjwDwHhlePlbZ6hnJRk0KHZTsh6DdTcTBcSrdieknZu1Gh0m/4d7j6hBrYV4TNCFo9FHQVmAr+k6O8N/HytVtrevtU0Iwd3Jc4DLtaVai2ysx/50dbEx4VME918JI1C/KS4CIy4GAsRHnl35mqO4EEeiZyE6mNFjumfG+5JVpXUnnaevBZQ+XEtrb903KRGn1Q4oBOIuBUAOWvL6RgVbwwYE6I6pFAruKQWiqseHiy69+uBTrB0sWWRTLyB63lgkLddGwPyUIDL5txRmfIYHhKN4fpcb1D6BBeqW2djM2mzJSNFxyzK/3fnsimQf0BLhVazhJEdSKfu6yawjE2kOcnhiHRfDNvWVcPZ0I7i8PvKTWnXQ5IHdkdgmEelQVl5RT4gsvNVqEEi0/WH5Ec9sm8RSE2qgj3Ea8LCjdXLvRvelkg+VunKMdosKdPWWJ8p5paihgsVlTmxmap7sE5HrB5u21gpVdGjhK4aFOIa8="
-  # AWS_SECRET_ACCESS_KEY
-  - secure: "JmYbT0FPGRoWYx+PPCXOe3917nF1pbbU9uYF+0d6cTuljRkF4/Wb9f/qZ3+AzuxaONA1a4Uw6RZ5l2hJfWMu+e3+dvws2/e8my/+fVdYzXJ++Y9dGITxHcgFJpVVNiIVbY9s5Kf8FlQ0fpfk+kwa+1xHeYBIIWLtUFyV/n57HAiJRWyDr2JkEg8mO2a5n5LOT6nN+RXlpPTCSvwJlmKAlc+42Dp4x5qL1QkbctOcxoXTRxFWCWxdUkY2hZrEu7VHGohMsS0KnJy+PRMolNS+YJ1c9v7b6+zWxOWXVVyoaR/fNdPDyspPFsK+jr9lFw6K91tmm9P9puxMFifVs+7d8AbtiAh9xU4IdA1FHXBrSKq6A76UfdZ1iB0Qc9qqxMqM0iLIxbkLSghjVok1luDahokyKh5ReKSx6NEBxA+TzcQXDOCGDg5XMzAqhV9Hp4+xPyi8N1+Fyjo9Lf515vpNAhjpbjQ7mKJQPyOPTRtUscpO8AUD8Y7Eei3DNPr7MKTq2R+z0Ez4SJBLaIGU06xLRoa0LQD2lMb+uZ4SvTv1rM1b9WDdmJEppfVUXOofHEgymrSTyDpFXLTyLwJrN+Jh2ELbeJ4aa91JE2R7Yc7NUSDEBpIJpH4i2zn5ti7BNVLRRSa1rz+gB37ey+HxySkaPBZwkZu/HzfGvyylKdGp3xQ="
+    # AWS_ACCESS_KEY_ID
+    - secure: "U4otoOwJWm/9pH2eKdwwJqz3hj5nJrd1DmFTieL5UztIo4gSHajSyRnUrs/H40M14Xabm0iKiTDIL68T6Q7Q8g1qXJfdgnW126vO/TIy/qFpvdOt952UCJtCaAJQUj7t8NimGX0H6+scqET2RBwvH+xEeZ4Oq3JdNOw4MprW94mYX6WKu7zm3FAt5xFoTSmNirVQ3p9+F/8oGsiuFrqA6FcJUN08sx1KrClnA3m37bawePQUSAtWoUu5Ul/OV+xZ8vZ2emKoiCM2WJXIFj7KlAMgGNreRRxWqstZELMtUJhcTUyw8Zngo62lfpOUmIJ3pBRBk4UJGUgPot9q5T32pEbeYPLXbpTbpCjk6+fEudVnHiGotLAD7RTKdx9JSpH5aE0Cbk51TvxvubHF88ey7fTezAVeR7eEvBRGUVpIZ+6oJZiG2Ywdygay4+VMEiyL0q6edxOmI7WPBywJUOMQkF01Z6jhuKPmvuDDGTbPwf0L7LNrxazwnB8Ylc6mFLGmnX8ELxkhnrE0oGRNEpVeA7T8/1+7JEipmdVFlA/t1MHDCWNwzV2Ji7EGvYCyg5uCdyxLI5YLeGWLC26HePxpQ4+lYiOtuG2s79Y9nsffTzJjxewZaFhUnwl+YCAhost4VozGkSP8f90gx6eR3D8cqvUaceLugU91i+XoyqTtxHw="
+    # AWS_SECRET_ACCESS_KEY
+    - secure: "U0sdbO2m4Y5FlSPB0Yk/k9L2xyChgksWChFJq6l1jqjry/44u7iCiJRzj9sZWp5LAjPrn5ZEwRrAshmVo8C17odbL0jZXkPjJd0wgxfOfniiVtYSXK59KvHw7fsN1T+3QBryv/PFNmcCDNOSkc4GitIYBqu+4n+zNBIdigmiw/Wth1lNBN0RQ0dbWJLBz5MF6bmYJWwZHC34k9SLLrTC+rBpNzLWlaE51OcKQy9LgnO1qJrHwiZxBFmpCd3GS2Jzg6Fjreu25bq0z6j8s5LKSZ2wjcMESHJ43Xz4/2c34EFjhjCPSjQ9CMef8+yewAO91QnVfn0fcHDNTsUWDpPX9fDA3ExCxuqnU8KyRGP5z7sdY5sgyDPNx5bCYTz9HBza7jeLDnDSkuQoHAuniWBCm+z/HUMtZURlBeVpDQrwvtNUCd5EcZ77TkljxEmTGV+q0oPBKRGg5Oh1eG9CbUuV/BBunccqmmw52FU/bTSoqk5hrtY9XesyEmWfuRVlYb073mVvRNyzopxpfyJaGx850bWCIhXFOmpC8zzqC9Ra52OIDb/kpPr/bY0mcJ08rELwaTxnhZnXQx/NwdhrPLdVht2ZA+FfFHaFNUnXec/Sqr5ZmdX7zEtkY0BZCOrEoVBNiAb3b9coO804TnbUJYUw9gvhJNS32pFwFkBEEP0X0Ug="
 
 install:
-- export TZ=Europe/Helsinki
-- git clone https://github.com/Opetushallitus/ci-tools.git
-- source ci-tools/common/setup-tools.sh
+  - export TZ=Europe/Helsinki
+  - git clone https://github.com/Opetushallitus/ci-tools.git
+  - source ci-tools/common/setup-tools.sh
 
 script:
-- ./ci/build_travis.sh uberjar
-- export BASE_IMAGE="baseimage-fatjar-openjdk11:master"
-- ./ci-tools/common/pull-image.sh
+  - ./ci/build_travis.sh uberjar
+  - export BASE_IMAGE="baseimage-fatjar-openjdk11:master"
+  - ./ci-tools/common/pull-image.sh
 
-- mv target/uberjar/oti.jar $DOCKER_BUILD_DIR/artifact/oti.jar
-- cp -vr oph-configuration $DOCKER_BUILD_DIR/config/
-- ./ci-tools/build/build-fatjar.sh oti
+  - mv target/uberjar/oti.jar $DOCKER_BUILD_DIR/artifact/oti.jar
+  - cp -vr oph-configuration $DOCKER_BUILD_DIR/config/
+  - ./ci-tools/build/build-fatjar.sh oti
 
 deploy:
-- provider: script
-  script:
-    ./ci-tools/build/upload-image.sh oti;
-  on:
-    all_branches: true
+  - provider: script
+    script: ./ci-tools/build/upload-image.sh oti;
+    on:
+      all_branches: true
