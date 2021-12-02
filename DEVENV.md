@@ -1,7 +1,8 @@
 ## Setting Up Local Development Environment
 
 ### Prerequisities
-- Java 8
+
+- Java 11
 - Leiningen
 - NodeJS
 - Docker (preferred) or local PostgreSQL instance
@@ -9,6 +10,7 @@
 ### 1. Set up local database
 
 For convenience, use Docker:
+
 ```
 docker run --name postgres-oti -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -e POSTGRES_DB=oti -p 5432:5432 -d postgres
 ```
@@ -16,6 +18,7 @@ docker run --name postgres-oti -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin
 ### 2. Set up application
 
 The first time you clone this repository, run
+
 ```
 lein setup
 ```
@@ -25,6 +28,7 @@ This will create files for local configuration, and prep your system for the pro
 #### Local configuration
 
 Next, configure your local configuration.Add this to dev/resources/local.edn
+
 ```
 {:config {:db {:uri "jdbc:postgresql://localhost/oti"
                :username "admin"
@@ -33,9 +37,11 @@ Next, configure your local configuration.Add this to dev/resources/local.edn
           :cas {:user {:username <removed> :password <removed>}}
           :paytrail-payment {:oti-paytrail-uri "https://oti.local/oti/paytrail"}}}
 ```
+
 OTI needs access to certain services in a live test environment. Replace removed usernames and passwords with the corresponding values for the specific environment.
 
 Add the following code to dev/src/local.clj:
+
 ```
 (ns local
   (:require [figwheel-sidecar.repl-api :as ra]))
@@ -46,11 +52,13 @@ Add the following code to dev/src/local.clj:
 (defn stop-fw []
   (ra/stop-figwheel!))
 ```
+
 You will use these later.
 
 In order to test registration locally, you need a proxy and some configuration for redirecting back to oti after succesfull payment to work.
 
 First, add this to your etc/hosts file:
+
 ```
 127.0.0.1       oti.local
 ```
@@ -58,10 +66,13 @@ First, add this to your etc/hosts file:
 Notice, that we are using this hostname in our configuration above.
 
 The development proxy is a nodejs application and can be found in tools/dev-proxy directory. It needs a self-signed certificate to work, so create one in that same directory:
+
 ```
 cd tools/dev-proxy && ./create-ss-cert.sh
 ```
+
 Install proxy dependencies with npm:
+
 ```
 npm install
 ```
@@ -74,9 +85,11 @@ Before you start the application, the following things need to be done:
 
 1. Start your database if not started
 2. Start the development proxy (for paytrail return url's to work):
+
 ```
 cd tools/dev-proxy && sudo node proxy.js
 ```
+
 You need to start the proxy as root, because it needs to be able to bind to port 80.
 
 To start the local server and start developing, start a REPL:
@@ -98,6 +111,7 @@ Run `go` to initiate and start the system.
 dev=> (go)
 :started
 ```
+
 By default this creates a web server at <http://localhost:3000>. Public site at <http://localhost:3000/oti/ilmoittaudu>.
 
 When you make changes to your source files, use `reset` to reload any
@@ -112,6 +126,7 @@ dev=> (reset)
 #### Run database migrations
 
 At this point it's wise to run the database migrations:
+
 ```clojure
 dev=> (migrate)
 Applying 01-some-migration
@@ -125,7 +140,7 @@ etc.
 lein figwheel
 ```
 
-There are functions for running figwheel in the existing repl session with backend (local/start-fw) & (local/stop-fw) but this causes reloading backend changes to crash due to error in pikaday-component. 
+There are functions for running figwheel in the existing repl session with backend (local/start-fw) & (local/stop-fw) but this causes reloading backend changes to crash due to error in pikaday-component.
 
 #### Running tests
 
@@ -142,4 +157,3 @@ But you can also run tests through Leiningen.
 ```sh
 lein test
 ```
-

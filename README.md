@@ -1,6 +1,19 @@
 # Opetushallinnon tutkintoon ilmoittautuminen
 
-A system for registering to an examination session and keeping records of student results and payments. 
+A system for registering to an examination session and keeping records of student results and payments.
+
+## Technologies & Frameworks
+
+Below is non-exhaustive list of the key technologies & frameworks used in the project.
+
+- Java 11
+- Node
+- Clojure
+- Leiningen
+- Ragtime
+- Duct
+- Re-frame
+- PostgreSQL
 
 ## Developing
 
@@ -18,7 +31,7 @@ The main configuration file is /resources/oti/system.edn. This contains configur
 This configuration is augmented (and overwritten) by environment specific config files. For local development
 environment these include /dev/resources/dev.edn and /dev/resources/local.edn (which is ignored by git).
 
-Server configuration is created during deploy by filling the variables in the Ansible template 
+Server configuration is created during deploy by filling the variables in the Ansible template
 /oph-configuration/config.edn.template.
 
 URLs for accessing other OPH services are stored in /resources/oti/oti_url.properties.
@@ -43,11 +56,11 @@ must contain a valid data structure in the following format:
                               :sv "Subject in Swedish"}}
 
 Base template used for all emails is in the file email-base.html. Template specific HTML markup is in files named after
-the template id and language, e.g. some-email-template-id.fi.html. Email construction is handled in the namespace 
+the template id and language, e.g. some-email-template-id.fi.html. Email construction is handled in the namespace
 oti.service.email-templates.
 
 The messaging service will strip any `<style>` elements and links to external stylesheets (which aren't supported by
-all email services anyway), so styling has to be done inline in element attributes. 
+all email services anyway), so styling has to be done inline in element attributes.
 
 ### Migrations
 
@@ -130,7 +143,7 @@ Then, carefully upgrade outdated dependencies.
 
 ## Deploying
 
-Commits pushed to master and develop branches will cause a build to happen in 
+Commits pushed to master and develop branches will cause a build to happen in
 [Bamboo](https://bamboo.oph.ware.fi/browse/OTI-OB). A successful build can be deployed to the different environments
 via the Bamboo GUI.
 
@@ -140,10 +153,10 @@ OTI provides two URLs for checking the application status. The path /oti/version
 and the git commit revision of the running application. The path /oti/health will check that the database connection
 is working, and if so, respond with OK.
 
-
 ## Maintenance tips for test environment
 
 Removing all participants and their registrations and payments from database:
+
 ```
 delete from registration_exam_content_section;
 delete from registration_exam_content_module;
@@ -156,6 +169,7 @@ delete from participant;
 ```
 
 Removing all exam sessions from database:
+
 ```
 delete from exam_session;
 ```
@@ -164,12 +178,12 @@ delete from exam_session;
 
 Copyright © 2016 The Finnish National Board of Education - Opetushallitus
 
-This program is free software: Licensed under the EUPL, Version 1.1 or - as soon as they will be 
+This program is free software: Licensed under the EUPL, Version 1.1 or - as soon as they will be
 approved by the European Commission - subsequent versions of the EUPL (the "Licence");
 
-You may not use this work except in compliance with the Licence. You may obtain a copy of the 
+You may not use this work except in compliance with the Licence. You may obtain a copy of the
 Licence at: http://www.osor.eu/eupl/
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the European Union Public Licence for more details.
