@@ -80,7 +80,7 @@
    (let [window-handle (.open js/window "" "Todistukset" "width=800,height=800,left=100,top=100,resizable,scrollbars")]
      (ajax/PUT (routing/v-a-route "/diplomas")
        {:params          params
-        :headers         (http-default-headers)
+        :headers         (merge (http-default-headers) (csrf-header))
         :format          (ajax/transit-request-format)
         :response-format (ajax/text-response-format)
         :handler         (fn [markup]
