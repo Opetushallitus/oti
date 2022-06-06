@@ -44,12 +44,13 @@
       decode-tgt))
 
 (defn- fetch-service-ticket [service-uri tgt-uri]
-  (let [{:keys [body status]} @(http/post tgt-uri {:form-params {:service service-uri}
-                                                   :headers (http-default-headers)})]
-    (if-not (str/blank? body)
-      (or (last (re-find #"(ST-.*)" body))
-          (error "No service ticket found from response"))
-      (error (str "Blank body received for service ticket request. HTTP status: " status)))))
+       (let [{:keys [body status]} @(http/post tgt-uri {:form-params {:service service-uri}
+                                                        :headers (http-default-headers) :as :text })]
+        (cond
+          (not= 200 status) (error (str "Received status indicates failure, status: " status))
+          (str/blank? body) (str "Blank body received for service ticket request. HTTP status: " status)
+          :else (or (last (re-find #"(ST-.*)" body))
+                    (error "No service ticket found from response")))))
 
 (defn- decode-jsession [{:keys [status headers]}]
   (if (< status 400)
@@ -123,3 +124,4 @@
             first)))
     (catch Throwable t
       (log/error t))))
+
