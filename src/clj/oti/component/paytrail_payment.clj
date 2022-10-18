@@ -6,15 +6,12 @@
             [clojure.core.match :refer [match]]
             [clojure.string :as str]
             [clojure.walk :refer [stringify-keys]]
-            [clojure.tools.logging :refer [error info]]
             [clj-http.client :as client]
             [buddy.core.mac :as mac]
             [buddy.core.codecs :as codecs]
             [clojure.data.json :as json]
             [clojure.tools.logging :as log])
   (:import [java.util UUID]
-           [java.util Locale]
-           [org.apache.commons.codec.digest DigestUtils]
            [java.time ZoneOffset ZonedDateTime]
            [java.time.format DateTimeFormatter]))
 
@@ -72,11 +69,8 @@
                                   params]
   {:pre  [(s/valid? ::os/pt-payment-params params)]
    :post [(s/valid? ::os/pt-payment-form-data %)]}
-  (let [debug2 (info (str "merchant-id: " merchant-id ", " merchant-secret))
-        debug33 (info "host: " paytrail-host)
-        authentication-headers (authentication-headers "POST" merchant-id nil)
+  (let [authentication-headers (authentication-headers "POST" merchant-id nil)
         data (generate-json-data payment-component params)
-        debug1 (info (str "data: " data))
         body (json/write-str data)
         response (-> {:method           :post
                       :url              paytrail-host
@@ -87,45 +81,7 @@
                                             (assoc "signature" (sign-request merchant-secret authentication-headers body)))
                       :body             body}
                      client/request)]
-    (info (str "got href: " (-> response :body :href)))
     #:oti.spec{:uri (-> response :body :href)}))
-
-(comment OLD STUFF BEGINS)
-
-(defn- format-number-us-locale [n]
-  (String/format (Locale. "us"), "%.2f", (to-array [(double n)])))
-
-(defn- calculate-authcode [{::os/keys [MERCHANT_ID LOCALE URL_SUCCESS URL_CANCEL
-                                       AMOUNT ORDER_NUMBER REFERENCE_NUMBER MSG_SETTLEMENT_PAYER
-                                       MSG_UI_MERCHANT_PANEL PARAMS_IN PARAMS_OUT]} secret]
-  (let [plaintext (str/join "|" (->> [secret MERCHANT_ID LOCALE URL_SUCCESS URL_CANCEL
-                                      AMOUNT ORDER_NUMBER REFERENCE_NUMBER  MSG_SETTLEMENT_PAYER
-                                      MSG_UI_MERCHANT_PANEL PARAMS_IN PARAMS_OUT]
-                                     (remove nil?)))]
-    (-> plaintext (.getBytes "ISO-8859-1") DigestUtils/sha256Hex str/upper-case)))
-
-(defn- generate-form-data [{:keys [paytrail-host oti-paytrail-uri merchant-id merchant-secret]}
-                           {::os/keys [language-code amount order-number reference-number msg] :as params}]
-  {:pre  [(s/valid? ::os/pt-payment-params params)]
-   :post [(s/valid? ::os/pt-payment-form-data %)]}
-  (let [params-in "MERCHANT_ID,LOCALE,URL_SUCCESS,URL_CANCEL,AMOUNT,ORDER_NUMBER,REFERENCE_NUMBER,MSG_SETTLEMENT_PAYER,MSG_UI_MERCHANT_PANEL,PARAMS_IN,PARAMS_OUT"
-        params-out "ORDER_NUMBER,PAYMENT_ID,AMOUNT,TIMESTAMP,STATUS"
-        form-params #:oti.spec{:MERCHANT_ID  merchant-id
-                               :LOCALE       (case language-code :fi "fi_FI" :sv "sv_SE")
-                               :URL_SUCCESS  (str oti-paytrail-uri "/success")
-                               :URL_CANCEL   (str oti-paytrail-uri "/cancel")
-                               :AMOUNT       (format-number-us-locale amount)
-                               :ORDER_NUMBER order-number
-                               :REFERENCE_NUMBER reference-number
-                               :MSG_SETTLEMENT_PAYER msg
-                               :MSG_UI_MERCHANT_PANEL msg
-                               :PARAMS_IN params-in
-                               :PARAMS_OUT params-out}
-        authcode (calculate-authcode form-params merchant-secret)]
-    #:oti.spec{:uri                 paytrail-host
-               :pt-payment-form-params (assoc form-params ::os/AUTHCODE authcode)}))
-
-(def response-keys [:ORDER_NUMBER :PAYMENT_ID :AMOUNT :TIMESTAMP :STATUS])
 
 (defn- return-authcode-valid? [{:keys [merchant-secret]} form-data]
   (let [signed-headers (sign-request merchant-secret (stringify-keys form-data) nil)

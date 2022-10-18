@@ -130,6 +130,7 @@
                                   [org.clojure/tools.namespace "1.1.0"]
                                   [org.clojure/tools.nrepl "0.2.13"]
                                   [eftest "0.5.9"]
+                                  [clj-http-fake "1.0.3"]
                                   [com.gearswithingears/shrubbery "0.4.1"]
                                   [kerodon "0.9.1"]
                                   [cider/cider-nrepl "0.25.9"]
