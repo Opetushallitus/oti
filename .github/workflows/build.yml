@@ -29,6 +29,7 @@ jobs:
         run: |
           git clone https://github.com/Opetushallitus/ci-tools.git
           source ci-tools/common/setup-tools.sh
+          ./ci/build.sh test
           ./ci/build.sh uberjar
 
       - uses: actions/cache@v2
