@@ -263,7 +263,7 @@
                                                                              (selected-section-as-str section
                                                                                (get (::os/sections @form-data) (:id section)))]]]))]
                                                                  (t "continue-to-payment" "Jatka maksamaan")
-                                                                 [:store-registration @form-data @lang]
+                                                                 @(re-frame/subscribe [:continue-payment-link @form-data @lang])
                                                                  (fn [] (reset! submitted? false))]))}
             [session-select @lang @exam-sessions form-data]
             [:div.section.participant

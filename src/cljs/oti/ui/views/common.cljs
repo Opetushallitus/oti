@@ -42,11 +42,16 @@
                           (when-not (= (:cancel-fn @data) nil)
                             (apply (:cancel-fn @data) nil))
                           (re-frame/dispatch [:confirmation-cancel]))}
-             (if (:event @data) "Peruuta" "OK")]
+             (if (or (:event @data)
+                     (:href @data)) "Peruuta" "OK")]
             (when (:event @data)
               [:button.button-danger
                {:on-click (fn []
                             (re-frame/dispatch (:event @data))
                             (re-frame/dispatch [:confirmation-cancel]))}
+               (:button-text @data)])
+            (when (:href @data)
+              [:a.button.button-danger
+               {:href (:href @data)}
                (:button-text @data)])]]]
          [:div.overlay]]))))
