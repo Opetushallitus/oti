@@ -85,10 +85,10 @@
 (rf/reg-event-db
   :launch-confirmation-dialog-with-cancel-fn
   [trim-v]
-  (fn [db [question button-text rf-event cancel-fn]]
+  (fn [db [question button-text href cancel-fn]]
     (assoc db :confirmation-dialog {:question question
                                     :button-text button-text
-                                    :event rf-event
+                                    :href href
                                     :cancel-fn cancel-fn})))
 
 (rf/reg-event-db

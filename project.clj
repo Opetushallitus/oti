@@ -8,6 +8,7 @@
                  [org.clojure/spec.alpha "0.2.194"]
                  [org.clojure/tools.reader "1.3.5"]
                  [org.clojure/core.async "1.3.610"]
+                 [org.clojure/core.match "1.0.0"]
                  [org.clojure/java.jdbc "0.7.12"]
                  [org.clojure/tools.logging "1.1.0"]
                  [org.clojure/data.csv "1.0.0"]
@@ -29,6 +30,7 @@
                  [duct/ragtime-component "0.1.4"]
                  [suspendable "0.1.1"]
                  [http-kit "2.5.3"]
+                 [clj-http "3.10.3"]
                  [cheshire "5.10.0"]
                  [webjure/jeesql "0.4.7"]
                  [ring-logger "0.7.7"]
@@ -56,7 +58,10 @@
 
                  [fi.vm.sade/auditlogger "8.2.0-SNAPSHOT"]
                  [fi.vm.sade.java-utils/java-http "0.1.4-SNAPSHOT"]
-                 [fi.vm.sade.java-utils/java-properties "0.1.0-SNAPSHOT"]]
+                 [fi.vm.sade.java-utils/java-properties "0.1.0-SNAPSHOT"]
+
+                 ;; Security checks
+                 [buddy/buddy-auth "2.2.0"]]
 
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.4"]
@@ -125,6 +130,7 @@
                                   [org.clojure/tools.namespace "1.1.0"]
                                   [org.clojure/tools.nrepl "0.2.13"]
                                   [eftest "0.5.9"]
+                                  [clj-http-fake "1.0.3"]
                                   [com.gearswithingears/shrubbery "0.4.1"]
                                   [kerodon "0.9.1"]
                                   [cider/cider-nrepl "0.25.9"]

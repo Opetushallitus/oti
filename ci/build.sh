@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-export JAVA_HOME="${bamboo_capability_system_jdk_JDK_1_8}"
-echo $JAVA_HOME
-export PATH=$JAVA_HOME/bin:$PATH
+LEIN=$(command -v lein)
+if [[ "${LEIN}" == "" ]]; then
+  LEIN="./ci/lein"
+fi
 
 test() {
   ./ci/lein clean
@@ -13,8 +14,6 @@ test() {
 uberjar() {
   set -x
   ./ci/lein clean
-  echo ${bamboo_buildResultKey} > ./resources/build.txt
-  git rev-parse HEAD > ./resources/git-rev.txt
   ./ci/lein uberjar
 }
 

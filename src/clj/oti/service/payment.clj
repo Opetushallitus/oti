@@ -17,17 +17,17 @@
 
 
 (defn- process-response! [{:keys [paytrail-payment db]} form-data db-fn]
-  (let [db-params {:order-number (:ORDER_NUMBER form-data)
-                   :pay-id (blank->nil (:PAYMENT_ID form-data))
-                   :payment-method (blank->nil (:PAYMENT_METHOD form-data))}]
+  (let [db-params {:order-number (:checkout-reference form-data)
+                   :pay-id (blank->nil (:checkout-stamp form-data))
+                   :payment-method (blank->nil (:checkout-provider form-data))}]
     (if (and (payment-util/authentic-response? paytrail-payment form-data) (:order-number db-params))
       (do (db-fn db db-params)
           true)
       (error "Could not verify payment response message:" form-data))))
 
-(defn- send-confirmation-email! [config {:keys [ORDER_NUMBER] :as payment-data} lang]
-  (if (not-any? str/blank? [ORDER_NUMBER])
-    (some->> (user-data/participant-data config ORDER_NUMBER lang)
+(defn- send-confirmation-email! [config {:keys [checkout-reference] :as payment-data} lang]
+  (if (not-any? str/blank? [checkout-reference])
+    (some->> (user-data/participant-data config checkout-reference lang)
              (registration/send-confirmation-email! config lang))
     (error "Can't send confirmation email because of missing data. Payment data:" payment-data)))
 
@@ -64,7 +64,7 @@
     (audit/log :app :admin
                :on :payment
                :op :update
-               :id (:ORDER_NUMBER form-data)
+               :id (:checkout-reference form-data)
                :before {:state states/pmt-unpaid}
                :after {:state states/pmt-ok}
                :msg "Payment has been confirmed.")
@@ -79,7 +79,7 @@
     (audit/log :app :admin
                :on :payment
                :op :update
-               :id (:ORDER_NUMBER form-data)
+               :id (:checkout-reference form-data)
                :before {:state states/pmt-unpaid}
                :after {:state states/pmt-error}
                :msg "Payment has been cancelled.")

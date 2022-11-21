@@ -6,6 +6,7 @@
             [oti.component.localisation :as loc]
             [oti.routing :as routing]
             [oti.util.coercion :as c]
+            [cheshire.core :as json]
             [clojure.java.io :as io]
             [org.httpkit.client :as http]
             [oti.util.http :refer [http-default-headers]]
@@ -282,6 +283,11 @@
            (GET "/participant-data"     []      (participant-data config session))
            (GET "/registration-options" []      (registration-options config session))
            (GET "/payment-form-data"    request (registration/payment-data-for-retry config request))
-           (POST "/register"            request (registration/register! config request)))
+           (GET "/register"             request (let [registration-data (-> (get-in request [:params :registration-data])
+                                                                            (json/parse-string true)
+                                                                            (c/convert-registration-data))]
+                                                  (registration/register! config
+                                                                          registration-data
+                                                                          request))))
           (wrap-routes wrap-authentication)
           (wrap-routes req/wrap-disable-cache)))))

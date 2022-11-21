@@ -75,6 +75,12 @@
                     :henkiloTyyppi "OPPIJA"
                     :asiointiKieli {:kieliKoodi (name lang)}}))
 
+(defn- registration-found
+  [url]
+  {:status 302
+   :headers {"Location" url}
+   :body ""})
+
 (defn- registration-response
   ([status-code status text session]
     (registration-response status-code status text session nil nil))
@@ -118,19 +124,22 @@
     (when-not (s/invalid? reference-number-with-checknum)
       reference-number-with-checknum)))
 
-(defn- payment-param-map [localisation lang amount ref-number order-number]
+(defn- payment-param-map [localisation lang amount ref-number order-number first-name last-name email]
   #::os{:timestamp        (LocalDateTime/now)
         :language-code    (keyword lang)
         :amount           amount
+        :email            email
+        :first-name       first-name
+        :last-name        last-name
         :reference-number ref-number
         :order-number     order-number
         :msg              (loc/t localisation lang "payment-name")
         :payment-id       order-number})
 
-(defn- payment-params [{:keys [db localisation]} external-user-id amount lang]
+(defn- payment-params [{:keys [db localisation]} external-user-id amount lang first-name last-name email]
   (let [ref-number (-> (str/split external-user-id #"\.") last gen-reference-number)
         order-number (gen-order-number db ref-number)]
-    (payment-param-map localisation lang amount ref-number order-number)))
+    (payment-param-map localisation lang amount ref-number order-number first-name last-name email)))
 
 (defn- payment-params->db-payment [{::os/keys [timestamp amount reference-number order-number payment-id] :as params}
                                    type external-user-id]
@@ -143,9 +152,9 @@
      :payment-id payment-id
      :external-user-id external-user-id}))
 
-(defn- db-payment->payment-params [{:keys [db localisation]} {:keys [amount reference]} ui-lang]
+(defn- db-payment->payment-params [{:keys [db localisation]} {:keys [amount reference]} ui-lang first-name last-name email]
   (let [new-order-number (gen-order-number db reference)]
-    (payment-param-map localisation ui-lang amount reference new-order-number)))
+    (payment-param-map localisation ui-lang amount reference new-order-number first-name last-name email)))
 
 (defn- update-db-payment! [db payment-id {::os/keys [order-number timestamp] :as payment-params}]
   (dba/update-payment-order-number-and-ts! db {:id payment-id
@@ -263,7 +272,8 @@
     (email/send-email-to-participant! email-service db email-data)))
 
 (defn register! [{:keys [db api-client paytrail-payment] :as config}
-                 {old-session :session {:keys [registration-data ui-lang]} :body-params headers :headers remote-addr :remote-addr uri :uri}]
+                 registration-data
+                 {old-session :session {:keys [ui-lang]} :params headers :headers remote-addr :remote-addr uri :uri}]
   (let [conformed (s/conform ::os/registration registration-data)]
     (if-not (s/invalid? conformed)
       (let [lang (::os/language-code conformed)
@@ -280,9 +290,18 @@
         (if valid?
           (try
             (store-address-to-service! api-client external-user-id participant-data conformed)
-            (let [pmt (when (pos? amount) (payment-params config external-user-id amount (keyword ui-lang)))
+            (let [pmt (when (pos? amount) (payment-params config
+                                                          external-user-id
+                                                          amount
+                                                          (keyword ui-lang)
+                                                          (or (:kutsumanimi participant-data)
+                                                              (clojure.string/join ", " (:etunimet participant-data)))
+                                                          (:sukunimi participant-data)
+                                                          (::os/email registration-data)))
                   db-pmt (payment-params->db-payment pmt price-type external-user-id)
-                  payment-form-data (when pmt (payment-util/form-data-for-payment paytrail-payment pmt))
+                  payment-form-link (when pmt
+                                      (payment-util/link-for-payment paytrail-payment
+                                                                     pmt))
                   msg-key (if (pos? amount) "registration-payment-pending" "registration-complete")
                   status (if (pos? amount) :pending :success)
                   ; If the participant has registered to this session before, we fetch the existing reg id and add the
@@ -307,7 +326,7 @@
                            (send-confirmation-email! config lang))
                   (catch Throwable t
                     (error t "Could not send confirmation email. Participant:" external-user-id))))
-              (registration-response 200 status msg-key session registration-id payment-form-data))
+              (registration-found (::os/uri payment-form-link)))
             (catch Throwable t
               (error t "Error inserting registration")
               (registration-response 500 :error "registration-unknown-error" session)))
@@ -320,16 +339,23 @@
         (registration-response 400 :error "registration-invalid-data" old-session)))))
 
 (defn payment-data-for-retry [{:keys [db paytrail-payment] :as config}
-                              {{{:keys [registration-id registration-status]} :participant :as session} :session {:keys [lang]} :params}]
+                              {{{:keys [registration-id registration-status registration-data]} :participant :as session} :session {:keys [lang]} :params}]
   (if (= :pending registration-status)
-    (if-let [{payment-id :id :as db-pmt} (dba/unpaid-payment-by-registration db registration-id)]
-      (->> (db-payment->payment-params config db-pmt lang)
-           (update-db-payment! db payment-id)
-           (payment-util/form-data-for-payment paytrail-payment)
-           (registration-response 200 :pending "registration-payment-pending" session registration-id))
-      (do
-        (error "Tried to retry payment for registration" registration-id "but matching payment was not found")
-        (registration-response 404 :error "registration-payment-expired" session)))
+    (let [participant-data (-> session :participant)]
+      (if-let [{payment-id :id :as db-pmt} (dba/unpaid-payment-by-registration db registration-id)]
+        (let [href (->> (db-payment->payment-params config
+                                                    db-pmt
+                                                    lang
+                                                    (or (:kutsumanimi participant-data)
+                                                        (clojure.string/join ", " (:etunimet participant-data)))
+                                                    (:sukunimi participant-data)
+                                                    (:oti.spec/email registration-data))
+                        (update-db-payment! db payment-id)
+                        (payment-util/link-for-payment paytrail-payment))]
+          (registration-found href))
+        (do
+          (error "Tried to retry payment for registration" registration-id "but matching payment was not found")
+          (registration-response 404 :error "registration-payment-expired" session))))
     (do
       (error "Tried to retry payment for registration" registration-id "but it's status is not pending")
       (registration-response 400 :error "registration-unknown-error" session))))

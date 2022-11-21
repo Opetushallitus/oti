@@ -54,12 +54,13 @@
                  :on-success      [:store-response-to-db :registration-options]
                  :on-failure      [:bad-response]}}))
 
+
 (re-frame/reg-event-fx
  :store-registration
  (fn [_ [_ data ui-lang]]
-   {:http-xhrio {:method          :post
+   {:http-xhrio {:method          :get
                  :uri             (routing/p-a-route "/authenticated/register")
-                 :params          {:registration-data data
+                 :params          {:registration-data (ajax.json/write-json-native data)
                                    :ui-lang (name ui-lang)}
                  :headers         (merge (http-default-headers) (csrf-header))
                  :format          (ajax/transit-request-format)

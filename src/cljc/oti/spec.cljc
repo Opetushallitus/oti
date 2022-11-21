@@ -195,6 +195,8 @@
 (s/def ::reference-number (s/and number? #(valid-reference-number? %)))
 (s/def ::order-number (s/and ::non-blank-string #(< (count %) 33)))
 (s/def ::msg ::non-blank-string)
+(s/def ::first-name ::non-blank-string)
+(s/def ::last-name ::non-blank-string)
 (s/def ::payment-id (s/and ::non-blank-string #(< (count %) 26)))
 
 (s/def ::uri ::non-blank-string)
@@ -203,6 +205,9 @@
 
 (s/def ::pt-payment-params (s/keys :req [::language-code
                                          ::amount
+                                         ::email
+                                         ::first-name
+                                         ::last-name
                                          ::order-number
                                          ::reference-number
                                          ::msg]))
@@ -236,8 +241,7 @@
                                               ::PARAMS_OUT
                                               ::AUTHCODE]))
 
-(s/def ::pt-payment-form-data (s/keys :req [::uri
-                                            ::pt-payment-form-params]))
+(s/def ::pt-payment-form-data (s/keys :req [::uri]))
 
 ;; diploma
 

@@ -14,3 +14,28 @@
              :max-participants max_participants
              :published published
              :registration-count registration_count})
+
+(defn parse-int [number-string]
+  (try (Integer/parseInt number-string)
+       (catch Exception e nil)))
+
+(defn convert-sections [sections]
+  (let [section-fn (fn [{:keys [retry? accredit? retry-modules accredit-modules]}]
+                     {:retry?           retry?
+                      :accredit?        accredit?
+                      :retry-modules    (set (map parse-int retry-modules))
+                      :accredit-modules (map parse-int accredit-modules)})
+        key-fn (fn [kw]
+                 (parse-int (name kw)))]
+    (into {} (for [[k v] sections] [(key-fn k) (section-fn v)]))))
+
+(defn convert-registration-data [{:keys [email session-id language-code preferred-name sections
+                                         registration-street-address registration-zip registration-post-office] :as data}]
+  #:oti.spec{:email                       email
+             :session-id                  (int session-id)
+             :language-code               (keyword language-code)
+             :preferred-name              preferred-name
+             :sections                    (convert-sections sections)
+             :registration-street-address registration-street-address
+             :registration-zip            registration-zip
+             :registration-post-office    registration-post-office})
