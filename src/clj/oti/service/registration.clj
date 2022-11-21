@@ -299,9 +299,6 @@
                                                           (:sukunimi participant-data)
                                                           (::os/email registration-data)))
                   db-pmt (payment-params->db-payment pmt price-type external-user-id)
-                  debug2 (info (str "henkilo: " participant-data))
-                  debug3 (info (str "data:" registration-data))
-                  debug1 (info (str "registering: " pmt))
                   payment-form-link (when pmt
                                       (payment-util/link-for-payment paytrail-payment
                                                                      pmt))
@@ -329,7 +326,6 @@
                            (send-confirmation-email! config lang))
                   (catch Throwable t
                     (error t "Could not send confirmation email. Participant:" external-user-id))))
-              (info (str "found: " payment-form-link))
               (registration-found (::os/uri payment-form-link)))
             (catch Throwable t
               (error t "Error inserting registration")

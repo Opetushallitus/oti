@@ -1,9 +1,7 @@
 (ns oti.endpoint.payment
   (:require [compojure.core :refer :all]
             [ring.util.response :as resp]
-            [clojure.tools.logging :refer [error info]]
-            [oti.service.payment :as payment-service]
-            [clojure.string :as str]))
+            [oti.service.payment :as payment-service]))
 
 (defn- registration-response [status text {:keys [participant] :as session} & [lang]]
   (let [body (cond-> {:registration-message text
@@ -15,7 +13,6 @@
         (assoc :session (assoc session :participant new-participant)))))
 
 (defn- confirm-payment [config {:keys [params session]}]
-  (info (str "confirm: " params))
   (let [{order-number :checkout-reference} params
         lang (payment-service/get-participant-language-by-order-number config order-number) ]
     (if (payment-service/confirm-payment! config params lang)
@@ -23,7 +20,6 @@
       (registration-response :error "registration-payment-error" session))))
 
 (defn- cancel-payment [config {:keys [params session]}]
-  (info (str "cancel: " params))
   (let [{order-number :checkout-reference} params
         lang (payment-service/get-participant-language-by-order-number config order-number)]
     (if (payment-service/cancel-payment! config params)

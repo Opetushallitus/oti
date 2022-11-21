@@ -1,6 +1,5 @@
 (ns oti.util.coercion
-  (:require [oti.spec]
-            [clojure.tools.logging :refer [info]]))
+  (:require [oti.spec]))
 
 (defn convert-session-row [{:keys [id exam_id session_date start_time end_time street_address city
                                    other_location_info max_participants published registration_count]}]
@@ -32,7 +31,6 @@
 
 (defn convert-registration-data [{:keys [email session-id language-code preferred-name sections
                                          registration-street-address registration-zip registration-post-office] :as data}]
-  (info data)
   #:oti.spec{:email                       email
              :session-id                  (int session-id)
              :language-code               (keyword language-code)
