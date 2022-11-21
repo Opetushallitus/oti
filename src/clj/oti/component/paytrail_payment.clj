@@ -32,8 +32,8 @@
      "currency"     "EUR"
      "language"     (case (or language-code :fi) :fi "FI" :sv "SV" :en "EN")
      "customer"     {"email"     email
-                     "firstName" (or first-name "testi")
-                     "lastName"  (or last-name "tester")}
+                     "firstName" first-name
+                     "lastName"  last-name}
      "redirectUrls" callback-urls
      "callbackUrls" callback-urls
      }))
