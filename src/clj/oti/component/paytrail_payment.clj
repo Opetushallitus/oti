@@ -22,12 +22,13 @@
                            {::os/keys [email first-name last-name language-code amount order-number] :as params}]
   {:pre  [(s/valid? ::os/pt-payment-params params)]}
   (let [callback-urls {"success" (str oti-paytrail-uri "/success")
-                       "cancel"  (str oti-paytrail-uri "/cancel")}]
+                       "cancel"  (str oti-paytrail-uri "/cancel")}
+        paytrail-amount-in-euro-cents (* amount 100)]
     {"stamp"        (str (UUID/randomUUID))
      ; Order reference
      "reference"    order-number
      ; Total amount in EUR cents
-     "amount"       amount
+     "amount"       paytrail-amount-in-euro-cents
      "currency"     "EUR"
      "language"     (case (or language-code :fi) :fi "FI" :sv "SV" :en "EN")
      "customer"     {"email"     email
