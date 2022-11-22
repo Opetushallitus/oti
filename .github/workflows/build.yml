@@ -1,4 +1,4 @@
-name: Maksut
+name: Oti
 
 on:
   workflow_dispatch:
