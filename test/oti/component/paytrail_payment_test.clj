@@ -30,7 +30,7 @@
                                {:status  200
                                 :headers {}
                                 :body    "{\"href\":\"http://esimerkkilinkki\"}"})}]
-    (with-global-fake-routes {"https://payment.paytrail.com/e2" paytrail-mock}
+    (with-global-fake-routes {"https://services.paytrail.com/payments" paytrail-mock}
                              (is (= #::os{:uri "http://esimerkkilinkki"}
                                     (link-for-payment component params))))))
 
