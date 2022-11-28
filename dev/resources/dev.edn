@@ -10,10 +10,10 @@
   :http {:port 3000}
   :db {:uri "jdbc:postgresql://localhost/oti"}
   :localisation {:default-parameters {:category "oti"}}
-  :paytrail-payment {:paytrail-host "https://payment.paytrail.com/e2"
+  :paytrail-payment {:paytrail-host "https://services.paytrail.com/payments"
                      :oti-paytrail-uri "https://oti.local/oti/paytrail"
-                     :merchant-id 13466
-                     :merchant-secret "6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ"}
+                     :merchant-id 375917
+                     :merchant-secret "SAIPPUAKAUPPIAS"}
   :url-helper {:virkailija-host "virkailija.untuvaopintopolku.fi"
                :tunnistus-host "tunnistus.untuvaopintopolku.fi"
                :alb-host "https://virkailija.untuvaopintopolku.fi"
