@@ -17,14 +17,14 @@
 
 (defn parse-int [number-string]
   (try (Integer/parseInt number-string)
-       (catch Exception e nil)))
+       (catch Exception e number-string)))
 
 (defn convert-sections [sections]
   (let [section-fn (fn [{:keys [retry? accredit? retry-modules accredit-modules]}]
-                     {:retry?           retry?
-                      :accredit?        accredit?
-                      :retry-modules    (set (map parse-int retry-modules))
-                      :accredit-modules (map parse-int accredit-modules)})
+                     #:oti.spec{:retry?           retry?
+                                :accredit?        accredit?
+                                :retry-modules    (set (map parse-int retry-modules))
+                                :accredit-modules (map parse-int accredit-modules)})
         key-fn (fn [kw]
                  (parse-int (name kw)))]
     (into {} (for [[k v] sections] [(key-fn k) (section-fn v)]))))
