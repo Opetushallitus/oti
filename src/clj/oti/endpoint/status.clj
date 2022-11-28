@@ -23,7 +23,8 @@
 (defn status-endpoint [{:keys [db]}]
   (context "/oti" []
     (GET "/version" []
-      (res/response (build-info)))
+      ;(res/response (build-info))
+      (res/response {:status "OK"}))
     (GET "/health" []
       (let [ok? (dba/health-check db)]
         (if ok?
