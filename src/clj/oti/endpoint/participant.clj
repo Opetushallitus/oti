@@ -157,7 +157,7 @@
 (defn- populate-user-data-and-redirect-to-service [{:keys [db api-client] :as config} session {:keys [user-data]}]
   (let [{:keys [VakinainenKotimainenLahiosoiteS
                 VakinainenKotimainenLahiosoitePostitoimipaikkaS
-                vakinainenkotimainenlahiosoitepostinumero
+                VakinainenKotimainenLahiosoitePostinumero
                 sn
                 firstName
                 nationalIdentificationNumber
@@ -165,7 +165,7 @@
         {:keys [oidHenkilo etunimet sukunimi kutsumanimi]} (api/get-person-by-hetu api-client nationalIdentificationNumber)
         {:keys [email id]} (when oidHenkilo (first (dba/participant-by-ext-id db oidHenkilo)))
         address #::os{:registration-post-office    VakinainenKotimainenLahiosoitePostitoimipaikkaS
-                      :registration-zip            vakinainenkotimainenlahiosoitepostinumero
+                      :registration-zip            VakinainenKotimainenLahiosoitePostinumero
                       :registration-street-address VakinainenKotimainenLahiosoiteS}
         redirect-url (participant-base-url config (:original-lang session))]
     (if (and sn firstName (s/valid? ::os/hetu nationalIdentificationNumber))
