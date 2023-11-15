@@ -8,6 +8,7 @@
             [oti.component.email-service :as email]
             [compojure.coercions :refer [as-int]]
             [oti.component.localisation :refer [t]]
+            [oti.util.logging.log-pretty :as log-pretty]
             [hiccup.core :refer [html]]))
 
 
@@ -266,11 +267,13 @@
   (into [:td {:style "font-size: 13px; text-align: right; padding: 12px 15px;"}] children))
 
 (defn- scores-table [participant-data exam loc lang]
+  (log-pretty/info "participant-data:" participant-data)
+  (log-pretty/info "exam:" exam)
   (html
    (doall (for [section exam]
             (let [modules (sort-by :id (:modules section))
                   t (partial t loc lang)]
-              (log/info section)
+              (log-pretty/info "section:" section)
               [:div
                [:h3 (t :section) " " (:name section)]
                (if (some #(get (:scores %) (:id section)) participant-data)
