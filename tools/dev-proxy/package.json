@@ -9,6 +9,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "http-proxy": "^1.15.2"
+    "http-proxy": "^1.18.1"
   }
 }
