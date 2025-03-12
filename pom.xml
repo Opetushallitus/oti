@@ -290,7 +290,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>1.10.773</version>
+      <version>1.10.844</version>
     </dependency>
     <dependency>
       <groupId>reagent</groupId>
