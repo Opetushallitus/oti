@@ -12,7 +12,7 @@
     <url>https://github.com/Opetushallitus/oti</url>
     <connection>scm:git:git://github.com/Opetushallitus/oti.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/Opetushallitus/oti.git</developerConnection>
-    <tag>efd581e4557896ef1f1a97def50874b8c3641bee</tag>
+    <tag>aabe9eff9cd668ab1541c523bd573a74fcd39887</tag>
   </scm>
   <build>
     <sourceDirectory>src/clj</sourceDirectory>
@@ -36,8 +36,8 @@
         <directory>target/cljsbuild</directory>
       </testResource>
     </testResources>
-    <directory>target/default</directory>
-    <outputDirectory>target/default/classes</outputDirectory>
+    <directory>target</directory>
+    <outputDirectory>target/classes</outputDirectory>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -103,13 +103,24 @@
     </repository>
   </repositories>
   <dependencyManagement>
-    <dependencies/>
+    <dependencies>
+      <dependency>
+        <groupId>clj-commons</groupId>
+        <artifactId>clj-yaml</artifactId>
+        <version>1.0.29</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-fileupload2-core</artifactId>
+        <version>2.0.0-M4</version>
+      </dependency>
+    </dependencies>
   </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <version>1.10.3</version>
+      <version>1.11.2</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -149,7 +160,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.3</version>
+      <version>1.2.13</version>
     </dependency>
     <dependency>
       <groupId>com.stuartsierra</groupId>
@@ -159,7 +170,7 @@
     <dependency>
       <groupId>compojure</groupId>
       <artifactId>compojure</artifactId>
-      <version>1.6.2</version>
+      <version>1.7.0</version>
     </dependency>
     <dependency>
       <groupId>duct</groupId>
@@ -174,12 +185,12 @@
     <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-core</artifactId>
-      <version>1.9.1</version>
+      <version>1.11.0</version>
     </dependency>
     <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-devel</artifactId>
-      <version>1.9.1</version>
+      <version>1.11.0</version>
     </dependency>
     <dependency>
       <groupId>ring</groupId>
@@ -204,7 +215,7 @@
     <dependency>
       <groupId>ring-middleware-format</groupId>
       <artifactId>ring-middleware-format</artifactId>
-      <version>0.7.4</version>
+      <version>0.7.5</version>
     </dependency>
     <dependency>
       <groupId>duct</groupId>
@@ -220,7 +231,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.2.19</version>
+      <version>42.2.28</version>
     </dependency>
     <dependency>
       <groupId>ragtime</groupId>
@@ -250,7 +261,7 @@
     <dependency>
       <groupId>cheshire</groupId>
       <artifactId>cheshire</artifactId>
-      <version>5.10.0</version>
+      <version>5.13.0</version>
     </dependency>
     <dependency>
       <groupId>webjure</groupId>
@@ -290,7 +301,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>1.10.773</version>
+      <version>1.11.132</version>
     </dependency>
     <dependency>
       <groupId>reagent</groupId>
@@ -345,7 +356,7 @@
     <dependency>
       <groupId>fi.vm.sade</groupId>
       <artifactId>auditlogger</artifactId>
-      <version>8.2.0-SNAPSHOT</version>
+      <version>9.2.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>fi.vm.sade.java-utils</groupId>
