@@ -12,7 +12,7 @@
     <url>https://github.com/Opetushallitus/oti</url>
     <connection>scm:git:git://github.com/Opetushallitus/oti.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/Opetushallitus/oti.git</developerConnection>
-    <tag>aabe9eff9cd668ab1541c523bd573a74fcd39887</tag>
+    <tag>500fafdbad1ec04654a792cddeaa84c2ace9f911</tag>
   </scm>
   <build>
     <sourceDirectory>src/clj</sourceDirectory>
@@ -108,6 +108,11 @@
         <groupId>clj-commons</groupId>
         <artifactId>clj-yaml</artifactId>
         <version>1.0.29</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.8.9</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -356,7 +361,7 @@
     <dependency>
       <groupId>fi.vm.sade</groupId>
       <artifactId>auditlogger</artifactId>
-      <version>9.2.6-SNAPSHOT</version>
+      <version>8.2.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>fi.vm.sade.java-utils</groupId>

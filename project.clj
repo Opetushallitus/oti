@@ -5,6 +5,7 @@
   :repositories [["oph-sade-releases" "https://artifactory.opintopolku.fi/artifactory/oph-sade-release-local"]
                  ["oph-sade-snapshots" "https://artifactory.opintopolku.fi/artifactory/oph-sade-snapshot-local"]]
   :managed-dependencies [[clj-commons/clj-yaml "1.0.29"]
+                         [com.google.code.gson/gson "2.8.9"]
                          [org.apache.commons/commons-fileupload2-core "2.0.0-M4"]]
   :dependencies [[org.clojure/clojure "1.11.2"]
                  [org.clojure/spec.alpha "0.2.194"]
@@ -58,7 +59,7 @@
                  [com.taoensso/timbre "5.1.2"]
                  #_[com.fzakaria/slf4j-timbre "0.3.2"]
 
-                 [fi.vm.sade/auditlogger "9.2.6-SNAPSHOT"]
+                 [fi.vm.sade/auditlogger "8.2.0-SNAPSHOT"]
                  [fi.vm.sade.java-utils/java-http "0.1.4-SNAPSHOT"]
                  [fi.vm.sade.java-utils/java-properties "0.1.0-SNAPSHOT"]
 
