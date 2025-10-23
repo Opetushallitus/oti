@@ -2,7 +2,7 @@
   (:require [re-frame.core :as rf :refer [trim-v debug]]
             [cognitect.transit :as transit]
             [clojure.string :as str]
-            [oti.http :refer [http-default-headers, csrf-header]]
+            [oti.ui.http :refer [http-default-headers, csrf-header]]
             [oti.routing :as routing]
             [oti.ui.handlers :as handlers]
             [oti.spec :as spec]

@@ -12,7 +12,7 @@
     <url>https://github.com/Opetushallitus/oti</url>
     <connection>scm:git:git://github.com/Opetushallitus/oti.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/Opetushallitus/oti.git</developerConnection>
-    <tag>500fafdbad1ec04654a792cddeaa84c2ace9f911</tag>
+    <tag>41af7e7b8c82b05fea1de4bb9b184e0a06a39195</tag>
   </scm>
   <build>
     <sourceDirectory>src/clj</sourceDirectory>
@@ -82,8 +82,8 @@
       </releases>
     </repository>
     <repository>
-      <id>oph-sade-releases</id>
-      <url>https://artifactory.opintopolku.fi/artifactory/oph-sade-release-local</url>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/Opetushallitus/packages</url>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
@@ -92,13 +92,35 @@
       </releases>
     </repository>
     <repository>
-      <id>oph-sade-snapshots</id>
+      <id>releases</id>
+      <url>https://artifactory.opintopolku.fi/artifactory/oph-sade-release-local</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <repository>
+      <id>snapshots</id>
       <url>https://artifactory.opintopolku.fi/artifactory/oph-sade-snapshot-local</url>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
       <releases>
         <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+    </repository>
+    <repository>
+      <id>ext-snapshots</id>
+      <url>https://artifactory.opintopolku.fi/artifactory/ext-snapshot-local</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
       </releases>
     </repository>
   </repositories>
@@ -113,6 +135,11 @@
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
         <version>2.8.9</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.21</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -186,6 +213,11 @@
       <groupId>environ</groupId>
       <artifactId>environ</artifactId>
       <version>1.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>binaryage</groupId>
+      <artifactId>devtools</artifactId>
+      <version>1.0.7</version>
     </dependency>
     <dependency>
       <groupId>ring</groupId>
@@ -304,6 +336,33 @@
       <version>0.0.8</version>
     </dependency>
     <dependency>
+      <groupId>opiskelijavalinnat-utils.viestinvalitys</groupId>
+      <artifactId>kirjasto</artifactId>
+      <version>1.2.2-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>java-cas</artifactId>
+          <groupId>fi.vm.sade.java-utils</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>opiskelijavalinnat-utils</groupId>
+      <artifactId>java-cas</artifactId>
+      <version>1.2.4-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>slf4j-simple</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.thoughtworks.paranamer</groupId>
+      <artifactId>paranamer</artifactId>
+      <version>2.8.3</version>
+    </dependency>
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
       <version>1.11.132</version>
@@ -311,22 +370,27 @@
     <dependency>
       <groupId>reagent</groupId>
       <artifactId>reagent</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>binaryage</groupId>
-      <artifactId>devtools</artifactId>
-      <version>1.0.2</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>re-frame</groupId>
       <artifactId>re-frame</artifactId>
-      <version>1.2.0</version>
+      <version>1.4.3</version>
+    </dependency>
+    <dependency>
+      <groupId>cljsjs</groupId>
+      <artifactId>react</artifactId>
+      <version>18.2.0-1</version>
+    </dependency>
+    <dependency>
+      <groupId>cljsjs</groupId>
+      <artifactId>react-dom</artifactId>
+      <version>18.2.0-1</version>
     </dependency>
     <dependency>
       <groupId>day8.re-frame</groupId>
       <artifactId>http-fx</artifactId>
-      <version>0.2.3</version>
+      <version>0.2.4</version>
     </dependency>
     <dependency>
       <groupId>kibu</groupId>
@@ -334,9 +398,9 @@
       <version>0.3.8</version>
     </dependency>
     <dependency>
-      <groupId>secretary</groupId>
+      <groupId>clj-commons</groupId>
       <artifactId>secretary</artifactId>
-      <version>1.2.3</version>
+      <version>1.2.4</version>
     </dependency>
     <dependency>
       <groupId>com.andrewmcveigh</groupId>
@@ -356,7 +420,7 @@
     <dependency>
       <groupId>com.taoensso</groupId>
       <artifactId>timbre</artifactId>
-      <version>5.1.2</version>
+      <version>6.5.0</version>
     </dependency>
     <dependency>
       <groupId>fi.vm.sade</groupId>
@@ -366,12 +430,17 @@
     <dependency>
       <groupId>fi.vm.sade.java-utils</groupId>
       <artifactId>java-http</artifactId>
-      <version>0.1.4-SNAPSHOT</version>
+      <version>1.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>fi.vm.sade.java-utils</groupId>
       <artifactId>java-properties</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.0.0</version>
     </dependency>
     <dependency>
       <groupId>buddy</groupId>
