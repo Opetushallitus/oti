@@ -5,7 +5,7 @@
             [ajax.core :as ajax]
             [oti.ui.routes :as routes]
             [oti.routing :as routing]
-            [oti.http :refer [http-default-headers]]
+            [oti.ui.http :refer [http-default-headers]]
             [oti.utils :as utils]))
 
 (rf/reg-event-db

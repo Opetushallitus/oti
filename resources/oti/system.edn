@@ -28,7 +28,7 @@
   :virkailija    [:db :api-client :localisation :email-service]
   :frontend      [:url-helper :global-config]
   :localisation  [:url-helper]
-  :email-service [:url-helper]
+  :email-service [:url-helper :cas]
   :participant   [:db :payments :api-client :localisation :paytrail-payment :url-helper :global-config :email-service]
   :payment       [:paytrail-payment :db :api-client :email-service]
   :cas           [:url-helper]

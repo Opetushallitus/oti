@@ -2,7 +2,7 @@
 
 ### Prerequisities
 
-- Java 11
+- Java 21
 - Leiningen
 - NodeJS
 - Docker (preferred) or local PostgreSQL instance

@@ -26,6 +26,8 @@ jobs:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
           GA_BUILD_NUMBER: ${{ github.run_number }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           git clone https://github.com/Opetushallitus/ci-tools.git
           source ci-tools/common/setup-tools.sh
@@ -62,7 +64,7 @@ jobs:
           git clone https://github.com/Opetushallitus/ci-tools.git
           source ci-tools/common/setup-tools.sh
 
-          export BASE_IMAGE="baseimage-fatjar-openjdk11:master"
+          export BASE_IMAGE="baseimage-fatjar-openjdk21:master"
           ./ci-tools/common/pull-image.sh
           cp -v ./target/uberjar/oti.jar $DOCKER_BUILD_DIR/artifact/oti.jar
           cp -vr ./oph-configuration $DOCKER_BUILD_DIR/config/ 

@@ -577,7 +577,7 @@ INSERT INTO email (participant_id, recipient, subject, body, exam_session_id, em
   WHERE p.id = :participant-id;
 
 -- name: select-unsent-email-for-update
-SELECT e.id, e.subject, e.body, e.recipient
+SELECT e.id, e.subject, e.body, e.recipient, p.ext_reference_id
 FROM email e
 JOIN participant p ON e.participant_id = p.id
 WHERE e.sent IS NULL

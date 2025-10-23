@@ -1,7 +1,7 @@
 (ns oti.ui.exam-sessions.handlers
   (:require [re-frame.core :as re-frame]
             [ajax.core :as ajax]
-            [oti.http :refer [http-default-headers, csrf-header]]
+            [oti.ui.http :refer [http-default-headers, csrf-header]]
             [oti.routing :as routing]))
 
 (re-frame/reg-event-fx
