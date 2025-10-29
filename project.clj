@@ -32,6 +32,7 @@
                  [binaryage/devtools "1.0.7"]
                  [ring/ring-core "1.11.0"]
                  [ring/ring-devel "1.11.0"]
+                 [ring/ring-jetty-adapter "1.11.0" :scope "test"]
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.5.0"]
                  [com.cognitect/transit-clj "1.0.324"]

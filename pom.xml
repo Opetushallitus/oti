@@ -12,7 +12,7 @@
     <url>https://github.com/Opetushallitus/oti</url>
     <connection>scm:git:git://github.com/Opetushallitus/oti.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/Opetushallitus/oti.git</developerConnection>
-    <tag>41af7e7b8c82b05fea1de4bb9b184e0a06a39195</tag>
+    <tag>6a3891b9ef76f0431e25d5ff929d01b2d11bbc9e</tag>
   </scm>
   <build>
     <sourceDirectory>src/clj</sourceDirectory>
@@ -228,6 +228,12 @@
       <groupId>ring</groupId>
       <artifactId>ring-devel</artifactId>
       <version>1.11.0</version>
+    </dependency>
+    <dependency>
+      <groupId>ring</groupId>
+      <artifactId>ring-jetty-adapter</artifactId>
+      <version>1.11.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ring</groupId>

@@ -18,7 +18,7 @@
   (send-queued-mails! [this db])
   (email-sent? [this db params]))
 
-(defn- viestinvalitys-client [{:keys [url-helper cas]}]
+(defn viestinvalitys-client [{:keys [url-helper cas]}]
   (log/info "Creating viestinvälityspalvelu client pointing to:" (url url-helper "viestinvalitys.endpoint"))
   (-> (ClientBuilder/viestinvalitysClientBuilder)
       (.withEndpoint (url url-helper "viestinvalitys.endpoint"))
@@ -28,7 +28,7 @@
       (.withCallerId "1.2.246.562.10.00000000001.oti")
       (.build)))
 
-(defn- send-email-via-service! [{:keys [url-helper viestinvalityspalvelu-client]} {:keys [recipient subject body ext-reference-id]}]
+(defn send-email-via-service! [{:keys [url-helper viestinvalityspalvelu-client]} {:keys [recipient subject body ext-reference-id]}]
   {:pre [(every? #(identity %) [recipient subject body]) (s/valid? :oti.spec/email recipient)]}
   (if-let [client @viestinvalityspalvelu-client]
     (do (log/info "Trying to send email" subject "to" recipient)
