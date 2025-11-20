@@ -7,6 +7,7 @@
             [ring.util.response :as resp]
             [clojure.tools.logging :refer [info error]]
             [clojure.string :as str]
+            [clojure.tools.logging :as log]
             [oti.util.auth :as auth])
   (:import [java.net URLEncoder]
            [fi.vm.sade.javautils.http HttpServletRequestUtils]))
@@ -17,27 +18,25 @@
 (defn- redirect-to-cas-login-page [opintopolku-login-uri login-callback]
   (resp/redirect (str opintopolku-login-uri (URLEncoder/encode login-callback "UTF-8"))))
 
-(defn- fetch-authorized-user [api-client username]
-  (when-let [user (api/get-user-details api-client username)]
-    (when (->> (map :authority (:authorities user))
-               (some #(str/includes? % user-right-name)))
-      (let [person (api/get-person-by-id api-client (:username user))]
-        {:username username
-         :oid (:oidHenkilo person)
-         :given-name (:etunimet person)
-         :surname (:sukunimi person)}))))
+(defn- check-authorized-user [api-client {:keys [username oid roles]}]
+  (when (some #(str/starts-with? % user-right-name) roles)
+    (let [person (api/get-person-by-id api-client oid)]
+      {:username username
+       :oid (:oidHenkilo person)
+       :given-name (:etunimet person)
+       :surname (:sukunimi person)})))
 
 (defn- cas-login [cas-config login-callback api-client ticket path ip user-agent]
   (info "validating ticket" ticket)
-  (if-let [username (cas/username-from-valid-service-ticket cas-config login-callback ticket)]
-    (if-let [user (fetch-authorized-user api-client username)]
+  (if-let [cas-user (cas/username-and-roles-from-valid-service-ticket cas-config login-callback ticket)]
+    (if-let [user (check-authorized-user api-client cas-user)]
       (do
         (auth/login ticket)
         (info "user" user "logged in")
         (-> (resp/redirect (or path "/oti/virkailija"))
             (assoc :session {:identity (assoc user :ip ip :user-agent user-agent :ticket ticket)})))
       (do
-        (info "username" username "tried to log in but does not have the correct role in kayttooikeus-service")
+        (info "username" cas-user "tried to log in but does not have the correct role in cas")
         {:status 403 :body "Ei käyttöoikeuksia palveluun" :headers {"Content-Type" "text/plain; charset=utf-8"}}))
     (do
       (error "CAS did not validate our service ticket" ticket)

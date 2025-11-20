@@ -17,7 +17,7 @@
 (defprotocol CasAccess
   (request [cas service-path request-options]
     "Do a HTTP request to a service requiring CAS authentication")
-  (username-from-valid-service-ticket [cas service-uri ticket]
+  (username-and-roles-from-valid-service-ticket [cas service-uri ticket]
     "Validate user's CAS ticket. Note that service-uri must be equal to the URI that was provided as the service
      parameter when redirecting user to the CAS login service, including any query parameters. The service-uri
      MUST NOT be URL-encoded, as the implementation will encode it when making the request."))
@@ -87,6 +87,10 @@
     (-> (filter #(= (:tag %) tag) elements)
         first)))
 
+(defn- pick-tags [elements tag]
+  (when (seq elements)
+    (filter #(= (:tag %) tag) elements)))
+
 (extend-type Cas
   CasAccess
   (request [cas service-path request-options]
@@ -98,20 +102,32 @@
         (do (update cas :sessions swap! dissoc service-path)
             (request cas service-path request-options))
         response)))
-  (username-from-valid-service-ticket [{:keys [url-helper]} service-uri ticket]
+  (username-and-roles-from-valid-service-ticket [{:keys [url-helper]} service-uri ticket]
     (let [uri (url url-helper "cas.service-validate")
           {:keys [status body]} @(http/get uri {:query-params {:ticket ticket :service service-uri}
                                                 :headers (http-default-headers)})]
       (when (= status 200)
         (with-open [in (io/input-stream (.getBytes body))]
-          (let [parsed (xml/parse in)]
-            (-> (pick-tag [parsed] :cas:serviceResponse)
-                :content
-                (pick-tag :cas:authenticationSuccess)
-                :content
-                (pick-tag :cas:user)
-                :content
-                first)))))))
+          (let [parsed (xml/parse in)
+                auth-success (-> (pick-tag [parsed] :cas:serviceResponse)
+                                 :content
+                                 (pick-tag :cas:authenticationSuccess)
+                                 :content)
+                cas-attributes (-> auth-success
+                                   (pick-tag :cas:attributes)
+                                   :content)]
+            {:username (-> auth-success
+                           (pick-tag :cas:user)
+                           :content
+                           first)
+             :oid (-> cas-attributes
+                      (pick-tag :cas:oidHenkilo)
+                      :content
+                      first)
+             :roles (->> (pick-tags cas-attributes :cas:roles)
+                         (map #(-> % :content first))
+                         (remove nil?)
+                         set)}))))))
 
 (defn parse-ticket-from-logout-request [^String xml-str]
   (try

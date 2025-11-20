@@ -9,7 +9,6 @@
   (:import [oti.component.api_client ApiClient]))
 
 (defprotocol ApiClientAccess
-  (get-user-details [client username])
   (get-persons [client ids])
   (get-person-by-id [client external-user-id])
   (get-person-by-hetu [client hetu])
@@ -33,10 +32,6 @@
 
 (extend-protocol ApiClientAccess
   ApiClient
-  (get-user-details [{:keys [url-helper]} username]
-    (let [uri (url url-helper "kayttooikeus-service.user-details" username)
-          response @(http/get uri {:headers (http-default-headers)})]
-      (parse response)))
   (get-persons [{:keys [oppijanumerorekisteri-service cas url-helper]} ids]
     (info "Requesting user details for" (count ids) "user ids")
     (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilot-by-oid-list")}

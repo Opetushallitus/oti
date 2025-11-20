@@ -21,9 +21,6 @@
 
 (def api-client-stub
   (reify ApiClientAccess
-    (get-user-details [client username]
-      (when (= username valid-user) {:username username
-                                     :authorities [{:authority "ROLE_APP_OTI_CRUD"}]}))
     (get-person-by-id [client external-user-id]
       {:etunimet "Testi"
        :oidHenkilo "1.2.3.4"
@@ -32,9 +29,9 @@
 
 (def cas-stub
   (reify CasAccess
-    (username-from-valid-service-ticket [t service-uri ticket]
-      (cond (= ticket valid-ticket) valid-user
-            (= ticket ticket-for-wrong-user) invalid-user))))
+    (username-and-roles-from-valid-service-ticket [t service-uri ticket]
+      (cond (= ticket valid-ticket) {:username valid-user :oid "1.2.3.4" :roles ["ROLE_APP_OTI_CRUD_1.2.3"]}
+            (= ticket ticket-for-wrong-user) {:username invalid-user}))))
 
 (def url-helper (->> (uh/url-helper {:virkailija-host "itest-virkailija.oph.ware.fi"
                                      :oti-host "http://localhost:3000"
