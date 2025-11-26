@@ -74,7 +74,7 @@ cd tools/dev-proxy && ./create-ss-cert.sh
 Install proxy dependencies with npm:
 
 ```
-npm install
+pnpm install
 ```
 
 That's it. Your local environment is now configured and you can proceed to starting the application.

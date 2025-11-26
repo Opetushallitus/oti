@@ -8,6 +8,12 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm"
+    }
+  },
+  "packageManager": "pnpm@10.22.0",
   "dependencies": {
     "http-proxy": "^1.18.1"
   },
