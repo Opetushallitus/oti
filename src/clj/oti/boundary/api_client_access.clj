@@ -54,6 +54,7 @@
          (cas-api/request cas oppijanumerorekisteri-service)
          parse-oid))
   (update-person! [{:keys [oppijanumerorekisteri-service cas url-helper]} external-user-id person]
+    (info "ASDF ONR update with person:" (json/encode person))
     (let [{:keys [body status]} (->> {:url (url url-helper "oppijanumerorekisteri-service.henkilo")}
                                      (merge (json-req :put person))
                                      (cas-api/request cas oppijanumerorekisteri-service))]
