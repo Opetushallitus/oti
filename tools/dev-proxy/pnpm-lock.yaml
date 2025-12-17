@@ -4,12 +4,15 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  follow-redirects: ^1.15.11
+
 importers:
 
   .:
     dependencies:
       http-proxy:
-        specifier: ^1.15.2
+        specifier: ^1.18.1
         version: 1.18.1
 
 packages:
