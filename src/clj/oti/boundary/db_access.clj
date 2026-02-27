@@ -119,9 +119,15 @@
 
 (defn- update-payment-and-registration-state! [spec params payment-state registration-state]
   (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
-    (let [q-fn (if (:pay-id params) q/update-payment! q/update-payment-state!)]
-      (q-fn tx (assoc params :state payment-state))
-      (q/update-registration-state-by-payment-order! tx (assoc params :state registration-state)))))
+    (let [q-fn (if (:pay-id params) q/update-payment! q/update-payment-state!)
+          existing-payment-state (-> (q/select-payment-state tx params)
+                                     first
+                                     :state)]
+      (if (= existing-payment-state payment-state)
+        :state-already-up-to-date
+        (do (q-fn tx (assoc params :state payment-state))
+            (q/update-registration-state-by-payment-order! tx (assoc params :state registration-state))
+            true)))))
 
 (defn- cancel-obsolete-payments-and-registrations! [spec]
   (jdbc/with-db-transaction [tx spec {:isolation :serializable}]
