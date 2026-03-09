@@ -14,6 +14,8 @@ test() {
 uberjar() {
   set -x
   ./ci/lein clean
+  ./ci/lein cljsbuild once qa prod
+  ./ci/lein less4clj once
   ./ci/lein uberjar
 }
 

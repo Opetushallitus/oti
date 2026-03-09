@@ -21,8 +21,7 @@
                    :pay-id (blank->nil (:checkout-stamp form-data))
                    :payment-method (blank->nil (:checkout-provider form-data))}]
     (if (and (payment-util/authentic-response? paytrail-payment form-data) (:order-number db-params))
-      (do (db-fn db db-params)
-          true)
+      (db-fn db db-params)
       (error "Could not verify payment response message:" form-data))))
 
 (defn- send-confirmation-email! [config {:keys [checkout-reference] :as payment-data} lang]
@@ -60,19 +59,25 @@
                        (str/includes? (get payment-and-user :sukunimi) query))))))))
 
 (defn confirm-payment! [config form-data lang]
-  (when (process-response! config form-data dba/confirm-registration-and-payment!)
-    (audit/log :app :admin
-               :on :payment
-               :op :update
-               :id (:checkout-reference form-data)
-               :before {:state states/pmt-unpaid}
-               :after {:state states/pmt-ok}
-               :msg "Payment has been confirmed.")
-    (try
-      (send-confirmation-email! config form-data lang)
-      (catch Throwable t
-        (error t "Could not send confirmation email. Payment data:" form-data)))
-    :confirmed))
+  (let [result (process-response! config form-data dba/confirm-registration-and-payment!)]
+    (cond
+      (= result :state-already-up-to-date) (do
+                                             (info "Payment state is already up to date for reference"
+                                                   (:checkout-reference form-data))
+                                             :confirmed)
+      (true? result) (do
+                       (audit/log :app :admin
+                                  :on :payment
+                                  :op :update
+                                  :id (:checkout-reference form-data)
+                                  :before {:state states/pmt-unpaid}
+                                  :after {:state states/pmt-ok}
+                                  :msg "Payment has been confirmed.")
+                       (try
+                         (send-confirmation-email! config form-data lang)
+                         (catch Throwable t
+                           (error t "Could not send confirmation email. Payment data:" form-data)))
+                       :confirmed))))
 
 (defn cancel-payment! [config form-data]
   (when (process-response! config form-data dba/cancel-registration-and-payment!)

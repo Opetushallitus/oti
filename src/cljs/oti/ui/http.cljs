@@ -1,6 +1,7 @@
-(ns oti.http (:require [goog.net.Cookies :as cookies]))
+(ns oti.ui.http
+  (:import (goog.net Cookies)))
 
-(def cks (cookies/getInstance))
+(def cks (-> js/document Cookies.))
 
 (defn http-default-headers []
   {:Caller-Id "1.2.246.562.10.00000000001.oti"})

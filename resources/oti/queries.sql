@@ -486,6 +486,9 @@ SELECT :created, 'UNPAID'::payment_state, :type::payment_type, id, :registration
   :reference, :order-number, :payment-id
   FROM participant WHERE ext_reference_id = :external-user-id;
 
+-- name: select-payment-state
+SELECT state FROM payment WHERE order_number = :order-number;
+
 -- name: update-payment!
 UPDATE payment
 SET state = :state::payment_state, ext_reference_id = :pay-id, payment_method = :payment-method
@@ -577,7 +580,7 @@ INSERT INTO email (participant_id, recipient, subject, body, exam_session_id, em
   WHERE p.id = :participant-id;
 
 -- name: select-unsent-email-for-update
-SELECT e.id, e.subject, e.body, e.recipient
+SELECT e.id, e.subject, e.body, e.recipient, p.ext_reference_id
 FROM email e
 JOIN participant p ON e.participant_id = p.id
 WHERE e.sent IS NULL

@@ -6,7 +6,7 @@ A system for registering to an examination session and keeping records of studen
 
 Below is non-exhaustive list of the key technologies & frameworks used in the project.
 
-- Java 11
+- Java 21
 - Node
 - Clojure
 - Leiningen

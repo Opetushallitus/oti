@@ -1,6 +1,6 @@
 (ns oti.ui.participants.handlers
   (:require [ajax.core :as ajax]
-            [oti.http :refer [http-default-headers, csrf-header]]
+            [oti.ui.http :refer [http-default-headers, csrf-header]]
             [oti.routing :as routing]
             [re-frame.core :as re-frame]
             [oti.spec :as os]))

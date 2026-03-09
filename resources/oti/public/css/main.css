@@ -54,8 +54,7 @@ input[type="password"],
 textarea,
 select {
   height: 38px;
-  padding: 6px 10px;
-  /* The 6px vertically centers text on FF, ignored by Webkit */
+  padding: 6px 10px;/* The 6px vertically centers text on FF, ignored by Webkit */
   background-color: #fff;
   border: 1px solid #D1D1D1;
   box-shadow: none;
@@ -695,7 +694,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   text-align: center;
   margin: 0.5em 0;
   font-size: 3rem;
-  color: #f69532;
+  color: #F69532;
 }
 .search .search-fields {
   margin-top: 15px;
@@ -793,7 +792,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 .participant-details table .icon-cancel {
   font-size: 1.7rem;
-  color: #eb2730;
+  color: #EB2730;
   cursor: pointer;
 }
 .participant-details table .date {
@@ -1485,8 +1484,8 @@ input[type="button"].button-small {
   text-align: center;
 }
 .warn {
-  color: #f69532;
+  color: #F69532;
 }
 .error {
-  color: #eb2730;
+  color: #EB2730;
 }

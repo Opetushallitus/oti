@@ -2,7 +2,6 @@
   (:require [reagent.dom :as reagentdom]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [devtools.core :as devtools]
             [oti.ui.handlers]
             [oti.ui.subs]
             [oti.ui.routes :as routes]
@@ -16,8 +15,7 @@
 (defn dev-setup []
   (when config/debug?
     (enable-console-print!)
-    (println "dev mode")
-    (devtools/install!)))
+    (println "dev mode")))
 
 (defonce mode-atom (reagent/atom ""))
 
@@ -47,7 +45,4 @@
   (init-mode mode)
   (dev-setup)
   (reset! mode-atom mode)
-  (mount-root))
-
-(defn reload-hook []
   (mount-root))

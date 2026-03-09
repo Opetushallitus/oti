@@ -1,7 +1,7 @@
 (ns oti.ui.registration.handlers
   (:require [re-frame.core :as re-frame :refer [trim-v debug]]
             [ajax.core :as ajax]
-            [oti.http :refer [http-default-headers, csrf-header]]
+            [oti.ui.http :refer [http-default-headers, csrf-header]]
             [oti.routing :as routing]
             [oti.spec :as os]
             [cognitect.transit :as transit]))
