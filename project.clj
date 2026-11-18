@@ -4,14 +4,7 @@
   :min-lein-version "2.4.0"
   :repositories [["github"        {:url      "https://maven.pkg.github.com/Opetushallitus/packages"
                                    :username "private-token"
-                                   :password :env/GITHUB_TOKEN}]
-                 ["releases"      {:url           "https://artifactory.opintopolku.fi/artifactory/oph-sade-release-local"
-                                   :sign-releases false
-                                   :snapshots     false}]
-                 ["snapshots"     {:url      "https://artifactory.opintopolku.fi/artifactory/oph-sade-snapshot-local"
-                                   :releases {:update :never}}]
-                 ["ext-snapshots" {:url      "https://artifactory.opintopolku.fi/artifactory/ext-snapshot-local"
-                                   :releases {:update :never}}]]
+                                   :password :env/GITHUB_TOKEN}]]
   :managed-dependencies [[clj-commons/clj-yaml "1.0.29"]
                          [com.google.code.gson/gson "2.8.9"]
                          [org.apache.commons/commons-compress "1.21"]
@@ -74,7 +67,7 @@
                  ;; Logging
                  [com.taoensso/timbre "6.5.0"]
 
-                 [fi.vm.sade/auditlogger "8.2.0-SNAPSHOT"]
+                 [fi.vm.sade/auditlogger "9.2.7-SNAPSHOT"]
                  [fi.vm.sade.java-utils/java-http "1.0.1-SNAPSHOT"]
                  [fi.vm.sade.java-utils/java-properties "1.0.0-SNAPSHOT"]
                  [jakarta.servlet/jakarta.servlet-api "6.0.0"]
