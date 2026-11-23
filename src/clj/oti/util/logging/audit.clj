@@ -68,9 +68,9 @@
           (.setField "id" (str id))
           (.setField "participant" (get participant :oidHenkilo))
           (.setField "message" msg))
-        changes (.build (doto (Changes$Builder.)
-          (.removed removed)
-          (.added added)))]
+        changes (.build (cond-> (Changes$Builder.)
+          (some? removed) (.removed ^com.google.gson.JsonElement removed)
+          (some? added)   (.added ^com.google.gson.JsonElement added)))]
     (when-not (nil? ids)
       (doseq [[k v] ids]
         (-> targetBuilder (.setField (name k) (str v)))))
